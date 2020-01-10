@@ -5,8 +5,8 @@
 \title{Maximum-Likelihood Estimation of a Poisson-GP Model}
 \usage{
 MLE.poisGP(object = NULL, parIni = NULL, estim = c("optim", "nloptr",
-  "none"), coefLower = c(scale = 0, shape = -0.99), coefUpper = c(scale
-  = Inf, shape = 2), parTrack = FALSE, trace = 0)
+  "eval", "none"), coefLower, coefUpper, parTrack = FALSE,
+  scale = FALSE, trace = 0)
 }
 \arguments{
 \item{object}{A \code{poisGP} object that needs to be estimated.}
@@ -34,10 +34,10 @@ data.
 }
 \details{
 The estimation proceeds by minimising a concentrated (or profile)
-negative log-likelihood which depends on the two GPD parameters
-but not on the Poisson rate. However the negative log-likelihood
-function is built and returned because it will be used to derive
-profile-likelihood inference results.
+negative log-likelihood which depends on the two GPD parameters,
+but not on the Poisson rate. However the standard (non-profile)
+negative log-likelihood function is built and returned because it
+will be used to derive profile-likelihood inference results.
 }
 \author{
 Yves Deville

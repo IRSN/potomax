@@ -156,8 +156,7 @@ negLogLikFunCD <- function(thetaGP, object) {
 }
 
 ## *****************************************************************************
-##' Negative log-likelihood function for a
-##' \code{poisGP} object.
+##' Negative log-likelihood function for a \code{poisGP} object.
 ##' 
 ##' @title Negative Log-Likelihood Function for a \code{poisGP} Object
 ##'
@@ -185,77 +184,137 @@ negLogLikFunCD <- function(thetaGP, object) {
 ##' log-likelihoods across packages. This is also true for AIC and BIC
 ##' criteria.
 ##'
-negLogLikFun <- function(theta, object, deriv = TRUE) {
+negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
     
     lambda <- theta[1]
     scale <- theta[2]
     shape <- theta[3]
+
+    if (lambda < 0.0) stop("negative value of 'lambda'")
+    if (scale < 0.0) stop("negative value of 'scale'")
     
     negLogL <- 0
-    if (deriv) grad <- array(0.0, dim = c(1L, 3L))
+    if (deriv) {
+        grad <- array(0.0, dim = c(1L, 3L))
+        if (hessian) {
+            hess <- array(0.0, dim = c(1L, 3L, 3L))
+        }
+    }
     
     fd <-   object$fitData
-
     Cst <- 0
     
     if (fd[["OT"]]$flag) {
 
-        lw <- lambda * fd[["OT"]]$effDuration
-        negLogL  <- negLogL - fd[["OT"]]$n * log(lw) + lw
-        Cst <- Cst - fd[["OT"]]$n * (1 - log(fd[["OT"]]$effDuration))
+        n <- fd[["OT"]]$n
+        w <- fd[["OT"]]$effDuration
+        lw <- lambda * w
+        negLogL  <- negLogL - n * log(lw) + lw
+        Cst <- Cst - fd[["OT"]]$n * (1 - log(w))
         
         if (deriv) {
-            grad[1L] <- grad[1L] + fd[["OT"]]$effDuration - fd[["OT"]]$n / lambda
+            grad[1L, 1L] <- grad[1L, 1L] - n / lambda + w
+            if (hessian) {
+                hess[1L, 1L, 1L] <- hess[1L, 1L, 1L] + 
+                    n / lambda / lambda
+            }
         }
+        
+        ## ====================================================================
         ## second term GP density. Note that it can be the case that
         ## no observation exist over the threshold.
+        ## ====================================================================
+        
         if (fd[["OT"]]$n > 0) {
+
             ldens <- dGPD2(x = fd[["OT"]]$data, scale = scale, shape = shape,
-                           log = TRUE, deriv = deriv)
+                           log = TRUE, deriv = deriv, hessian = hessian)
             negLogL  <- negLogL - sum(ldens)
+            
             if (deriv) {
-                grad[2:3] <- grad[2:3] - apply(attr(ldens, "gradient"), 2, sum)
+                grad[1L, 2L:3L] <- grad[1L, 2L:3L] -
+                    apply(attr(ldens, "gradient"), 2L, sum)
+                if (hessian) {
+                    hess[1L, 2L:3L, 2L:3L] <-  hess[1L, 2L:3L, 2L:3L] -
+                        apply(attr(ldens, "hessian"), 2L:3L, sum)
+                }
             }
         }
     }
+
+    ## ========================================================================
+    ## Note that this could be coded more efficiently because log(w)
+    ## and log(lw) are both computed 
+    ## ========================================================================
     
     for (nm in c("MAX", "OTS")) {
         
         if (fd[[nm]]$flag) {
             
-            ## first term
-            lw <- lambda * fd[[nm]]$effDuration
-            negLogL <- negLogL - sum(fd[[nm]]$r * log(lw))
-            if (deriv) grad[1] <- grad[1] - sum(fd[[nm]]$r) / lambda
-            Cst <- Cst - fd[[nm]]$r * (1 - log(fd[[nm]]$effDuration))
+            ## 1-st term
+            r <- fd[[nm]]$r
+            rSum <- sum(r)
+            w <- fd[[nm]]$effDuration
+            lw <- lambda * w
+            negLogL <- negLogL - sum(r * log(lw))
+            if (deriv) {
+                grad[1L] <- grad[1L] - rSum / lambda 
+                if (hessian) {
+                    hess[1L, 1L, 1L] <- hess[1L, 1L, 1L] + 
+                        rSum / lambda / lambda
+                }
+            }
+            Cst <- Cst - sum(fd[[nm]]$r * (1 - log(w)))
             
-            ## second term: GP survival
+            ## 2-nd term: GP survival
             S <- pGPD2(q = fd[[nm]]$threshold, scale = scale, shape = shape,
-                       deriv = TRUE, lower.tail = FALSE)
+                       deriv = TRUE, hessian = hessian, lower.tail = FALSE)
             negLogL <- negLogL + sum(lw * S)
 
             if (deriv) {
-                grad[1] <- grad[1] + sum(fd[[nm]]$effDuration * S)
-                grad[2:3] <- grad[2:3] + crossprod(lw, attr(S, "gradient"))
+                grad[1L] <- grad[1L] + sum(w * S) 
+                grad[2L:3L] <- grad[2L:3L] + crossprod(lw, attr(S, "gradient"))
+                if (hessian) {
+                    ##  2nd order derivative w.r.t. 'lambda' and 'thetaGP'
+                    hess[1L, 1L, 2L:3L] <- hess[1L, 1L, 2L:3L] +
+                        crossprod(w, attr(S, "gradient"))
+                    hess[1L, 2L:3L, 1L] <- hess[1L, 1L, 2L:3L]
+                    ## 2nd order derivatives w.r.t. 'thetaGP' and 'thetaGP'
+                    hess[1L, 2L:3L, 2L:3L] <- hess[1L, 2L:3L, 2L:3L] + lambda *
+                        apply(attr(S, "hessian"), MARGIN = 2L:3L,
+                              function(x) crossprod(w, x))
+                }
             }
             
-            ## third term GP density
-            if (sum(fd[[nm]]$r) > 0) { 
+            ## 3-rd term: GP density
+            if (rSum > 0) { 
                 ldens <- dGPD2(x = unlist(fd[[nm]]$data),
                                scale = scale, shape = shape,
-                               deriv = TRUE, log = TRUE)
+                               deriv = TRUE, hessian = hessian, log = TRUE)
                 negLogL <- negLogL - sum(ldens)
                 if (deriv) {
-                    grad[2:3] <- grad[2:3] -
-                        apply(attr(ldens, "gradient"), 2, sum) 
+                    grad[1L, 2L:3L] <- grad[1L, 2L:3L] -
+                        apply(attr(ldens, "gradient"), MARGIN = 2L, sum)
+                    if (hessian) {
+                        hess[1L, 2L:3L, 2L:3L] <- hess[1L, 2L:3L, 2L:3L] -
+                            apply(attr(ldens, "hessian"), MARGIN = 2L:3L, sum)
+                    }
                 }
             }
         }
         
     }
     
-    if (deriv) attr(negLogL, "gradient") <- grad
-    negLogL + Cst
+    if (deriv) {
+        attr(negLogL, "gradient") <- grad
+        if (hessian) {
+            attr(negLogL, "hessian") <- hess
+        }
+    }
+
+    ## cat("XXX Cst = ", Cst, "\n")
+    
+    negLogL ## + Cst
      
 }
 
@@ -264,10 +323,10 @@ negLogLikFun <- function(theta, object, deriv = TRUE) {
 ##' data.
 ##'
 ##' The estimation proceeds by minimising a concentrated (or profile)
-##' negative log-likelihood which depends on the two GPD parameters
-##' but not on the Poisson rate. However the negative log-likelihood
-##' function is built and returned because it will be used to derive
-##' profile-likelihood inference results.
+##' negative log-likelihood which depends on the two GPD parameters,
+##' but not on the Poisson rate. However the standard (non-profile)
+##' negative log-likelihood function is built and returned because it
+##' will be used to derive profile-likelihood inference results.
 ##' 
 ##' @title Maximum-Likelihood Estimation of a Poisson-GP Model
 ##'
@@ -291,28 +350,34 @@ negLogLikFun <- function(theta, object, deriv = TRUE) {
 ##' 
 ##' @author Yves Deville
 ##' 
-MLE.poisGP <- function(object= NULL, 
+MLE.poisGP <- function(object = NULL, 
                        parIni = NULL,
-                       estim = c("optim", "nloptr", "none"),
-                       coefLower = c("scale" = 0.0, "shape" = -0.99),
-                       coefUpper = c("scale" = Inf, "shape" = 2.0),
+                       estim = c("optim", "nloptr", "eval", "none"),
+                       coefLower, ##  = c("scale" = 0.0, "shape" = -0.99),
+                       coefUpper, ## = c("scale" = Inf, "shape" = 2.0),
                        parTrack =  FALSE,
+                       scale = FALSE,
                        trace = 0) {
 
     estim <-  match.arg(estim)
        
-    cvg <- TRUE
-    res <- list()
+    res <- list(cvg = TRUE)
 
     if (estim == "optim") {
         
-        res$fit <- try(optim(par = parIni,
-                             fn = negLogLikFunC,
+        ## ====================================================================
+        ## When `estim` is "optim" we use the standard BFGS algorithm,
+        ## with no gradient, so `deriv` is FALSE.
+        ## ====================================================================
+
+        res$df <- 3
+        
+        ctrl <- list(maxit = 3000, trace = trace)
+        if (!scale)  ctrl[["parscale"]] <- c("scale" = object$scaleData, "shape" = 1)
+        
+        res$fit <- try(optim(par = parIni, fn = negLogLikFunC,
                              deriv = FALSE,
-                             method = "BFGS",
-                             control = list(maxit = 3000, trace = trace,
-                                 parscale = c(1000, 1)),
-                             ## hessian = TRUE,
+                             method = "BFGS", control = ctrl,
                              object = object))
 
         if (!inherits(res$fit, "try-error")) {
@@ -321,12 +386,24 @@ MLE.poisGP <- function(object= NULL,
                 res$estimate <- estimate
                 res$negLogLik <- res$fit$value
             } else {
-                cvg <- FALSE
+                res$cvg <- FALSE
             }
         }
-            
+
+        eval <- res$cvg
+        
     } else if (estim == "nloptr") {
         
+        ## ====================================================================
+        ## When `estim` is "nloptr" we use the BFGS algorithm with
+        ## gradient. The result returned by the function must be a
+        ## list. We can use box contraints on the parameters.
+        ## ====================================================================
+
+        if (trace) {
+            cat("\nUsing the \"NLOPT_LD_BFGS\" algorithm with derivatives.\n")
+        }
+   
         opts <- list("algorithm" = "NLOPT_LD_LBFGS",
                      "xtol_rel" = 1.0e-8,
                      "xtol_abs" = 1.0e-8,
@@ -337,34 +414,39 @@ MLE.poisGP <- function(object= NULL,
         ## XXX caution! this works when the shape is constant only!!!
         p <- object$p - 1
         
-        lb <- rep(c("scale" = -Inf, "shape" = -Inf))
+        lb <- rep(c("scale" = 0.0, "shape" = -Inf))
            
         if (length(coefLower)) {
-            lm <- match(names(coefLower), names(lb))
-            if ((length(lm) != length(coefLower)) ||
-                any(is.na(lm))) {
+            lmatch <- match(names(coefLower), names(lb))
+            if ((length(lmatch) != length(coefLower)) || any(is.na(lmatch))) {
                 stop("when given, 'coefLower' must be a named vector ",
                      "with suitable element names")
             }
-            lb[lm] <- coefLower
-        } 
+            lb[lmatch] <- coefLower
+        }
         
+        if (scale) lb["scale"] <-  lb["scale"] / object$scaleData
         ub <- rep(c("scale" = Inf, "shape" = Inf))
         
         if (length(coefUpper)) {
-            um <- match(names(coefUpper), names(ub))
-            if ((length(um) != length(coefUpper)) ||
-                any(is.na(lm))) {
+            umatch <- match(names(coefUpper), names(ub))
+            if ((length(umatch) != length(coefUpper)) || any(is.na(umatch))) {
                 stop("when given, 'coefUpper' must be a named vector ",
                      "with suitable element names")
             }
-            ub[lm] <- coefUpper
+            ub[umatch] <- coefUpper
         }
-
+        if (scale) ub["scale"] <-  ub["scale"] / object$scaleData
+   
+        dfred <- sum(lb == ub)
+        res$df <- 3 - dfred
         
         if (trace) {
-            cat("Initial values 'parIni', bounds 'lb' and 'ub'\n")
+            cat("\nInitial values 'x0' and bounds 'lb' and 'ub'\n")
             print(cbind(parIni = parIni, lb = lb, ub = ub))
+            if (dfred) {
+                cat("\nNumber of degree of freedom: ", object$df, "\n") 
+            }
         }
         
         res$fit <- try(nloptr(x0 = parIni,
@@ -387,48 +469,114 @@ MLE.poisGP <- function(object= NULL,
                 res$estimate <- estimate
                 res$negLogLik <- res$fit$objective
             } else {
-                cvg <- FALSE
+                res$cvg <- FALSE
             }
         }
+        eval <- res$cvg
+        
+    } else if (estim == "eval") {
+
+        res$df <- 0
+        
+        ## ====================================================================
+        ## When `estim` is "eval": if a valid vector of GP parameters
+        ## is provided in 'parIni', we will find the corresponding
+        ## Poisson rate, compute the log-likelihood and its
+        ## derivatives. This is nearly what would be done by
+        ## specifying two identical vectors in 'coefLower' and
+        ## 'coefUpper'.
+        ## ====================================================================
+
+        if (is.null(parIni)) {
+            eval <- FALSE
+        } else if ((length(parIni) == 2) && (all.equal(names(parIni),
+                             c("scale", "shape")))) {
+            eval <- TRUE
+            res$estimate <- parIni
+        }
+
+        warning("\nNo optimisation performed. Inference results can be misleading.\n")
+        res$cvg <- FALSE
         
     }
-    
-    if (!cvg) {
-        warning("convergence not reached in optimisation")
-        estimate <- rep(NA, object$p)
-        names(estimate) <- object$parNames
-        res$negLogLik <- NA
-        res$estimate <- estimate
-        res$logLik <- NA
-    } else {
 
-        res$logLik <- -res$negLogLik
+    if (estim != "eval") {
+        if (!res$cvg) {
+            warning("\nConvergence not reached in optimisation.\n")
+            estimate <- rep(NA, object$p)
+            names(estimate) <- object$parNames
+            res$negLogLik <- NA
+            res$estimate <- estimate
+            res$logLik <- NA
+            
+        } else {
+            if (trace) {
+                cat("Optimisation results\n")
+                print(res)
+            }       
+        }
+    }
 
-        if (trace) {
-            cat("Optimisation results\n")
-            print(res)
+    if (eval) {
+        
+        ## ====================================================================
+        ## Find the estimated rate and compute the minimised negative
+        ## log-likelihood with its gradient and hessian.
+        ## ====================================================================
+        
+        .lambdaHat <- lambdaHat(thetaGP = res$estimate, object = object,
+                                log = FALSE)
+        res$estimate <- c("lambda" = .lambdaHat, res$estimate)
+        
+        if (FALSE) {
+            res$hessianCheck <- optimHess(par = res$estimate,
+                                          fn = negLogLikFun,
+                                          deriv = FALSE,
+                                          object = object)
+            ## ## alternative method
+            ## res$hessian <- numDeriv::hessian(func = negLogLikFun,
+            ##                                  x = res$estimate, deriv = FALSE,
+            ##                                  object = object)
+            
+            res$gradCheck <- numDeriv::grad(func = negLogLikFun,
+                                       x = res$estimate,
+                                       deriv = FALSE,
+                                       object = object)
+
         }
 
-        
-        ## ## compute Hessian. 
-        ## res$hessian <- numDeriv::hessian(func = negLogLikFun,
-        ##                                  x = res$estimate, deriv = FALSE,
-        ##                                  object = object)
+        finalEval <- negLogLikFun(theta = res$estimate, object = object,
+                                  deriv = TRUE, hessian = TRUE)
 
-        .lambdaHat <- lambdaHat(thetaGP = res$estimate, object = object, log = FALSE)
-        res$estimate <- c("lambda" = .lambdaHat, res$estimate) 
-        res$hessian <- optimHess(par = res$estimate,
-                                 fn = negLogLikFun,
-                                 deriv = FALSE,
-                                 object = object)
+        res$hessian <- drop(attr(finalEval, "hessian"))
+        res$gradNegLogLik <- drop(attr(finalEval, "gradient"))
+
+        colnames(res$hessian) <- rownames(res$hessian) <-
+            names(res$gradNegLogLik) <- object$parNames
         
-        vcov <- try(solve(res$hessian), silent = TRUE)
+        attr(finalEval, "gradient") <- attr(finalEval, "hessian") <- NULL
+        res$logLik <- -finalEval
+        res$negLogLik <- finalEval
         
-        if (!inherits(vcov, "try-error")) {
-            rownames(vcov) <- colnames(vcov) <- object$parNames
-            res$vcov <- vcov
-            res$sd <- sqrt(diag(vcov))
-        }
+        res$cov <- try(solve(res$hessian))
+        if (inherits(res$cov, "try-error") || (rev(eigen(res$cov)$value)[1] < 0.0)) { 
+            res$cov <- array(NA, dim = c(3, 3))
+        } 
+        rownames(res$cov) <- colnames(res$cov) <- object$parNames
+        res$sd <- sqrt(diag(res$cov))
+        
+        ## ====================================================================
+        ## Find the 'PP' parameters using the POT2GEV transformation
+        ## ====================================================================
+
+        estPP <- Renext::Ren2gev(res$estimate, threshold = object$threshold)
+        covPP <- attr(estPP, "jacobian") %*% res$cov %*% t(attr(estPP, "jacobian"))
+        attr(estPP, "jacobian") <- attr(estPP, "threshold") <- NULL
+        res$PP <- list(estimate = estPP,
+                       cov = covPP,
+                       sd = sqrt(diag(covPP)))
+        
+        
     }
     
     if (parTrack) {
@@ -440,7 +588,7 @@ MLE.poisGP <- function(object= NULL,
                  negLogLik = apply(tpsi, 1, negLogLikFun, deriv = FALSE,
                      object = object))
     }
-    
+        
     res
     
     

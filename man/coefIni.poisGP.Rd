@@ -4,7 +4,7 @@
 \alias{coefIni.poisGP}
 \title{Initial Estimates for a \code{poisGP} Model}
 \usage{
-\method{coefIni}{poisGP}(object, ...)
+\method{coefIni}{poisGP}(object, trace = 0, ...)
 }
 \arguments{
 \item{object}{A \code{poisGP} object the parameters of which need

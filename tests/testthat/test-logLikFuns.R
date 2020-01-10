@@ -85,3 +85,17 @@ gradNum <- grad(func = negLogLikFun, x = coAll, object = fitp,
 test_that(desc = "Check the gradient of 'logLikFun",
           expect_lt(max(abs(gradNum - attr(nll, "gradient"))), 1e-4))
 
+## ============================================================================
+## Now let us check the Hessian, only for 'negLogLikFun'. The relative
+## error for a Hessian will usually be greater thant for a gradient.
+## ============================================================================
+
+coAll <- coef(fitR)  + sqrt(diag(vcov(fitR))) * runif(3)
+nll <- negLogLikFun(theta = coAll, object = fitp, deriv = TRUE, hessian = TRUE)
+hessNum <- hessian(func = negLogLikFun, x = coAll, object = fitp,
+                   deriv = FALSE)
+hess <- drop(attr(nll, "hessian"))
+err <- (hess - hessNum) ## / abs(hess)
+
+test_that(desc = "Check the Hessian of 'logLikFun'",
+          expect_lt(max(abs(err)), 1e-4))

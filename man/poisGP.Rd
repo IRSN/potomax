@@ -7,8 +7,8 @@
 poisGP(data = NULL, threshold, effDuration, MAX.data = NULL,
   MAX.effDuration = NULL, OTS.data = NULL, OTS.threshold = NULL,
   OTS.effDuration = NULL, parIni = NULL, estim = c("optim", "nloptr",
-  "none"), coefLower = c(scale = 0, shape = -0.9), coefUpper = c(scale
-  = Inf, shape = Inf), trace = 0)
+  "eval", "none"), coefLower = c(scale = 0, shape = -0.9),
+  coefUpper = c(scale = Inf, shape = Inf), scale = FALSE, trace = 0)
 }
 \arguments{
 \item{data}{A vector containing the observations for the "main" sample.}
@@ -25,6 +25,9 @@ observations for the block, where \eqn{r>0} can vary across
 blocks. When a numeric vector is passed instead of a list, it is
 understood that there is only one MAX block.}
 
+\item{MAX.effDuration}{A vector of positive numbers giving the
+durations of the MAX blocks (in the same order).}
+
 \item{OTS.data}{A list of numeric vectors corresponding to periods
 or \emph{blocks}. Each vector contains all observations for the
 block which exceeded the corresponding threshold as given in
@@ -37,6 +40,9 @@ thresholds of the OTS blocks (in the same order). By construction
 all the elements of \code{OTS.data[i]} are larger than
 \code{OTS.threshol[i]} for each block index \code{i}.}
 
+\item{OTS.effDuration}{A vector of positive numbers giving the
+durations of the OTS blocks (in the same order).}
+
 \item{parIni}{A named parameter vector. This will be used to set
 the values if \code{estim} is \code{"none"} or to provide initial
 values in the other cases. When \code{parIni} is \code{NULL} the
@@ -48,19 +54,23 @@ by devoted function.}
 
 \item{coefLower, coefUpper}{Named vectors of bounds for the
 parameters. The values can be infinite \code{Inf} or \code{-Inf}.
-However, note that without bounds on the shape parameter \eqn{xi} the
-maximum likelihood is infinite and obtained for \eqn{xi = -1}.}
+However, note that without bounds on the shape parameter \eqn{xi}
+the maximum likelihood is infinite and obtained for \eqn{xi =
+-1}. Note also that the bounds are ignored when \code{estim}
+is set to \code{"optim"}.}
+
+\item{scale}{Logical. If \code{TRUE} the observations in
+\code{data}, \code{MAX.data} and \code{OTS.data} are all divided
+by a common positive number in order to avoid numerical
+problems. This number is returned as the \code{scaleData} element
+of the returned list. Except from the numerical problems, the
+value of the scale does not impact the results such as the
+estimates of their covariance.}
 
 \item{trace}{Integer level of verbosity.}
-
-\item{MAX.duration}{A vector of positive numbers giving the
-durations of the MAX blocks (in the same order).}
-
-\item{OTS.duration}{A vector of positive numbers giving the
-durations of the OTS blocks (in the same order).}
 }
 \value{
-A list with among which
+A list with among which the following objects are found
 
 \item{data}{
 
@@ -81,15 +91,58 @@ the data vectors.
 \description{
 Create a Poisson-GP model object, usually by ML estimation.
 }
-\examples{
+\details{
+The
+\itemize{
+\item{\code{estim = "optim"}}{
 
+The classical \code{stats::optim} function is used with
+\code{method ="BFGS"}. The derivatives are not used and nor do the
+bounds on the parameters given in \code{coefLower} and
+\code{coefUpper}.
+
+}
+\item{\code{estim = "nloptr"}}{
+
+The \code{nloptr::nloptr} function is used with the
+\code{"NLOPT_LD_BFGS"} algorithm option. The derivatives are used
+as well as the bounds on the parameters, leading to "box
+constraints". The bounds can be used to fix the value of a GP
+parameter by using the same value in \code{coefLower} and
+\code{coefUpper}. For instance an exponential distribution can be
+fitted by using a zero value for the shape both in
+\code{coefLower} and \code{coefUpper}.
+
+}
+\item{\code{estim = "eval"}}{
+
+No optimisation is performed: the rate \code{lambda} corresponding
+to the provided GP parameters is computed and the negative
+log-likelihood and its first derivatives are evaluated, allowing
+the determination of a (putative) covariance matrix for the
+estimates. The named vector \code{parIni} should then contain
+values for the Poisson-GP parameters, and valid values for the GP
+parameters \code{"scale"} and \code{"shape"}. This possibility can
+be used to check the results provided by other packages, e.g. to
+recompute return levels. Note however that the provided parameters
+may not be approximately maximising the likelihood and the
+corresponding results will then be misleading.
+
+}
+
+\item{\code{estim = "none"}}{
+
+No optimisation is performed. The log-likelihood and negative
+log-likelihoods remain NA, and the initial values are ignored.
+
+}}
+}
+\examples{
 fit <- poisGP(data = Garonne$OTdata$Flow, threshold = 2900,
               effDuration = 65,
               MAX.data = Garonne$MAXdata$Flow,
               MAX.effDuration = 143,
               estim = "none")
-
-
 
 }
 \author{

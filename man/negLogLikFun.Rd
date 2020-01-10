@@ -4,7 +4,7 @@
 \alias{negLogLikFun}
 \title{Negative Log-Likelihood Function for a \code{poisGP} Object}
 \usage{
-negLogLikFun(theta, object, deriv = TRUE)
+negLogLikFun(theta, object, deriv = TRUE, hessian = FALSE)
 }
 \arguments{
 \item{theta}{Parameter vector Poisson rate and GP parameters.}
@@ -23,8 +23,7 @@ columns corresponding to the parameters \code{lambda},
 \code{scale} and \code{shape}.
 }
 \description{
-Negative log-likelihood function for a
-\code{poisGP} object.
+Negative log-likelihood function for a \code{poisGP} object.
 }
 \section{Caution}{
  The negative log-likelihood is computed \emph{up

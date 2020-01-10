@@ -2,7 +2,7 @@
 % Please edit documentation in R/dataManip.R
 \name{threshData}
 \alias{threshData}
-\title{Select the Observations Over a Threshod within
+\title{Select the Observations Over a Threshold within
 Heterogeneous Data.}
 \usage{
 threshData(threshold = NULL, data, scale = FALSE)

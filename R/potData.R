@@ -1,21 +1,26 @@
 ## ****************************************************************************
-##' Check and structure data to define a Poisson-GP model.
+##' Structured data to define a Poisson-GP model.
 ##'
 ##' As opposed to what is done in \strong{Renext}, no 'main' threshold
-##' is used here, because the data need to be checked \emph{before}
-##' being censured using the threshold. So the MAX or OTS blocks can
+##' is used here. The data is understood as \emph{before} being
+##' censured using any 'main' threshold. So the MAX or OTS blocks can
 ##' later be used with any 'main' threshold, even if they contain
 ##' observations and thresholds that are smaller than the main
 ##' threshold.
 ##'
-##' @title Check and Structure the data Provided to Define a
-##' Poisson-GP Model.
+##' @title Structured Data Used to Define a Poisson-GP Model
 ##'
+##' @usage
+##' 
+##' potData(data = NULL, effDuration = NULL,
+##'         MAX.data = NULL, MAX.effDuration = NULL,
+##'         OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL)
+##' 
 ##' @param data A numeric vector containing the observations for the
 ##' main sample. If \code{NULL}, the main sample is assumed to be
 ##' absent.
 ##'
-##' @param effDuration  Duration of the main sample. 
+##' @param effDuration Duration of the main sample. 
 ##'
 ##' @param MAX.data A numeric vector or list of numeric vectors
 ##' containing the observations for the \code{MAX} blocks.
@@ -32,8 +37,11 @@
 ##' @param OTS.effDuration A numeric vector containing the durations for
 ##' the OTS blocks.
 ##' 
-##' @return A list with the element given on input checked and
-##' suitably named.
+##' @return An object with class \code{"potDATA"}, essentially a list
+##' with the elements given on input checked and suitably named.
+##'
+##' @seealso \code{\link{autolayer.potData}} and
+##' \code{\link{autolayer.potData}}.
 ##'
 ##' @examples
 ##' 
@@ -170,24 +178,25 @@ potData <- function(data = NULL, effDuration = NULL,
 ## ****************************************************************************
 ##' Return Periods for a \code{potData} object.
 ##' 
-##' @title Return Periods for a \code{potData} object.
+##' @title Return Periods for a \code{potData} Object
 ##'
+##' @method RP potData
+##' 
 ##' @param object A \code{potData} object.
 ##' 
 ##' @param points Type of plotting positions to use: \code{ppoints} or
 ##' code Nelson's positions.
 ##'
-##' @param a Passed to \code{link{ppoints}} when the value
+##' @param a Passed to \code{\link{ppoints}} when the value
 ##' \code{points} is \code{"p"}. Ignored else.
 ##'
-##' @param defNames Not used.
-##'
-##' @param ... 
+##' @param ... Not used yet.
 ##'
 ##' @return A data frame.
 ##'
-##' @examples
+##' @seealso \code{\link{potData}}.
 ##' 
+##' @examples
 ##' pdat <- potData(data = Garonne$OTdata$Flow,
 ##'                 effDuration = 65,
 ##'                 MAX.data = Garonne$MAXdata$Flow,
@@ -195,9 +204,7 @@ potData <- function(data = NULL, effDuration = NULL,
 ##' L <- RP(pdat)
 ##' 
 RP.potData <- function(object,
-                       points = c("p", "H"),
-                       a = 0.5,
-                       defNames = FALSE,
+                       points = c("p", "H"), a = 0.5,
                        ...) {
 
     points <- match.arg(points)

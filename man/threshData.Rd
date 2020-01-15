@@ -3,17 +3,26 @@
 \name{threshData}
 \alias{threshData}
 \title{Select the Observations Over a Threshold within
-Heterogeneous Data.}
+Heterogeneous Data provided as a \code{potData} object}
 \usage{
 threshData(threshold = NULL, data, scale = FALSE)
 }
 \arguments{
-\item{threshold}{A "main" threshold used to select the
+\item{threshold}{The "main" threshold used to select the
 observations in each block.}
 
 \item{data}{A list with elements "OT", "MAX" and "OTS". Each
 sublist contains a \code{flag} logical element a \code{data}
 vector or list and a numeric \code{duration}.}
+
+\item{scale}{Logical. If \code{TRUE} the excesses over the
+threshold will all be scaled by dividing them by a common "round"
+positive number. This is intended to avoid numerical problems
+during optimisation. Note that the round scaling number (a power of
+10) is always computed and returned as the \code{"scale"}
+attribute of the result. Even though the data are not scaled this
+number can be used in the \code{optim} function to set the
+\code{parScale} element of the \code{control} list.}
 }
 \value{
 A list which is comparable to \code{data} but with the
@@ -24,9 +33,11 @@ discarded and the number \code{r} is changed accordingly.
 }
 \description{
 Select the observations over the given threshold within
-heterogeneous data. The data possibly contain OT, MAX and OTS
-blocks. The data can optionally be scaled using a scale that is
-attached to the result as an attribute.
+heterogeneous data provided as a \code{potData} object. The data
+possibly contain OT, MAX and OTS blocks. The data can optionally
+be scaled using a scale that is attached to the result as an
+attribute. This function is rather technical and should normally
+to be needed by the user.
 }
 \details{
 When \code{scale} is \code{TRUE}, a suitable scale (a positive
@@ -34,21 +45,29 @@ number) is chosen as a power of \code{10} and is used to divide
 the exceedances over \code{threshold}. This can in some cases
 avoid numerical problems.
 }
+\note{
+The 'main' threshold can exceed the threshold of some OTS
+blocks and it can also exceed some observations in a MAX block of
+\code{data}. In the later case the MAX block will be turned into
+an OTS block with its threshold set to the main threshold; it can
+then non longer have any observations if the main threshold
+exceeds all the observations of the original MAX block.
+}
 \examples{
 set.seed(123)
 myData <-
-    checkPoisGPData(data = rexp(50), duration = 50,
-                    MAX.effDuration = c(25, 10),
-                    MAX.data = list("MAX1" = tail(sort(rexp(20))),
-                                    "MAX2" = tail(sort(rexp(12))),
-                    OTS.effDuration = c(30, 65, 200),
-                    OTS.threshold = c(1.8, 3.2, 5.0))
-                    OTS.data = list("OTS1" = 1.8 + rexp(5),
-                                    "OTS2" = 3.2 + rexp(3),
-                                    "OTS3" = 5.0 + rexp(2)))
+    potData(data = rexp(50), effDuration = 50,
+            MAX.effDuration = c(25, 10),
+            MAX.data = list("MAX1" = tail(sort(rexp(20))),
+                            "MAX2" = tail(sort(rexp(12)))),
+            OTS.effDuration = c(30, 65, 200),
+            OTS.threshold = c(1.8, 3.2, 5.0),
+            OTS.data = list("OTS1" = 1.8 + rexp(5),
+                            "OTS2" = 3.2 + rexp(3),
+                            "OTS3" = 5.0 + rexp(2)))
 myData2 <- threshData(threshold = 4, data = myData, scale = FALSE)
 
 }
 \seealso{
-\code{link{check}}
+\code{link{potData}}.
 }

@@ -1,1 +1,51 @@
-exportPattern("^[[:alpha:]]+")
+useDynLib(potomax, .registration = TRUE)
+
+import(Renext)
+
+## data manip
+importFrom("methods", "is")
+importFrom("dplyr", "filter")
+importFrom("tidyr", "gather")
+import(ggplot2)
+importFrom("reshape2", "melt")
+
+## optimisation
+import("nloptr")
+
+## graphics
+import(graphics)
+import(ggplot2)
+importFrom("scales", "trans_new")
+
+## stats
+import("stats", except = c("filter"))
+
+export(RL, RP,
+       dGPD2, pGPD2, qGPD2, rGPD2,
+       potData, threshData,
+       poisGP)
+
+## ============================================================================
+## Class "potData" : Similar to Rendata
+## ============================================================================
+
+S3method(autolayer, "potData")
+S3method(RP, "potData")
+
+## ============================================================================
+## Class "poisGP" : Poisson-GP by Maximum-Likelihood
+## ============================================================================
+
+S3method(coef, "poisGP")
+S3method(vcov, "poisGP")
+S3method(confint, "poisGP")
+S3method(RL, "poisGP")
+S3method(summary, "poisGP")
+S3method(print, "summary.poisGP")
+S3method(autoplot, "poisGP")
+S3method(RL, "poisGP")
+S3method(autoplot, "RL.poisGP")
+S3method(autoplot, "RL.poisGPList")
+S3method(autoplot, "confintCheck.poisGP")
+
+

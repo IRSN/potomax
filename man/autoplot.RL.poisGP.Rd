@@ -8,12 +8,13 @@
 }
 \arguments{
 \item{object}{An object of class \code{"RL.poisGP"}. It inherits
-from \code{data.frame} and has columns c}
+from \code{data.frame} and has columns containing the quantiles
+and confidence limits.}
 
 \item{...}{Not used yet.}
 }
 \value{
-A ggplot graphic object.
+A ggplot graphics object.
 }
 \description{
 Autoplot method for objects of class \code{"RL.poisGP"}

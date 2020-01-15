@@ -168,6 +168,11 @@ negLogLikFunCD <- function(thetaGP, object) {
 ##' @param deriv Logical. Should the gradient be computed and be
 ##' returned as the \code{"gradient"} attribute of the result?
 ##'
+##' @param hessian Logical. If \code{TRUE} the Hessian is computed and
+##' returned as the \code{"hessian"} attribute of the result. Note that
+##' \code{hessian} can be \code{TRUE} only when \code{deriv} is
+##' \code{TRUE}.
+##' 
 ##' @return The value of the negative log-likelihood. When
 ##' \code{deriv} is \code{TRUE} the result has an attribute named
 ##' \code{"gradient"} the value of which is a row matrix with three
@@ -177,7 +182,7 @@ negLogLikFunCD <- function(thetaGP, object) {
 ##' @section Caution: The negative log-likelihood is computed \emph{up
 ##' to a constant} which is unimportant in the optimisation and is
 ##' taken to be zero in the \emph{concentrated} version as computed by
-##' \code{\link{negLogLikFunC}}, which actually is the worhorse of the
+##' \code{\link{negLogLikFunC}}, which actually is the workhorse of the
 ##' estimation. This maintains a compatibility with the log-likelihood
 ##' as computed by \code{Renext::Renouv} but not with that arising
 ##' from other packages. So please be careful when comparing
@@ -330,6 +335,19 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##' 
 ##' @title Maximum-Likelihood Estimation of a Poisson-GP Model
 ##'
+##' @method MLE poisGP
+##' 
+##' @usage
+##'
+##' \method{MLE}{poisGP}(object = NULL,
+##'     parIni = NULL,
+##'     estim = c("optim", "nloptr", "eval", "none"),
+##'     coefLower, ##  = c("scale" = 0.0, "shape" = -0.99),
+##'     coefUpper, ## = c("scale" = Inf, "shape" = 2.0),
+##'     parTrack =  FALSE,
+##'     scale = FALSE,
+##'     trace = 0)  
+##'
 ##' @param object A \code{poisGP} object that needs to be estimated.
 ##'
 ##' @param parIni Initial values for the parameter vector.
@@ -340,6 +358,10 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##' parameters.
 ##'
 ##' @param parTrack Not used yet.
+##'
+##' @param scale Logical. If \code{TRUE} the data used in the
+##' optimisation are scaled , see \code{\link{threshData}}. NOT
+##' IMPLEMENTED YET.
 ##'
 ##' @param trace Integer Level of verbosity.
 ##'
@@ -579,15 +601,15 @@ MLE.poisGP <- function(object = NULL,
         
     }
     
-    if (parTrack) {
-        tpsi <-  matrix(trackEnv$psi, ncol = object$p,
-                                byrow = TRUE)
-        colnames(tpsi) <- object$parNames
-        res$tracked <-
-            list(psi = tpsi,
-                 negLogLik = apply(tpsi, 1, negLogLikFun, deriv = FALSE,
-                     object = object))
-    }
+    ## if (parTrack) {
+    ##     tpsi <-  matrix(trackEnv$psi, ncol = object$p,
+    ##                             byrow = TRUE)
+    ##     colnames(tpsi) <- object$parNames
+    ##     res$tracked <-
+    ##         list(psi = tpsi,
+    ##              negLogLik = apply(tpsi, 1, negLogLikFun, deriv = FALSE,
+    ##                  object = object))
+    ## }
         
     res
     

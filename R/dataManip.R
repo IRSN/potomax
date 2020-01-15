@@ -1,8 +1,10 @@
 ## ****************************************************************************
 ##' Select the observations over the given threshold within
-##' heterogeneous data. The data possibly contain OT, MAX and OTS
-##' blocks. The data can optionally be scaled using a scale that is
-##' attached to the result as an attribute.
+##' heterogeneous data provided as a \code{potData} object. The data
+##' possibly contain OT, MAX and OTS blocks. The data can optionally
+##' be scaled using a scale that is attached to the result as an
+##' attribute. This function is rather technical and should normally
+##' to be needed by the user.
 ##'
 ##' When \code{scale} is \code{TRUE}, a suitable scale (a positive
 ##' number) is chosen as a power of \code{10} and is used to divide
@@ -10,35 +12,51 @@
 ##' avoid numerical problems.
 ##' 
 ##' @title Select the Observations Over a Threshold within
-##' Heterogeneous Data.
+##' Heterogeneous Data provided as a \code{potData} object
 ##'
-##' @param threshold A "main" threshold used to select the
+##' @param threshold The "main" threshold used to select the
 ##' observations in each block.
 ##'
 ##' @param data A list with elements "OT", "MAX" and "OTS". Each
 ##' sublist contains a \code{flag} logical element a \code{data}
 ##' vector or list and a numeric \code{duration}.
 ##'
+##' @param scale Logical. If \code{TRUE} the excesses over the
+##' threshold will all be scaled by dividing them by a common "round"
+##' positive number. This is intended to avoid numerical problems
+##' during optimisation. Note that the round scaling number (a power of
+##' 10) is always computed and returned as the \code{"scale"}
+##' attribute of the result. Even though the data are not scaled this
+##' number can be used in the \code{optim} function to set the
+##' \code{parScale} element of the \code{control} list.
+##' 
 ##' @return A list which is comparable to \code{data} but with the
 ##' observations below the threshold removed, and the related
 ##' information changed. For instance if \code{threshold} is greater
 ##' that some observations in a \code{"MAX"} block, these are
 ##' discarded and the number \code{r} is changed accordingly.
 ##'
-##' @seealso \code{link{check}}
+##' @note The 'main' threshold can exceed the threshold of some OTS
+##' blocks and it can also exceed some observations in a MAX block of
+##' \code{data}. In the later case the MAX block will be turned into
+##' an OTS block with its threshold set to the main threshold; it can
+##' then non longer have any observations if the main threshold
+##' exceeds all the observations of the original MAX block.
+##' 
+##' @seealso \code{link{potData}}.
 ##' 
 ##' @examples
 ##' set.seed(123)
 ##' myData <-
-##'     checkPoisGPData(data = rexp(50), duration = 50,
-##'                     MAX.effDuration = c(25, 10),
-##'                     MAX.data = list("MAX1" = tail(sort(rexp(20))),
-##'                                     "MAX2" = tail(sort(rexp(12))),
-##'                     OTS.effDuration = c(30, 65, 200),
-##'                     OTS.threshold = c(1.8, 3.2, 5.0))
-##'                     OTS.data = list("OTS1" = 1.8 + rexp(5),
-##'                                     "OTS2" = 3.2 + rexp(3),
-##'                                     "OTS3" = 5.0 + rexp(2)))
+##'     potData(data = rexp(50), effDuration = 50,
+##'             MAX.effDuration = c(25, 10),
+##'             MAX.data = list("MAX1" = tail(sort(rexp(20))),
+##'                             "MAX2" = tail(sort(rexp(12)))),
+##'             OTS.effDuration = c(30, 65, 200),
+##'             OTS.threshold = c(1.8, 3.2, 5.0),
+##'             OTS.data = list("OTS1" = 1.8 + rexp(5),
+##'                             "OTS2" = 3.2 + rexp(3),
+##'                             "OTS3" = 5.0 + rexp(2)))
 ##' myData2 <- threshData(threshold = 4, data = myData, scale = FALSE)
 ##' 
 threshData <- function(threshold = NULL, data, scale = FALSE) {

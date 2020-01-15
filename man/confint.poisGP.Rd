@@ -2,21 +2,36 @@
 % Please edit documentation in R/confint.R
 \name{confint.poisGP}
 \alias{confint.poisGP}
-\title{Confidence Intervals for a \code{TVGEV} Object}
+\title{Confidence Intervals for a \code{poisGP} Object}
 \usage{
-\method{confint}{poisGP}(object, parm = NULL, level = 0.95,
-  method = c("delta", "proflik"), trace = 1L, round = TRUE,
-  out = c("array", "data.frame"), ...)
+\method{confint}{poisGP}(object, parm, level = 0.95,
+        method = c("delta", "proflik"),
+        nSigma = 4,
+        trace = 1L,
+        round = TRUE,
+        out = c("array", "data.frame"),
+        check = TRUE, nCheck = 50,
+        ...)
 }
 \arguments{
-\item{object}{An object with class \code{"TVGEV"}.}
+\item{object}{An object with class \code{"poisGP"}.}
 
-\item{parm}{Parameter name. NOT USED YET.}
+\item{parm}{Not used yet.}
 
-\item{level}{Confidence level.}
+\item{level}{Confidence level(s).}
 
-\item{method}{\code{"delta"}, \code{"proflik"},
-\code{"boot"}.}
+\item{method}{Character: \code{"delta"} leads to the delta method
+and \code{"proflik"} to the profile-likelihood.}
+
+\item{nSigma}{Used only when \code{check} is \code{TRUE}. It
+defines the interval around the ML estimate where the profile
+log-likelihood will be evaluated in order to build a curve
+allowing a check of the results. The value of \code{nSigma}
+defines the number of standard deviation for the current parameter
+that will be used. If needed an an asymmetric interval can be
+defined by using two numbers e.g. \code{c(3, 5)} if it is expected
+that the confidence intervals spread more on the right side of the
+estimates tans they do on the left side.}
 
 \item{trace}{Integer level of verbosity.}
 
@@ -24,34 +39,55 @@
 rounded to a small number of digits. This number is chosen using the
 smallest of the standard deviations for the estimated parameters.}
 
-\item{out}{Character giving the class of the output. By default a
-three-dimensional array with dimensions: \emph{parameter},
-\emph{lower/upper} limit, and \emph{level}. If \code{level} has length
-\code{1}, using \code{drop} on the output will remove the third dimension
-and produce a matrix. The \code{"data.frame"} gives the same results
-in \code{'long'} format.}
+\item{out}{Character giving the class of the output. By default
+this is a three-dimensional array with dimensions:
+\emph{parameter}, \emph{lower/upper} limit, and \emph{level}. If
+\code{level} has length \code{1}, using \code{drop} on the output
+will remove the third dimension and produce a matrix. The
+\code{"data.frame"} gives the same results in "long
+format".}
 
-\item{...}{Arguments to be passed to the \code{profLik} or to the
-\code{bs} method. For instance, they can be used to chose the type
-of bootstrap or the number of bootstrap replications if
-\code{method} is \code{"boot"}.}
+\item{check}{Logical. If \code{TRUE} the function return results
+intended to be used in a graphical check of the confidence limits
+and taking the form of a list of two data frames. The first data
+frame contains evaluations of the profile-negative log-likelihood
+for each of the three parameters in order to draw
+profile-likelihood curves. The second one contains the confidence
+bounds in "long format".}
+
+\item{nCheck}{Number of evaluations of the profile log-likelihood if
+\code{check} is \code{TRUE}.}
+
+\item{...}{Not used yet.}
 }
 \value{
-An array or a data frame with the lower and upper bounds
-\code{"L"} and \code{"U"} of the confidence intervals.
+When \code{check} is \code{FALSE}, an array or a data
+frame containing the lower and upper bounds \code{"L"} and
+\code{"U"} of the confidence intervals. When \code{check} is
+\code{TRUE} a list of two data frames which is given the class
+\code{"confintCheck"} is order to use the \code{autoplot} method
+that is implemented for this class.
 }
 \description{
-Confidence intervals for a \code{TVGEV} object
-}
-\note{
-For the bootstrap method(s), the time required depends on
-whether \code{object} embeds a bootstrap distribution or not. When
-no bootstrap distribution is found, it has to be computed using
-the \code{bs} method; the formal arguments that are given in
-\code{\dots} and intended to be used by \code{bs} will then be
-ignored with a warning.
+Confidence intervals for a \code{poisGP} object
 }
 \examples{
+## Maybe could we use a 'potMax object here?
+fit <- poisGP(data = Garonne$OTdata$Flow,
+              effDuration = Garonne$OTinfo$effDuration,
+              MAX.data = list("hist" = Garonne$MAXdata$Flow),
+              MAX.effDuration = Garonne$MAXinfo$duration,
+              threshold = 2800)
 
+confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
+               nSigma = 3, check = TRUE, trace = 0)
+autoplot(cic) + theme_gray()
 
+}
+\seealso{
+\code{\link{RL.poisGP}} for the computation of the return
+levels with confidence intervals,
+\code{\link{autoplot.confintCheck.poisGP}} for the graphical check of the
+results.
 }

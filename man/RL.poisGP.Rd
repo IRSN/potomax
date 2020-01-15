@@ -2,12 +2,18 @@
 % Please edit documentation in R/RLpoisGP.R
 \name{RL.poisGP}
 \alias{RL.poisGP}
-\title{Return Levels and Confidence Intervals for Poisson-GP Model}
+\title{Return Levels and Confidence Intervals for a Poisson-GP Model}
 \usage{
-\method{RL}{poisGP}(object, period = NULL, level = 0.7,
+\method{RL}{poisGP}(
+  object,
+  period = NULL,
+  level = 0.7,
   confintMethod = c("delta", "none", "boot", "proflik"),
-  out = c("data.frame", "array"), biasCorrect = FALSE, trace = 1L,
-  ...)
+  out = c("data.frame", "array"),
+  biasCorrect = FALSE,
+  trace = 1L,
+  ...
+)
 }
 \arguments{
 \item{object}{An object with class \code{poisGPML} representing
@@ -44,14 +50,14 @@ model with ML inference results.
 \details{
 The return level curve corresponding to the column or to the
 dimension named \code{"Quant"} is obtained by plugging the ML
-estimate of the poisson-GP parameters in the quantile. To a
+estimate of the Poisson-GP parameters in the quantile. To a
 certain extension, this can be compared to a Bayesian MAP when a
 flat prior is used. However this is not exactly the case because
-the ML Estimate is invariant under reparameterising, while a flat
+the ML Estimate is invariant under re-parameterising, while a flat
 prior refers to a specific parameterisation, hence so does the
 corresponding MAP. The profile-likelihood is obtained by using a
 specific algorithm based on constrained optimisation, and not on
-the usual method of re-parameterisartion with quantiles.
+the usual method of re-parameterisation with quantiles.
 }
 \author{
 Yves Deville

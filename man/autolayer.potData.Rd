@@ -2,15 +2,26 @@
 % Please edit documentation in R/ggplotStuff.R
 \name{autolayer.potData}
 \alias{autolayer.potData}
-\title{Draw a ggplot Layer for a \code{potData} object.}
+\title{Draw a ggplot Layer for a \code{potData} object}
 \usage{
-\method{autolayer}{potData}(object, type = c("RLplot", "timeplot"),
-  group, points = c("p", "H"), a = 0.5, ...)
+\method{autolayer}{potData}(object,
+          type = c("RLplot", "timeplot"),
+          group,
+          points = c("p", "H"), a = 0.5,
+          ...)
 }
 \arguments{
 \item{object}{A \code{potData} object.}
 
 \item{type}{Type of plot wanted.}
+
+\item{group}{Character with value in \code{"block"} or
+\code{"source"}. In the first case the color and the shape of the
+points depend on the block. In the second case the color and the
+shape depend on the type or source of the block: \code{"OT"},
+\code{"MAX"} and \code{"OTS"}. By default the value of
+\code{group} is chosen to be \code{"block"} when the number of
+block is small enough and \code{"source"} otherwise.}
 
 \item{points}{Type of plotting positions to be used for a RL
 plot. See \code{\link{RP.potData}}.}
@@ -24,7 +35,12 @@ plot. See \code{\link{RP.potData}}.}
 A ggplot layer.
 }
 \description{
-Draw a ggplo layer for a \code{potData} object.
+Draw a ggplot layer for a \code{potData} object.
+}
+\note{
+The user might have change the colour and the shape of the
+points by using \code{scale_colour_manual} and
+\code{scale_shape_manual}.
 }
 \examples{
 pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
@@ -35,4 +51,8 @@ pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
                 MAX.data = list("hist" = Garonne$MAXdata$Flow),
                 MAX.effDuration = 143)
 ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
+}
+\seealso{
+\code{\link{potData}}, \code{\link[ggplot2]{scale_colour_manual}} and
+\code{\link[ggplot2]{scale_shape_manual}}.
 }

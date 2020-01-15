@@ -14,7 +14,7 @@ to some "quantiles" values.}
 }
 \value{
 An object inheriting from the \code{"data.frame"} class
-contining the return periods.
+containing the return periods.
 }
 \description{
 Return periods associated with chosen quantiles.

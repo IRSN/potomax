@@ -1,16 +1,38 @@
 ##*****************************************************************************
-##' Confidence intervals for a \code{TVGEV} object
+##' Confidence intervals for a \code{poisGP} object
 ##'
-##' @title Confidence Intervals for a \code{TVGEV} Object
-##' 
-##' @param object An object with class \code{"TVGEV"}.
+##' @title Confidence Intervals for a \code{poisGP} Object
 ##'
-##' @param parm Parameter name. NOT USED YET.
+##' @method confint poisGP
 ##' 
-##' @param level Confidence level.
+##' @usage 
+##' \method{confint}{poisGP}(object, parm, level = 0.95,
+##'         method = c("delta", "proflik"),
+##'         nSigma = 4,
+##'         trace = 1L,
+##'         round = TRUE,
+##'         out = c("array", "data.frame"),
+##'         check = TRUE, nCheck = 50,
+##'         ...) 
 ##' 
-##' @param method \code{"delta"}, \code{"proflik"},
-##' \code{"boot"}.
+##' @param object An object with class \code{"poisGP"}.
+##'
+##' @param parm Not used yet.
+##' 
+##' @param level Confidence level(s).
+##' 
+##' @param method Character: \code{"delta"} leads to the delta method
+##' and \code{"proflik"} to the profile-likelihood.
+##' 
+##' @param nSigma Used only when \code{check} is \code{TRUE}. It
+##' defines the interval around the ML estimate where the profile
+##' log-likelihood will be evaluated in order to build a curve
+##' allowing a check of the results. The value of \code{nSigma}
+##' defines the number of standard deviation for the current parameter
+##' that will be used. If needed an an asymmetric interval can be
+##' defined by using two numbers e.g. \code{c(3, 5)} if it is expected
+##' that the confidence intervals spread more on the right side of the
+##' estimates tans they do on the left side.
 ##' 
 ##' @param trace Integer level of verbosity.
 ##' 
@@ -18,43 +40,71 @@
 ##' rounded to a small number of digits. This number is chosen using the
 ##' smallest of the standard deviations for the estimated parameters.
 ##'
-##' @param out Character giving the class of the output. By default a
-##' three-dimensional array with dimensions: \emph{parameter},
-##' \emph{lower/upper} limit, and \emph{level}. If \code{level} has length
-##' \code{1}, using \code{drop} on the output will remove the third dimension
-##' and produce a matrix. The \code{"data.frame"} gives the same results
-##' in \code{'long'} format.
+##' @param out Character giving the class of the output. By default
+##' this is a three-dimensional array with dimensions:
+##' \emph{parameter}, \emph{lower/upper} limit, and \emph{level}. If
+##' \code{level} has length \code{1}, using \code{drop} on the output
+##' will remove the third dimension and produce a matrix. The
+##' \code{"data.frame"} gives the same results in "long
+##' format".
 ##' 
-##' @param ... Arguments to be passed to the \code{profLik} or to the
-##' \code{bs} method. For instance, they can be used to chose the type
-##' of bootstrap or the number of bootstrap replications if
-##' \code{method} is \code{"boot"}.
+##' @param check Logical. If \code{TRUE} the function return results
+##' intended to be used in a graphical check of the confidence limits
+##' and taking the form of a list of two data frames. The first data
+##' frame contains evaluations of the profile-negative log-likelihood
+##' for each of the three parameters in order to draw
+##' profile-likelihood curves. The second one contains the confidence
+##' bounds in "long format".
 ##'
-##' @return An array or a data frame with the lower and upper bounds
-##' \code{"L"} and \code{"U"} of the confidence intervals.
+##' @param nCheck Number of evaluations of the profile log-likelihood if
+##' \code{check} is \code{TRUE}.
 ##'
-##' @note For the bootstrap method(s), the time required depends on
-##' whether \code{object} embeds a bootstrap distribution or not. When
-##' no bootstrap distribution is found, it has to be computed using
-##' the \code{bs} method; the formal arguments that are given in
-##' \code{\dots} and intended to be used by \code{bs} will then be
-##' ignored with a warning.
+##' @param ... Not used yet.
 ##'
+##' @return When \code{check} is \code{FALSE}, an array or a data
+##' frame containing the lower and upper bounds \code{"L"} and
+##' \code{"U"} of the confidence intervals. When \code{check} is
+##' \code{TRUE} a list of two data frames which is given the class
+##' \code{"confintCheck"} is order to use the \code{autoplot} method
+##' that is implemented for this class.
+##'
+##' @seealso \code{\link{RL.poisGP}} for the computation of the return
+##' levels with confidence intervals,
+##' \code{\link{autoplot.confintCheck.poisGP}} for the graphical check of the
+##' results.
+##' 
 ##' @examples
-##'
+##' ## Maybe could we use a 'potMax object here?
+##' fit <- poisGP(data = Garonne$OTdata$Flow,
+##'               effDuration = Garonne$OTinfo$effDuration,
+##'               MAX.data = list("hist" = Garonne$MAXdata$Flow),
+##'               MAX.effDuration = Garonne$MAXinfo$duration,
+##'               threshold = 2800)
+##' 
+##' confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+##' cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
+##'                nSigma = 3, check = TRUE, trace = 0)
+##' autoplot(cic) + theme_gray()
 ##' 
 confint.poisGP <- function(object,
-                           parm = NULL, 
+                           parm, 
                            level = 0.95,
                            method = c("delta", "proflik"),
+                           nSigma = 4,
                            trace = 1L,
                            round = TRUE,
                            out = c("array", "data.frame"),
+                           check = TRUE,
+                           nCheck = 50,
                            ...) {
-
-    out <- match.arg(out)
     
+    out <- match.arg(out)
     method <- match.arg(method)
+
+    if (check && out == "array") {
+        warning("Since 'check' is TRUE, 'out' set to \"data.frame\"")
+        out <- "data.frame"
+    } 
 
     ## take into account the order. 
     indLevel <- order(level)
@@ -79,9 +129,11 @@ confint.poisGP <- function(object,
         ci <- ci + cw
         
     } else if (method == "proflik") {
-
+        
+        nSigma <- rep(nSigma, length.out = 2L)
         prob <- 1 - level
         thetaHat <- object$estimate
+        sigHat <- object$sd
         ci <- array(NA, dim = c(object$p, 2L, nLevel),
                     dimnames = list(object$parNames, c("L", "U"), fLevel)) 
 
@@ -94,13 +146,13 @@ confint.poisGP <- function(object,
 
         opts1 <- list("algorithm" = "NLOPT_LD_AUGLAG",
                       "xtol_rel" = 1.0e-12,
-                      "ftol_abs" = 1.0e-6, "ftol_rel" = 1.0e-12,
+                      "ftol_abs" = 1.0e-12, "ftol_rel" = 1.0e-12,
                       "maxeval" = 8000,
                       "check_derivatives" = FALSE,
                       "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                           "xtol_rel" = 1.0e-12,
                           "maxeval" = 8000,
-                          "ftol_abs" = 1.0e-6,
+                          "ftol_abs" = 1.0e-12,
                           "ftol_rel" = 1.0e-12),
                       "print_level" = 0)
 
@@ -136,18 +188,12 @@ confint.poisGP <- function(object,
             ellL <- object$negLogLik + qchisq(level, df = 1) / 2.0
             res <- object$negLogLikFun(theta = theta, object = object,
                                        deriv = TRUE)
-
-            if (TRUE) {
-                res2 <- list("constraints" = res - ellL,
-                             "jacobian" = attr(res, "gradient"))
-            } else {
-                res2 <-  list("constraints" = 1,
-                              "jacobian" = rep(NaN, object$p))
-            }
+            res2 <- list("constraints" = res - ellL,
+                         "jacobian" = attr(res, "gradient"))
             res2 
             
         }
-
+        
         ## =====================================================================
         ## note that although we recompute the gradient of the
         ## objective and the quantile of the chi-square distribution,
@@ -155,12 +201,74 @@ confint.poisGP <- function(object,
         ## loop. Some experimentations would be needed to confirm
         ## this.
         ## =====================================================================
-       
+
+        
         for (k in 1L:object$p) {
             
             if (trace) cat(sprintf("\n\no Finding CI for \"%s\"\n", object$parNames[k]))
 
             ilevPrec <- 1L
+
+            if (check) {
+
+                thetaGridk <- seq(from = thetaHat[k] - nSigma[1L] * sigHat[k],
+                                  to = thetaHat[k] + nSigma[2L] * sigHat[k],
+                                  length.out = nCheck)
+                
+                negLogLikCk <- rep(NA, nCheck)
+                
+                negLogLikNok <- function(thetaNok, k, i) {
+                    theta <- rep(NA, 3)
+                    theta[-k] <- thetaNok
+                    theta[k] <- thetaGridk[i]
+                    ## cat("XXX", theta, "\n")
+                    if (all(is.finite(theta))) {
+                        negLogLikFun(theta, object = object, deriv = FALSE)
+                    } else {
+                        NaN
+                    }
+                }
+                
+                lb <- c(0, 0, -0.9)
+                ub <- c(Inf, Inf, 2)
+                
+                optsNok <- list("algorithm" = "NLOPT_LN_COBYLA",
+                                "xtol_rel" = 1.0e-8,
+                                "xtol_abs" = 1.0e-8,
+                                "ftol_abs" = 1e-5,
+                                "maxeval" = 1000, "print_level" = 0,
+                                "check_derivatives" = FALSE)
+                
+                for (ik in seq_along(thetaGridk)) {
+                    resk <-  try(nloptr(x0 = thetaHat[-k],
+                                        eval_f = negLogLikNok,
+                                        lb = lb[-k],
+                                        ub = ub[-k],
+                                        opts = optsNok,
+                                        k = k,
+                                        i = ik))
+                    
+                    if (!inherits(resk, "try-error")) {
+                        negLogLikCk[ik] <- resk$objective
+                    }
+                    
+                }
+
+                if (k == 1) {
+                    negLogLikC <- data.frame(Name = rep(object$parNames[k], nCheck),
+                                             Par = thetaGridk,
+                                             Value = negLogLikCk,
+                                             stringsAsFactors = FALSE)
+                    
+                } else {
+                    negLogLikC <-
+                        dplyr::bind_rows(negLogLikC,
+                                         data.frame(Name = rep(object$parNames[k], nCheck),
+                                                    Par = thetaGridk,
+                                                    Value = negLogLikCk,
+                                                    stringsAsFactors = FALSE)) 
+                }
+            }
             
             for (ilev in seq_along(level)) {
                 
@@ -181,17 +289,21 @@ confint.poisGP <- function(object,
                 } else {
                     theta0 <- thetaHat
                 }
+
+                ## if (k == 3) opts1$print_level <- 3
                 
                 resL <- try(nloptr::nloptr(x0 = theta0,
                                            eval_f = f,
                                            eval_g_ineq = g,
-                                           lb = c(0.1, 0, -0.90),
+                                           lb = c(0.0, 0, -0.90),
                                            ub = c(Inf, Inf, Inf),
                                            k = k, level = lev, chgSign = FALSE,
                                            opts = opts1,
                                            object = object),
                             silent = TRUE)
 
+                ## if (k == 3) opts1$print_level <- 0
+                
                 if (!inherits(resL, "try-error")) {
                     if (trace == 1L) {
                         cat(sprintf("%7.2f\n", resL[["objective"]])) 
@@ -204,20 +316,20 @@ confint.poisGP <- function(object,
                 }
                 
                 ## the constraint must be active
-                check <- g(resL$solution, object = object, k = k, level = lev)$constraints
+                check1 <- g(resL$solution, object = object, k = k, level = lev)$constraints
 
                 check2 <- object$negLogLikFun(theta = resL$solution,
                                               deriv = TRUE,
                                               object = object)
 
                 if (trace) {
-                    cat(sprintf("   Constraint check %10.7f, %10.4f\n", check, check2))
+                    cat(sprintf("   Constraint check %10.7f, %10.4f\n", check1, check2))
                     grad0 <- drop(attr(check2, "gradient"))
                     cat("   Grad : ", sprintf("%8.6f", grad0 / norm(grad0, type = "2")),
                         "\n\n")
                 }
                 
-                check <- (check > -1e-3)
+                check1 <- (check1 > -1e-3)
                 
                 if (!inherits(resL, "try-error") && (resL$status %in% c(3, 4))) {
                     thetaLPrec <- resL[["solution"]]
@@ -246,7 +358,7 @@ confint.poisGP <- function(object,
                 resU <- try(nloptr::nloptr(x0 = theta0,
                                            eval_f = f,
                                            eval_g_ineq = g,
-                                           lb = c(0.1, 0, -0.90),
+                                           lb = c(0.0, 0, -0.90),
                                            ub = c(Inf, Inf, Inf),
                                            k = k, level = lev, chgSign = TRUE,
                                            opts = opts1,
@@ -260,20 +372,20 @@ confint.poisGP <- function(object,
                 }
                 
                 ## the constraint must be active
-                check <- g(resU$solution, object = object, k = k, level = lev)$constraints
+                check1 <- g(resU$solution, object = object, k = k, level = lev)$constraints
 
                 check2 <- object$negLogLikFun(theta = resU$solution,
                                               deriv = TRUE, object = object)
 
                 if (trace) {
-                    cat(sprintf("   Constraint & value %10.7f, %10.4f\n", check, check2))
+                    cat(sprintf("   Constraint & value %10.7f, %10.4f\n", check1, check2))
                     grad0 <- drop(attr(check2, "gradient"))
                     cat("   Grad : ", sprintf("%7.5f", grad0 / norm(grad0, type = "2")),
                         "\n\n")
                 }
 
                 
-                check <- (check > -1e-3)
+                check1 <- (check1 > -1e-3)
                 
                 if (!inherits(resU, "try-error") && (resU$status %in% c(3, 4))) {
                     thetaUPrec <- resU[["solution"]]
@@ -284,8 +396,9 @@ confint.poisGP <- function(object,
                 
                 ilevPrec <- ilev
             }
+
         }
-   
+        
     }
 
     if (round && (!is.null(object$sd)) && (!any(is.na(object$sd)))) {
@@ -294,15 +407,30 @@ confint.poisGP <- function(object,
     }
     
     if (out == "data.frame") {
-    
-        ci <- array(ci, dim = c(object$p * nLevel, 2L),
-                    dimnames = list(rep(object$parNames, nLevel), c("L", "U")))
-        ci <- data.frame(parm = rep(object$parNames, times = nLevel),
-                         level = rep(fLevel, each = object$p),
-                         L = ci[ , "L"], U = ci[ , "U"])
+        
+        ci <- reshape2::melt(ci, value.name = "Value",
+                             varnames = c("Name", "LU", "Level"))
+        nll <- object$negLogLik + qchisq(level, df = 1) / 2.0
+        names(nll) <- fLevel
+        ci <- cbind(ci, NegLogLik = nll[as.character(ci$Level)])
     }
-    
-    ci 
+
+    if (check) {
+        
+        ciPlus <- data.frame(Name = object$parNames,
+                             LU = rep("est", 3),
+                             Level = rep("est", 3),
+                             Value = object$estimate,
+                             NegLogLik = rep(-object$logLik, 3))
+        
+        ci <- rbind(ci, ciPlus, deparse.level = 1)
+            
+        L <- list(ci = ci, negLogLikC = negLogLikC)
+        class(L) <- "confintCheck.poisGP"
+        L
+    } else {
+        ci
+    }
 }
 
 

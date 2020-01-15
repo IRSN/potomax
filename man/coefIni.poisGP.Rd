@@ -10,6 +10,8 @@
 \item{object}{A \code{poisGP} object the parameters of which need
 to be estimated.}
 
+\item{trace}{Integer level of verbosity.}
+
 \item{...}{Not used yet.}
 }
 \value{

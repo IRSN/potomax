@@ -4,11 +4,15 @@
 \alias{poisGP}
 \title{Create a Poisson-GP Model Object}
 \usage{
-poisGP(data = NULL, threshold, effDuration, MAX.data = NULL,
-  MAX.effDuration = NULL, OTS.data = NULL, OTS.threshold = NULL,
-  OTS.effDuration = NULL, parIni = NULL, estim = c("optim", "nloptr",
-  "eval", "none"), coefLower = c(scale = 0, shape = -0.9),
-  coefUpper = c(scale = Inf, shape = Inf), scale = FALSE, trace = 0)
+poisGP(data = NULL, threshold, effDuration,
+       MAX.data = NULL, MAX.effDuration = NULL,
+       OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL,
+       parIni = NULL,
+       estim = c("optim", "nloptr", "eval", "none"),
+       coefLower = c("scale" = 0.0, "shape" = -0.90),
+       coefUpper = c("scale" = Inf, "shape" = Inf),
+       scale = FALSE,
+       trace = 0)
 }
 \arguments{
 \item{data}{A vector containing the observations for the "main" sample.}
@@ -31,7 +35,7 @@ durations of the MAX blocks (in the same order).}
 \item{OTS.data}{A list of numeric vectors corresponding to periods
 or \emph{blocks}. Each vector contains all observations for the
 block which exceeded the corresponding threshold as given in
-\code{OTS.threshold}. So the number \eqn{r \eg 0} vary across
+\code{OTS.threshold}. So the number \eqn{r \geq 0} vary across
 blocks. When a numeric vector is passed instead of a list, it is
 understood that there is only one OTS block.}
 
@@ -54,8 +58,8 @@ by devoted function.}
 
 \item{coefLower, coefUpper}{Named vectors of bounds for the
 parameters. The values can be infinite \code{Inf} or \code{-Inf}.
-However, note that without bounds on the shape parameter \eqn{xi}
-the maximum likelihood is infinite and obtained for \eqn{xi =
+However, note that without bounds on the shape parameter \eqn{\xi}
+the maximum likelihood is infinite and obtained for \eqn{\xi =
 -1}. Note also that the bounds are ignored when \code{estim}
 is set to \code{"optim"}.}
 
@@ -95,15 +99,12 @@ Create a Poisson-GP model object, usually by ML estimation.
 The
 \itemize{
 \item{\code{estim = "optim"}}{
-
 The classical \code{stats::optim} function is used with
 \code{method ="BFGS"}. The derivatives are not used and nor do the
 bounds on the parameters given in \code{coefLower} and
 \code{coefUpper}.
-
 }
 \item{\code{estim = "nloptr"}}{
-
 The \code{nloptr::nloptr} function is used with the
 \code{"NLOPT_LD_BFGS"} algorithm option. The derivatives are used
 as well as the bounds on the parameters, leading to "box
@@ -112,10 +113,8 @@ parameter by using the same value in \code{coefLower} and
 \code{coefUpper}. For instance an exponential distribution can be
 fitted by using a zero value for the shape both in
 \code{coefLower} and \code{coefUpper}.
-
 }
 \item{\code{estim = "eval"}}{
-
 No optimisation is performed: the rate \code{lambda} corresponding
 to the provided GP parameters is computed and the negative
 log-likelihood and its first derivatives are evaluated, allowing
@@ -127,11 +126,8 @@ be used to check the results provided by other packages, e.g. to
 recompute return levels. Note however that the provided parameters
 may not be approximately maximising the likelihood and the
 corresponding results will then be misleading.
-
 }
-
 \item{\code{estim = "none"}}{
-
 No optimisation is performed. The log-likelihood and negative
 log-likelihoods remain NA, and the initial values are ignored.
 

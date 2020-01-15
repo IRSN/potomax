@@ -2,12 +2,11 @@
 % Please edit documentation in R/potData.R
 \name{potData}
 \alias{potData}
-\title{Check and Structure the data Provided to Define a
-Poisson-GP Model.}
+\title{Structured Data Used to Define a Poisson-GP Model}
 \usage{
-potData(data = NULL, effDuration = NULL, MAX.data = NULL,
-  MAX.effDuration = NULL, OTS.data = NULL, OTS.threshold = NULL,
-  OTS.effDuration = NULL)
+potData(data = NULL, effDuration = NULL,
+        MAX.data = NULL, MAX.effDuration = NULL,
+        OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL)
 }
 \arguments{
 \item{data}{A numeric vector containing the observations for the
@@ -32,16 +31,16 @@ for the OTS blocks.}
 the OTS blocks.}
 }
 \value{
-A list with the element given on input checked and
-suitably named.
+An object with class \code{"potDATA"}, essentially a list
+with the elements given on input checked and suitably named.
 }
 \description{
-Check and structure data to define a Poisson-GP model.
+Structured data to define a Poisson-GP model.
 }
 \details{
 As opposed to what is done in \strong{Renext}, no 'main' threshold
-is used here, because the data need to be checked \emph{before}
-being censured using the threshold. So the MAX or OTS blocks can
+is used here. The data is understood as \emph{before} being
+censured using any 'main' threshold. So the MAX or OTS blocks can
 later be used with any 'main' threshold, even if they contain
 observations and thresholds that are smaller than the main
 threshold.
@@ -53,4 +52,8 @@ potData(data = Garonne$OTdata$Flow,
         MAX.data = Garonne$MAXdata$Flow,
         MAX.effDuration = 143)
 
+}
+\seealso{
+\code{\link{autolayer.potData}} and
+\code{\link{autolayer.potData}}.
 }

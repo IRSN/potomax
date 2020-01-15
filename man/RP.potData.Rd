@@ -2,10 +2,9 @@
 % Please edit documentation in R/potData.R
 \name{RP.potData}
 \alias{RP.potData}
-\title{Return Periods for a \code{potData} object.}
+\title{Return Periods for a \code{potData} Object}
 \usage{
-\method{RP}{potData}(object, points = c("p", "H"), a = 0.5,
-  defNames = FALSE, ...)
+\method{RP}{potData}(object, points = c("p", "H"), a = 0.5, ...)
 }
 \arguments{
 \item{object}{A \code{potData} object.}
@@ -13,12 +12,10 @@
 \item{points}{Type of plotting positions to use: \code{ppoints} or
 code Nelson's positions.}
 
-\item{a}{Passed to \code{link{ppoints}} when the value
+\item{a}{Passed to \code{\link{ppoints}} when the value
 \code{points} is \code{"p"}. Ignored else.}
 
-\item{defNames}{Not used.}
-
-\item{...}{}
+\item{...}{Not used yet.}
 }
 \value{
 A data frame.
@@ -27,11 +24,13 @@ A data frame.
 Return Periods for a \code{potData} object.
 }
 \examples{
-
 pdat <- potData(data = Garonne$OTdata$Flow,
                 effDuration = 65,
                 MAX.data = Garonne$MAXdata$Flow,
                 MAX.effDuration = 143)
 L <- RP(pdat)
 
+}
+\seealso{
+\code{\link{potData}}.
 }

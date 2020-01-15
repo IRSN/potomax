@@ -2,24 +2,36 @@
 % Please edit documentation in R/ggplotStuff.R
 \name{autoplot.poisGP}
 \alias{autoplot.poisGP}
-\title{Autoplot Method for \code{poiGP} Objects}
+\title{Autoplot Method for \code{poisGP} Objects}
 \usage{
-\method{autoplot}{poisGP}(object, which = c("RL", "pp"),
-  points = c("H", "p", "none"), a = 0.5, allPoints = FALSE, ...)
+\method{autoplot}{poisGP}(object,
+         which = c("RL", "pp"),
+         points = c("H", "p", "none"), a = 0.5,
+         allPoints = FALSE,
+         ...)
 }
 \arguments{
 \item{object}{An object with class \code{"poisGP"}.}
 
+\item{which}{The type of plot to be built: \code{"RL"} is for a
+Return Level plot and \code{"pp"} is for a probability plot.}
+
 \item{points}{The plotting position system to be used to show the
 data attached to the object. When \code{points} is \code{"none"},}
 
-\item{a}{See \code{\link{RP.potData}}.}
+\item{a}{The parameter used to compute the plotting positions when
+\code{points} is \code{"p"}. See \code{\link{RP.potData}}.}
 
-\item{...}{}
+\item{allPoints}{Logical. With the default \code{FALSE}, the
+limits for the \code{y} axis are set to show only the points over
+the threshold. The value \code{TRUE} leads to showing all points
+in the data including those which are below the threshold.}
+
+\item{...}{Not used.}
 }
 \value{
-
+A ggplot graphics object.
 }
 \description{
-Autoplot method for objects representing fitted Poisson-Gp models.
+Autoplot method for objects representing fitted Poisson-GP models.
 }

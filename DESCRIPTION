@@ -4,11 +4,17 @@ Title: Peaks Over Threshold and/or Block Maxima
 Version: 0.0.1
 Author: Yves Deville <deville.yves@alpestat.com>
 Maintainer: Yves Deville <deville.yves@alpestat.com>
-Description: Estimation and inference for standard Peak Over Threshold (POT) 
-    models using heterogeneous data. The results can be formulated in 
-    relation with either the Poisson-GP or with the Point-Process formulation.
-License: What license is it under?
-Depends: nextpot, testthat
+Description: Estimation and inference for standard Peak Over Threshold
+    (POT) models using heterogeneous data. The results can be
+    formulated in relation with either the Poisson-GP or with the
+    Point-Process formulation. The classical block maxima and
+    r-largest frameworks can be coped with, and moreover the data can
+    in both cases be censored by discarding the observations below a
+    chosen threshold.
+License: GPL-3
+Depends: Renext, nloptr, ggplot2
+Imports: methods, scales, tidyr, dplyr, reshape2
+Suggests: numDeriv, testthat
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2.9000

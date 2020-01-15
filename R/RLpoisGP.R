@@ -4,16 +4,16 @@
 ##'
 ##' The return level curve corresponding to the column or to the
 ##' dimension named \code{"Quant"} is obtained by plugging the ML
-##' estimate of the poisson-GP parameters in the quantile. To a
+##' estimate of the Poisson-GP parameters in the quantile. To a
 ##' certain extension, this can be compared to a Bayesian MAP when a
 ##' flat prior is used. However this is not exactly the case because
-##' the ML Estimate is invariant under reparameterising, while a flat
+##' the ML Estimate is invariant under re-parameterising, while a flat
 ##' prior refers to a specific parameterisation, hence so does the
 ##' corresponding MAP. The profile-likelihood is obtained by using a
 ##' specific algorithm based on constrained optimisation, and not on
-##' the usual method of re-parameterisartion with quantiles.
+##' the usual method of re-parameterisation with quantiles.
 ##' 
-##' @title Return Levels and Confidence Intervals for Poisson-GP Model
+##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
 ##'
 ##' @param object An object with class \code{poisGPML} representing
 ##' the inference results for a Poisson-GP model.
@@ -87,12 +87,12 @@ RL.poisGP <- function(object,
     
     if (method == "none") {
         
-        RL <- array(NA, dim = c(Period = nPeriod),
-                    dimnames = list(Period = fPeriod))
+        RL <- array(NA, dim = c(Period = nPeriod, 1),
+                    dimnames = list(Period = fPeriod, "Quant"))
         diagno <- NULL
         
         for (iPer in seq_along(period)) {
-            RL[ , iPer] <- object$threshold +
+            RL[iPer, 1] <- object$threshold +
                 qGPD2(p = prob[iPer], scale = thetaHat[2], shape = thetaHat[3])
         }
         
@@ -167,30 +167,32 @@ RL.poisGP <- function(object,
                             Diag = c("status", "constraint", "gradDist")))
         
         ## ===================================================================
-        ## For each parameter, we maximise/minimise it under the constraint
-        ## that the logLik remains >= max logLik - delta where delta :=
-        ## qchisq(1 - alpha) where alpha is given by the cofidence level.
-        ##
+        ## For each parameter, we maximise / minimise it under the
+        ## constraint that the logLik remains >= max logLik - delta
+        ## where delta := qchisq(1 - alpha) where 'alpha' is given by
+        ## the confidence level.
         ## ===================================================================
 
         opts <- list()
         opts[[1]] <- list("algorithm" = "NLOPT_LD_MMA",
-                          "xtol_rel" = 1.0e-5,
-                          "ftol_abs" = 1.0e-7, "ftol_rel" = 1.0e-5,
+                          "xtol_rel" = 1.0e-12,
+                          "ftol_abs" = 1.0e-12,
+                          "ftol_rel" = 1.0e-12,
                           "maxeval" = 200,
                           "check_derivatives" = FALSE,
                           "print_level" = 0)
         
         opts[[2]] <- list("algorithm" = "NLOPT_LD_AUGLAG",
-                          "xtol_rel" = 1.0e-5,
-                          "ftol_abs" = 1.0e-7, "ftol_rel" = 1.0e-5,
+                          "xtol_rel" = 1.0e-12,
+                          "ftol_abs" = 1.0e-12,
+                          "ftol_rel" = 1.0e-12,
                           "maxeval" = 500,
                           "check_derivatives" = FALSE,
                           "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
-                              "xtol_rel" = 1.0e-5,
+                              "xtol_rel" = 1.0e-12,
                               "maxeval" = 1000,
-                              "ftol_abs" = 1.0e-7,
-                              "ftol_rel" = 1.0e-5),
+                              "ftol_abs" = 1.0e-12,
+                              "ftol_rel" = 1.0e-12),
                           "print_level" = 0)
         
         
@@ -255,7 +257,8 @@ RL.poisGP <- function(object,
         g <- function(theta, level, period, chgSign = FALSE, object) {
             
             ellL <- object$negLogLik + qchisq(level, df = 1) / 2.0
-            res <- object$negLogLikFun(theta = theta, object = object, deriv = TRUE)
+            res <- object$negLogLikFun(theta = theta, object = object,
+                                       deriv = TRUE)
             grad <- attr(res, "gradient")
             list("constraints" = res[[1]] - ellL,
                  "jacobian" = grad)
@@ -383,7 +386,7 @@ RL.poisGP <- function(object,
                                         chgSign = chgSign[LU],
                                         object = object)
                             
-                            gradDist <- NSGEV::distLines(x1 = checkg$jacobian,
+                            gradDist <- distLines(x1 = checkg$jacobian,
                                                          x2 = checkf$gradient)
                             
                             diagno[iPer, LU, iLev, "gradDist"] <- gradDist
@@ -391,7 +394,8 @@ RL.poisGP <- function(object,
                             if (trace) {
                                 cat(sprintf("        Constraint check %10.7f\n",
                                             checkg$constraints))
-                                cat(sprintf("        Gradient directions: %7.4f\n", gradDist))
+                                cat(sprintf("        Gradient directions: %7.4f\n",
+                                            gradDist))
                                 if (trace == 2) {
                                     cat("        Gradients\n")
                                     print(rbind("        g" = checkg$jacobian,
@@ -437,8 +441,10 @@ RL.poisGP <- function(object,
         if (requireNamespace("reshape2", quietly = TRUE)) {
             
             if (method == "none") {
-                RL <- reshape2::melt(RL, value.name = "Quant",
-                                     varnames = c("Date", "Period"))
+                RL <-
+                    reshape2::melt(RL[ , 1, drop = FALSE],
+                                   value.name = "Quant",
+                                   varnames = c("Period"))[ , c("Period", "Quant")]
             } else {
                 ## ============================================================
                 ## UGGLY CODE: there must be a simpler and more
@@ -450,9 +456,10 @@ RL.poisGP <- function(object,
                 df <- list()
                 for (nm in c("Quant", "L", "U")) {
                     RL1 <- RL[ , nm, , drop = FALSE]
-                    df[[nm]]  <- reshape2::melt(RL1,
-                                                value.name = nm,
-                                                varnames = c("Period", "Type", "Level"))
+                    df[[nm]]  <-
+                        reshape2::melt(RL1,
+                                       value.name = nm,
+                                       varnames = c("Period", "Type", "Level"))
                 }
                 RL <- data.frame(df[["Quant"]][, c("Period", "Level", "Quant")],
                                  L = df[["L"]]$L, U = df[["U"]]$U)

@@ -14,6 +14,11 @@ estimation.}
 
 \item{deriv}{Logical. Should the gradient be computed and be
 returned as the \code{"gradient"} attribute of the result?}
+
+\item{hessian}{Logical. If \code{TRUE} the Hessian is computed and
+returned as the \code{"hessian"} attribute of the result. Note that
+\code{hessian} can be \code{TRUE} only when \code{deriv} is
+\code{TRUE}.}
 }
 \value{
 The value of the negative log-likelihood. When
@@ -29,7 +34,7 @@ Negative log-likelihood function for a \code{poisGP} object.
  The negative log-likelihood is computed \emph{up
 to a constant} which is unimportant in the optimisation and is
 taken to be zero in the \emph{concentrated} version as computed by
-\code{\link{negLogLikFunC}}, which actually is the worhorse of the
+\code{\link{negLogLikFunC}}, which actually is the workhorse of the
 estimation. This maintains a compatibility with the log-likelihood
 as computed by \code{Renext::Renouv} but not with that arising
 from other packages. So please be careful when comparing

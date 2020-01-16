@@ -35,7 +35,7 @@
 
 - Consistently with **Renext**, allow the ̀data` argument of `poisGP`
   to be of class `"potData"`, implying that the other arguments
-  `MAX*`and `OTS*` are left missing as well as `effDuration`.
+  `MAX*` and `OTS*` are left missing as well as `effDuration`.
 
 ## Data and examples
 

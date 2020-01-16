@@ -13,7 +13,7 @@ Description: Estimation and inference for standard Peak Over Threshold
     chosen threshold.
 License: GPL-3
 Depends: Renext, nloptr, ggplot2
-Imports: methods, scales, tidyr, dplyr, reshape2
+Imports: ismev, methods, scales, tidyr, dplyr, reshape2
 Suggests: numDeriv, testthat
 Encoding: UTF-8
 LazyData: true

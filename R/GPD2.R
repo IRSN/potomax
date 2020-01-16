@@ -6,6 +6,8 @@
 ##'
 ##' @name GPD2
 ##' @rdname GPD2
+##'
+##' @aliases pGPD2 qGPD2 rGPD2
 ##' 
 ##' @title Density, Distribution Function, Quantile Function and
 ##' Random Generation for the Two-Parameter Generalized Pareto
@@ -20,6 +22,8 @@
 ##'
 ##' qGPD2(p, scale = 1.0, shape = 0.0, lower.tail = TRUE,
 ##'       deriv = FALSE, hessian = FALSE)
+##' 
+##' rGPD2(n, scale = 1.0, shape = 0.0)
 ##' 
 ##' @param scale Scale parameter. Numeric vector with suitable length,
 ##' see \bold{Details}.
@@ -196,7 +200,6 @@ qGPD2 <- function (p, scale = 1.0, shape = 0.0, lower.tail = TRUE,
 
 }
 
-##' @rdname GPD2
 rGPD2 <- function (n, scale = 1.0, shape = 0.0) {
     
     if (any(is.na(scale)) || any(scale <= 0) || !all(is.finite(scale))) {

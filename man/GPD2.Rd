@@ -3,6 +3,8 @@
 \name{GPD2}
 \alias{GPD2}
 \alias{dGPD2}
+\alias{pGPD2}
+\alias{qGPD2}
 \alias{rGPD2}
 \title{Density, Distribution Function, Quantile Function and
 Random Generation for the Two-Parameter Generalized Pareto
@@ -17,7 +19,7 @@ pGPD2(q, scale = 1.0, shape = 0, lower.tail = TRUE,
 qGPD2(p, scale = 1.0, shape = 0.0, lower.tail = TRUE,
       deriv = FALSE, hessian = FALSE)
 
-rGPD2(n, scale = 1, shape = 0)
+rGPD2(n, scale = 1.0, shape = 0.0)
 }
 \arguments{
 \item{x, q}{Vector of quantiles.}
@@ -45,9 +47,9 @@ numeric array with dimension \code{c(n, 2, 2)} where \code{n} is
 the length of the first argument, i.e. \code{x}, \code{p} or
 depending on the function.}
 
-\item{n}{Sample size.}
-
 \item{p}{Vector of probabilities.}
+
+\item{n}{Sample size.}
 
 \item{lower.tail}{Logical; if \code{TRUE} (default), probabilities are
 P[X <= x], otherwise, P[X > x].}

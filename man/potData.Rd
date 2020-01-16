@@ -35,7 +35,8 @@ An object with class \code{"potDATA"}, essentially a list
 with the elements given on input checked and suitably named.
 }
 \description{
-Structured data to define a Poisson-GP model.
+Structured data that can be used to define a Poisson-GP model with
+ML estimation.
 }
 \details{
 As opposed to what is done in \strong{Renext}, no 'main' threshold

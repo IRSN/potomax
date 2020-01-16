@@ -3,7 +3,9 @@
 ##' Compute the ML estimate of the rate of the Poisson process given
 ##' the GPD parameters.
 ##'
-##' @title Compute the ML Estimate of the Rate
+##' @noRd
+##' 
+##' @title Compute the ML Estimate of the Rate Given the 
 ##'
 ##' @param thetaGP Parameter vector (GP part only).
 ##'
@@ -74,6 +76,8 @@ lambdaHat <- function(thetaGP, object, log = TRUE, deriv = TRUE) {
 ## *****************************************************************************
 ##' Concentrated (or profile) negative log-likelihood function for a
 ##' \code{poisGP} object.
+##'
+##' @noRd
 ##' 
 ##' @title Concentrated or Profile Negative Log-Likelihood Function
 ##' for a \code{poisGP} Object
@@ -157,6 +161,8 @@ negLogLikFunCD <- function(thetaGP, object) {
 
 ## *****************************************************************************
 ##' Negative log-likelihood function for a \code{poisGP} object.
+##'
+##' @noRd
 ##' 
 ##' @title Negative Log-Likelihood Function for a \code{poisGP} Object
 ##'
@@ -226,8 +232,9 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
         }
         
         ## ====================================================================
-        ## second term GP density. Note that it can be the case that
-        ## no observation exist over the threshold.
+        ## 2nd term: GP density. Note that it can be the case that
+        ## OT$flag is TRUE but no observation exist over the
+        ## threshold!
         ## ====================================================================
         
         if (fd[["OT"]]$n > 0) {
@@ -317,9 +324,9 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
         }
     }
 
-    ## cat("XXX Cst = ", Cst, "\n")
-    
-    negLogL ## + Cst
+    attr(negLogL, "Cst") <- Cst
+     
+    negLogL ## + Cst ???
      
 }
 
@@ -555,10 +562,6 @@ MLE.poisGP <- function(object = NULL,
                                           fn = negLogLikFun,
                                           deriv = FALSE,
                                           object = object)
-            ## ## alternative method
-            ## res$hessian <- numDeriv::hessian(func = negLogLikFun,
-            ##                                  x = res$estimate, deriv = FALSE,
-            ##                                  object = object)
             
             res$gradCheck <- numDeriv::grad(func = negLogLikFun,
                                        x = res$estimate,
@@ -569,14 +572,16 @@ MLE.poisGP <- function(object = NULL,
 
         finalEval <- negLogLikFun(theta = res$estimate, object = object,
                                   deriv = TRUE, hessian = TRUE)
-
+        
         res$hessian <- drop(attr(finalEval, "hessian"))
         res$gradNegLogLik <- drop(attr(finalEval, "gradient"))
-
+        res$Cst <- attr(finalEval, "Cst")
         colnames(res$hessian) <- rownames(res$hessian) <-
             names(res$gradNegLogLik) <- object$parNames
         
         attr(finalEval, "gradient") <- attr(finalEval, "hessian") <- NULL
+        attr(finalEval, "names") <- attr(finalEval, "Cst") <- NULL
+        
         res$logLik <- -finalEval
         res$negLogLik <- finalEval
         

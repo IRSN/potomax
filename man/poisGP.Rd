@@ -134,11 +134,67 @@ log-likelihoods remain NA, and the initial values are ignored.
 }}
 }
 \examples{
-fit <- poisGP(data = Garonne$OTdata$Flow, threshold = 2900,
+## =====================================================================
+## Use Garonne data from Renext
+## =====================================================================
+
+fit1p <- poisGP(data = Garonne$OTdata$Flow, threshold = 2900,
               effDuration = 65,
               MAX.data = Garonne$MAXdata$Flow,
-              MAX.effDuration = 143,
-              estim = "none")
+              MAX.effDuration = 143)
+fit1R <- Renouv(Garonne, threshold = 2900, distname.y = "GPD",
+                plot = FALSE)
+
+cbind(Renext = coef(fit1R), potomax = coef(fit1p))
+
+## CAUTION when comparing log-likelihoods, see ?logLik.poisGP
+cbind(Renext = logLik(fit1R), potomax = logLik(fit1p))
+
+## ==============================================================
+## Use the 'venice' data from the 'ismev' package. Contains
+## r-largest observations as a matrix with one row by year and NA.
+## So some transformations are needed. Note that first
+## of 'venice' must be removed, and that the 'venice' data from
+## the evd package may misleadingly be used instead.
+## ==============================================================
+
+rm(venice)
+data(venice, package = "ismev")
+MAX.data <- as.list(as.data.frame(t(venice[ , -1])))
+MAX.data <- lapply(MAX.data, function(x) x[!is.na(x)])
+MAX.effDuration <- rep(1, length(MAX.data))
+
+fit2i <- ismev::rlarg.fit(venice[ , -1])
+fit2R <- Renext::fGEV.MAX(MAX.data = MAX.data,
+                          MAX.effDuration = MAX.effDuration)
+fit2p <- poisGP(MAX.data = MAX.data,
+                MAX.effDuration = MAX.effDuration)
+
+## To compare the coefficients we must use the "PP" coefficients
+## of the poisGP object rather than the standard "poisGP"
+## coefficients.
+
+cbind("ismev" = fit2i$mle,
+      "Renext" = fit2R$estimate,
+      "potomax" = coef(fit2p, type = "PP"))
+
+## CAUTION when comparing log-likelihoods, see ?logLik.poisGP
+## We choose here the "PP" type which usually makes the result
+## comparable to those based on block maxima or on r-largest.
+
+cbind("ismev" = -fit2i$nllh,
+       "Renext" = fit2R$loglik,
+       "potomax" = logLik(fit2p, type = "PP"))
+
+autoplot(fit2p) + ggtitle("Venice r-largest")
+
+## Now censor the MAX data. This can not be done with the
+## other packages 
+fit3p <- poisGP(MAX.data = MAX.data,
+                MAX.effDuration = MAX.effDuration,
+                threshold = 100)
+coef(fit3p)
+autoplot(fit3p) + ggtitle("Venice r-largest with threshold 100 cm")
 
 }
 \author{

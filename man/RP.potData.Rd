@@ -18,10 +18,16 @@ code Nelson's positions.}
 \item{...}{Not used yet.}
 }
 \value{
-A data frame.
+A list with several elements. The element \code{data} is a
+data frame which contains the results needed to draw points at the
+computed plotting positions.
 }
 \description{
 Return Periods for a \code{potData} object.
+}
+\details{
+This is a refactoring of the \code{\link[Renext]{SandT}} function
+of the \strong{Renext} package.
 }
 \examples{
 pdat <- potData(data = Garonne$OTdata$Flow,
@@ -32,5 +38,6 @@ L <- RP(pdat)
 
 }
 \seealso{
-\code{\link{potData}}.
+\code{\link{potData}}, the \code{\link[Renext]{SandT}}
+function of \strong{Renext}.
 }

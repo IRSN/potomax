@@ -1,7 +1,7 @@
 useDynLib(potomax, .registration = TRUE)
 
 import(Renext)
-
+importFrom("ismev", "rlarg.fit")
 ## data manip
 importFrom("methods", "is")
 importFrom("dplyr", "filter")
@@ -38,6 +38,9 @@ S3method(RP, "potData")
 
 S3method(coef, "poisGP")
 S3method(vcov, "poisGP")
+S3method(logLik, "poisGP")
+S3method(AIC, "poisGP")
+S3method(BIC, "poisGP")
 S3method(confint, "poisGP")
 S3method(RL, "poisGP")
 S3method(summary, "poisGP")

@@ -4,14 +4,9 @@
 ##'
 ##' The return level curve corresponding to the column or to the
 ##' dimension named \code{"Quant"} is obtained by plugging the ML
-##' estimate of the Poisson-GP parameters in the quantile. To a
-##' certain extension, this can be compared to a Bayesian MAP when a
-##' flat prior is used. However this is not exactly the case because
-##' the ML Estimate is invariant under re-parameterising, while a flat
-##' prior refers to a specific parameterisation, hence so does the
-##' corresponding MAP. The profile-likelihood is obtained by using a
-##' specific algorithm based on constrained optimisation, and not on
-##' the usual method of re-parameterisation with quantiles.
+##' estimate of the Poisson-GP parameters in the quantile. The
+##' confidence limits can be obtained by profile-likelihood or by the
+##' standard 'delta' method.
 ##' 
 ##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
 ##'
@@ -21,7 +16,7 @@
 ##' @param period A vector of periods for which the return levels will
 ##' be computed.
 ##'
-##' @param level Level of confidence.
+##' @param level Level of confidence. Can be a vector.
 ##'
 ##' @param confintMethod The method used to compute the confidence
 ##' intervals.
@@ -29,10 +24,10 @@
 ##' @param out The type of outpout wanted, see the \strong{Value}
 ##' section.
 ##'
-##' @param biasCorrect Logical. Should bias correction be applied in
-##' bootstrap?
-##'
-##' @param trace Integer level of verbosity.
+##' @param trace Integer level of verbosity. The default value is
+##' \code{0}, but when \code{confintMethod} is \code{"proflik"}, it is
+##' a good practice to use \code{trace = 1}, so this may change in the
+##' future.
 ##'
 ##' @param ... Not used yet.
 ##'
@@ -42,16 +37,23 @@
 ##' \code{autoplot} method without recomputing the results.
 ##'
 ##' @author Yves Deville
+##'
+##' @seealso \code{\link{poisGP}} for an example.
 ##' 
 RL.poisGP <- function(object,
                       period = NULL,
                       level = 0.70,
-                      confintMethod = c("delta", "none", "boot", "proflik"),
+                      confintMethod = c("proflik", "delta", "none"),
                       out = c("data.frame", "array"),
-                      biasCorrect = FALSE,
-                        trace = 1L,
+                      trace = 0,
                       ...) {
-    
+
+    ## XXX CHANGE THE DEFAULT???
+    ## if (missing(trace)) {
+    ##     if (confintMethod = "proflik") trace <- 1
+    ##     else trace <- 0
+    ## }
+
     eps <-  1e-4
       
     out <- match.arg(out)
@@ -59,7 +61,7 @@ RL.poisGP <- function(object,
     thetaHat <- object$estimate
     
     if (is.null(period)) {
-        period <- c(1.1, 1.5, 2, 5, 10, 20, 50, 75, 100,
+        period <- c(0.1, 0.2, 0.5, 1.0,  1.1, 1.5, 2, 5, 10, 20, 50, 75, 100,
                     125, 150, 175, 200, 250, 300, 500, 700, 1000) 
     } else {
         period <- sort(period)
@@ -74,11 +76,7 @@ RL.poisGP <- function(object,
     fPeriod <- format(period)
     
     method <- match.arg(confintMethod)
-    if (!missing(biasCorrect) && (method != "boot")) {
-        warning("the argument 'biasCorrect' provided will not ",
-                "be used since 'confintMethod' != \"boot\"")
-    }
-        
+ 
     ## take into account the order. 
     indLevel <- order(level)
     level <- level[indLevel]
@@ -141,13 +139,7 @@ RL.poisGP <- function(object,
             RL[iPer, "U",  ] <- Quant[iPer] + outer(sdRL, q[ , 2L])
             
         }
-        
-        ## change dim order: "Date", then "Level" then "Period" then "L or U"
-        ## RL <- aperm(a = RL, perm = c(1, 4, 2, 3))
-        
-    } else if (method == "boot") {
-
-        stop("method = \"boot\" is not implemented yet")
+       
         
     } else if (method == "proflik") {
         

@@ -4,6 +4,8 @@
 ##' This function is used to build diagnostics during the
 ##' construction of profile-likelihood confidence intervals. So the
 ##' function is not intended to be used by itself.
+##'
+##' @noRd
 ##' 
 ##' @title Distance Between Two Lines
 ##' 

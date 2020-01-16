@@ -8,10 +8,9 @@
   object,
   period = NULL,
   level = 0.7,
-  confintMethod = c("delta", "none", "boot", "proflik"),
+  confintMethod = c("proflik", "delta", "none"),
   out = c("data.frame", "array"),
-  biasCorrect = FALSE,
-  trace = 1L,
+  trace = 0,
   ...
 )
 }
@@ -22,7 +21,7 @@ the inference results for a Poisson-GP model.}
 \item{period}{A vector of periods for which the return levels will
 be computed.}
 
-\item{level}{Level of confidence.}
+\item{level}{Level of confidence. Can be a vector.}
 
 \item{confintMethod}{The method used to compute the confidence
 intervals.}
@@ -30,10 +29,10 @@ intervals.}
 \item{out}{The type of outpout wanted, see the \strong{Value}
 section.}
 
-\item{biasCorrect}{Logical. Should bias correction be applied in
-bootstrap?}
-
-\item{trace}{Integer level of verbosity.}
+\item{trace}{Integer level of verbosity. The default value is
+\code{0}, but when \code{confintMethod} is \code{"proflik"}, it is
+a good practice to use \code{trace = 1}, so this may change in the
+future.}
 
 \item{...}{Not used yet.}
 }
@@ -50,14 +49,12 @@ model with ML inference results.
 \details{
 The return level curve corresponding to the column or to the
 dimension named \code{"Quant"} is obtained by plugging the ML
-estimate of the Poisson-GP parameters in the quantile. To a
-certain extension, this can be compared to a Bayesian MAP when a
-flat prior is used. However this is not exactly the case because
-the ML Estimate is invariant under re-parameterising, while a flat
-prior refers to a specific parameterisation, hence so does the
-corresponding MAP. The profile-likelihood is obtained by using a
-specific algorithm based on constrained optimisation, and not on
-the usual method of re-parameterisation with quantiles.
+estimate of the Poisson-GP parameters in the quantile. The
+confidence limits can be obtained by profile-likelihood or by the
+standard 'delta' method.
+}
+\seealso{
+\code{\link{poisGP}} for an example.
 }
 \author{
 Yves Deville

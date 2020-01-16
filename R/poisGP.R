@@ -1,13 +1,11 @@
-
 coefIni <- function(object, ...) {
     UseMethod("coefIni", object) 
 }
 
-
 ## ****************************************************************************
 ##' Compute initial estimates for the parameters of a \code{poisGP}
 ##' model.
-##'
+##' 
 ##' The estimates are obtained as a weighted mean of up to three cheap
 ##' estimates corresponding to the different parts of the data: main
 ##' sample, MAX blocks and OTS blocks. In each cases, it is assumed
@@ -16,6 +14,8 @@ coefIni <- function(object, ...) {
 ##' and the mean of the excesses. For MAX and OTS blocks, the
 ##' estimates are based on regression approximations as used in
 ##' \strong{Renext} package.
+##'
+##' @noRd
 ##' 
 ##' @title Initial Estimates for a \code{poisGP} Model
 ##'
@@ -90,17 +90,97 @@ print.summary.poisGP <- function(x, ...) {
     
 }
 
-logLik.poisGP <- function(object, ...) {
-    res <- object$logLik
+## ****************************************************************************
+##' Log-likelihood of a Poisson-GP model object. 
+##'
+##' Although models for block maxima and \eqn{r}-largest models can be
+##' considered as special cases of a Poisson-GP model, the
+##' log-likelihood as computed in classical Extreme-Value packages can
+##' differ by a constant related to the observation scheme. The
+##' argument \code{type} aims at finding the same results in the two
+##' cases where the results can be obtained with classical packages,
+##' namely: \emph{"POT" fits with Poisson-GP representation} and
+##' \emph{block maxima or r-largest}. In the first case, this is
+##' hopefully attained by choosing \code{type} to be \code{"poisGP"}
+##' and in the second case by choosing \code{type} to be \code{"PP"}.
+##'
+##' @method logLik poisGP
+##'
+##' @usage
+##' \method{logLik}{poisGP}(object, type = c("poisGP", "PP"), ...) 
+##' 
+##' @title Log-Likelihood of a Poisson-GP Object
+##'
+##' @param object An object with class \code{"poisGP"}.
+##'
+##' @param type An experimental argument to make the log-likelihood
+##' comparable to that of other packages/functions. See \strong{Details}.
+##'
+##' @param ... Not used yet.
+##' 
+##' @return Value of the log-likelihood.
+##'
+##' @section Caution: Comparing log-likelihoods or related indicators
+##' such AIC, BIC across R packages can be irrelevant due to the use
+##' of different constants.
+##' 
+logLik.poisGP <- function(object,
+                          type = c("poisGP", "PP"),
+                          ...) {
+    type <- match.arg(type)
+    
+    if (type == "poisGP") {
+        res <- object$logLik - object$Cst
+    } else {
+        res <-  object$logLik
+    }
+
     attr(res, "df") <- object$df
     attr(res, "nobs") <- object$nobs
     res
+    
 }
 
-##====================================================================
-## AIC methods
-##====================================================================
-
+## ****************************************************************************
+##' Akaike's Information Criterion and Schwarz's Bayesian Information
+##' Criterion for a Poisson-GP model object.
+##' 
+##' @method AIC poisGP
+##' @aliases BIC.poisGP
+##'  
+##' @usage
+##' \method{AIC}{poisGP}(object, ..., k)
+##' 
+##' \method{BIC}{poisGP}(object, ...)
+##' 
+##' @title Akaike's Information Criterion and Bayesian Information
+##' Criterion for a Poisson-GP Object
+##'
+##' @param object An object with class \code{"poisGP"}.
+##'
+##' @param ... Not used yet.
+##'
+##' @param k See \code{\link[stats]{AIC}}.
+##' 
+##' @return Value of the criterion
+##'
+##' @note For technical reasons these methods do not have a
+##' \code{type} argument as does \code{\link{logLik.poisGP}} and
+##' consequently for a model fitted from block maxima or
+##' \eqn{r}-largest the computed criteria will differ from those
+##' computed by other packages because the log-likelihoods differ by a
+##' constant.
+##' 
+##' @section Caution: Comparing log-likelihoods or related indicators
+##' such AIC, BIC across R packages can be irrelevant due to the use
+##' of different constants. Moreover the concept of \emph{number of
+##' observations} is unclear when heterogeneous data are used. An
+##' historical MAX or OTS information can have a very strong influence
+##' on the estimation hence can not be compared to an ordinary OT
+##' observation.
+##'
+##' @seealso \code{\link{logLik.poisGP}}
+##' 
 AIC.poisGP <- function(object, ..., k = 2) {
     return(NextMethod())
 }
@@ -286,11 +366,67 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' @author Yves Deville
 ##'
 ##' @examples
-##' fit <- poisGP(data = Garonne$OTdata$Flow, threshold = 2900,
+##' ## =====================================================================
+##' ## Use Garonne data from Renext
+##' ## =====================================================================
+##'
+##' fit1p <- poisGP(data = Garonne$OTdata$Flow, threshold = 2900,
 ##'               effDuration = 65,
 ##'               MAX.data = Garonne$MAXdata$Flow,
-##'               MAX.effDuration = 143,
-##'               estim = "none")
+##'               MAX.effDuration = 143)
+##' fit1R <- Renouv(Garonne, threshold = 2900, distname.y = "GPD",
+##'                 plot = FALSE)
+##'
+##' cbind(Renext = coef(fit1R), potomax = coef(fit1p))
+##' 
+##' ## CAUTION when comparing log-likelihoods, see ?logLik.poisGP
+##' cbind(Renext = logLik(fit1R), potomax = logLik(fit1p))
+##' 
+##' ## ==============================================================
+##' ## Use the 'venice' data from the 'ismev' package. Contains
+##' ## r-largest observations as a matrix with one row by year and NA.
+##' ## So some transformations are needed. Note that first
+##' ## of 'venice' must be removed, and that the 'venice' data from
+##' ## the evd package may misleadingly be used instead.
+##' ## ==============================================================
+##'
+##' rm(venice)
+##' data(venice, package = "ismev")
+##' MAX.data <- as.list(as.data.frame(t(venice[ , -1])))
+##' MAX.data <- lapply(MAX.data, function(x) x[!is.na(x)])
+##' MAX.effDuration <- rep(1, length(MAX.data))
+##'
+##' fit2i <- ismev::rlarg.fit(venice[ , -1])
+##' fit2R <- Renext::fGEV.MAX(MAX.data = MAX.data,
+##'                           MAX.effDuration = MAX.effDuration)
+##' fit2p <- poisGP(MAX.data = MAX.data,
+##'                 MAX.effDuration = MAX.effDuration)
+##'
+##' ## To compare the coefficients we must use the "PP" coefficients
+##' ## of the poisGP object rather than the standard "poisGP"
+##' ## coefficients.
+##' 
+##' cbind("ismev" = fit2i$mle,
+##'       "Renext" = fit2R$estimate,
+##'       "potomax" = coef(fit2p, type = "PP"))
+##'
+##' ## CAUTION when comparing log-likelihoods, see ?logLik.poisGP
+##' ## We choose here the "PP" type which usually makes the result
+##' ## comparable to those based on block maxima or on r-largest.
+##' 
+##' cbind("ismev" = -fit2i$nllh,
+##'        "Renext" = fit2R$loglik,
+##'        "potomax" = logLik(fit2p, type = "PP"))
+##' 
+##' autoplot(fit2p) + ggtitle("Venice r-largest")
+##'
+##' ## Now censor the MAX data. This can not be done with the
+##' ## other packages 
+##' fit3p <- poisGP(MAX.data = MAX.data,
+##'                 MAX.effDuration = MAX.effDuration,
+##'                 threshold = 100)
+##' coef(fit3p)
+##' autoplot(fit3p) + ggtitle("Venice r-largest with threshold 100 cm")
 ##' 
 poisGP <- function(data = NULL,
                    threshold,
@@ -325,7 +461,7 @@ poisGP <- function(data = NULL,
                     OTS.effDuration = OTS.effDuration)
     
     grandMin <- min(unlist(sapply(data, function(x) unlist(x$data))))
-
+    
     scaleData <- 1.0
     
     if (missing(threshold)) {
@@ -357,12 +493,25 @@ poisGP <- function(data = NULL,
         }
     }
 
+    ## ========================================================================
+    ## Compute a possible number of observations. Since in the general
+    ## case the observations can have a very different impact on the
+    ## estimation, the definition of 'nobs' is unclear here. Maybe we
+    ## could consider that an empty OTS block is worth an observation,
+    ## but OTS blocks with different durations should not be
+    ## equivalent.
+    ## ========================================================================
+    
+    nobs <- 0
+    if (fitData$OT$flag) nobs <- nobs + fitData$OT$n
+    if (fitData$MAX$flag) nobs <- nobs + sum(fitData$MAX$r)
+    if (fitData$OTS$flag) nobs <- nobs + sum(fitData$OTS$r)
+    
 
     if ((!missing(coefLower) || !missing(coefUpper)) && (estim == "optim")) {
         warning("Provided values for 'coefLower' and 'coefUpper' will be ignored ",
                 "since estim is set to \"optim\"")
     }
-    
     
     ## ========================================================================
     ## Create a temporary object with class "poisGP" that can be used
@@ -375,6 +524,7 @@ poisGP <- function(data = NULL,
                        fitData = fitData,
                        p = 3L,
                        df = 3L,
+                       nobs = nobs,
                        parNames = c("lambda", "scale", "shape"),
                        scale = scale,
                        scaleData = scaleData)

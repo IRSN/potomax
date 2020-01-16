@@ -1,5 +1,6 @@
 ## ****************************************************************************
-##' Structured data to define a Poisson-GP model.
+##' Structured data that can be used to define a Poisson-GP model with
+##' ML estimation.
 ##'
 ##' As opposed to what is done in \strong{Renext}, no 'main' threshold
 ##' is used here. The data is understood as \emph{before} being
@@ -44,7 +45,6 @@
 ##' \code{\link{autolayer.potData}}.
 ##'
 ##' @examples
-##' 
 ##' potData(data = Garonne$OTdata$Flow,
 ##'         effDuration = 65,
 ##'         MAX.data = Garonne$MAXdata$Flow,
@@ -177,6 +177,9 @@ potData <- function(data = NULL, effDuration = NULL,
 
 ## ****************************************************************************
 ##' Return Periods for a \code{potData} object.
+##'
+##' This is a refactoring of the \code{\link[Renext]{SandT}} function
+##' of the \strong{Renext} package.
 ##' 
 ##' @title Return Periods for a \code{potData} Object
 ##'
@@ -192,9 +195,12 @@ potData <- function(data = NULL, effDuration = NULL,
 ##'
 ##' @param ... Not used yet.
 ##'
-##' @return A data frame.
+##' @return A list with several elements. The element \code{data} is a
+##' data frame which contains the results needed to draw points at the
+##' computed plotting positions.
 ##'
-##' @seealso \code{\link{potData}}.
+##' @seealso \code{\link{potData}}, the \code{\link[Renext]{SandT}}
+##' function of \strong{Renext}.
 ##' 
 ##' @examples
 ##' pdat <- potData(data = Garonne$OTdata$Flow,
@@ -379,13 +385,13 @@ RP.potData <- function(object,
     }
     
     list(data = df,
-         x = vals,
-         group = samp,
-         groupNames = groupNames,
-         sourceNames = sourceNames,
+         ## x = vals,
+         ## group = samp,
+         ## groupNames = groupNames,
+         ## sourceNames = sourceNames,
          lambda = lambda,
-         S = S,
-         T = T,
+         ## S = S,
+         ## T = T,
          thresh = c(u, Inf),
          lambda.thresh = lambda.thresh,
          S.thresh = invT.thresh / lambda,

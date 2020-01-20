@@ -9,7 +9,11 @@
 \arguments{
 \item{object}{A model with class \code{"poisGP"}.}
 
-\item{type}{The parameterisation to use.}
+\item{type}{The parameterisation to use. With \code{"poisGP"} the
+standard Poisson-GP parameters are used
+
+\code{"lambda"} for the
+Poisson rate \eqn{\lambda}, \code{"scale"}}
 
 \item{...}{Not used yet.}
 }
@@ -18,4 +22,27 @@ A numeric vector of three coefficients.
 }
 \description{
 Extract model coefficients for a Poisson-GP object.
+}
+\details{
+When \code{type} is \code{"poisGP"} the three parameters are in
+that order: \code{"lambda"} for the Poisson rate \eqn{\lambda},
+\code{"scale"} for the GP scale \eqn{\sigma} and \code{"shape"}
+for the GP shape \eqn{\xi}.
+
+When \code{type} is \code{"PP"} the \emph{Point Process}
+parameterisation is used, in relation with a block duration. The
+three parameters are in that order: \code{"loc"} for the location
+\eqn{\mu}, \code{"scale"} for the scale \eqn{\sigma} and
+\code{"shape"} for the shape \eqn{\xi}. They define a Generalised
+Extreme Value (GEV) distribution the tail of which applies to the
+maximum of the marks on a time block with the given duration. Note
+that the \code{"PP"} scale differs from the \code{"poisGP"} scale
+and that the location is not the threshold, and is smaller than
+it.
+}
+\note{
+The \code{"poisGP"} parameters can be transformed into
+\code{"PP"} parameters by using \code{\link[Renext]{Ren2gev}}
+function of the \strong{Renext} package. This requires giving both
+the threshold and the block duration \code{w}.
 }

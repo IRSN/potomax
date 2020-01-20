@@ -2,13 +2,14 @@
 % Please edit documentation in R/generics.R
 \name{RP}
 \alias{RP}
-\title{Return Periods associated with Chosen Quantiles}
+\title{Return Periods associated with Chosen Return Levels or
+Quantiles}
 \usage{
 RP(object, ...)
 }
 \arguments{
-\item{object}{An object defining \emph{return periods} associated
-to some "quantiles" values.}
+\item{object}{An object that can be used to define \emph{return
+periods} associated to some "quantiles" values.}
 
 \item{...}{Arguments passed to methods.}
 }
@@ -17,5 +18,7 @@ An object inheriting from the \code{"data.frame"} class
 containing the return periods.
 }
 \description{
-Return periods associated with chosen quantiles.
+\code{RP} is a generic function which computes the return periods
+associated with chosen return levels or quantile, using a suitable model or
+data set.
 }

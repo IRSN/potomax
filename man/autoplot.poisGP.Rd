@@ -17,7 +17,12 @@
 Return Level plot and \code{"pp"} is for a probability plot.}
 
 \item{points}{The plotting position system to be used to show the
-data attached to the object. When \code{points} is \code{"none"},}
+data attached to the object. When \code{points} is \code{"none"},
+the data are not shown. With the value \code{"H"} the data are
+shown using the "H-points" of Nelson's plotting positions. With
+the value \code{"p"}, the data are shown using the "p-points" are
+used and the argument \code{a} can be passed to the \code{ppoints}
+function.}
 
 \item{a}{The parameter used to compute the plotting positions when
 \code{points} is \code{"p"}. See \code{\link{RP.potData}}.}
@@ -34,4 +39,8 @@ A ggplot graphics object.
 }
 \description{
 Autoplot method for objects representing fitted Poisson-GP models.
+}
+\seealso{
+\code{\link[Renext]{Hpoints}} in \strong{Renext} and
+\code{\link[stats]{ppoints}} in \strong{stats}.
 }

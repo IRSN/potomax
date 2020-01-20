@@ -193,15 +193,41 @@ BIC.poisGP <- function(object, ...) {
 ## ****************************************************************************
 ##' Extract model coefficients for a Poisson-GP object.
 ##' 
+##' When \code{type} is \code{"poisGP"} the three parameters are in
+##' that order: \code{"lambda"} for the Poisson rate \eqn{\lambda},
+##' \code{"scale"} for the GP scale \eqn{\sigma} and \code{"shape"}
+##' for the GP shape \eqn{\xi}.
+##'
+##' When \code{type} is \code{"PP"} the \emph{Point Process}
+##' parameterisation is used, in relation with a block duration. The
+##' three parameters are in that order: \code{"loc"} for the location
+##' \eqn{\mu}, \code{"scale"} for the scale \eqn{\sigma} and
+##' \code{"shape"} for the shape \eqn{\xi}. They define a Generalised
+##' Extreme Value (GEV) distribution the tail of which applies to the
+##' maximum of the marks on a time block with the given duration. Note
+##' that the \code{"PP"} scale differs from the \code{"poisGP"} scale
+##' and that the location is not the threshold, and is smaller than
+##' it.
+##'
 ##' @title Extract Model Coefficients for a Poisson-GP Object
 ##'
 ##' @param object A model with class \code{"poisGP"}.
 ##'
-##' @param type The parameterisation to use.
+##' @param type The parameterisation to use. With \code{"poisGP"} the
+##' standard Poisson-GP parameters are used
+##'
+##' \code{"lambda"} for the
+##' Poisson rate \eqn{\lambda}, \code{"scale"}
 ##' 
 ##' @param ... Not used yet.
 ##'
 ##' @return A numeric vector of three coefficients.
+##'
+##' @note The \code{"poisGP"} parameters can be transformed into
+##' \code{"PP"} parameters by using \code{\link[Renext]{Ren2gev}}
+##' function of the \strong{Renext} package. This requires giving both
+##' the threshold and the block duration \code{w}.
+##'
 ##' 
 coef.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
     type <- match.arg(type)
@@ -224,6 +250,9 @@ coef.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' @param ... Not used yet.
 ##'
 ##' @return A covariance matrix of size three.
+##'
+##' @note The correlation matrix can be obtained by using
+##' \code{\link{cov2cor}} on the result.
 ##' 
 vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
     type <- match.arg(type)
@@ -237,7 +266,7 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ## ****************************************************************************
 ##' Create a Poisson-GP model object, usually by ML estimation.
 ##'
-##' The
+##' The functions and methods used to maximise the likelihood are as follows.
 ##' \itemize{
 ##' \item{\code{estim = "optim"}}{
 ##' The classical \code{stats::optim} function is used with
@@ -314,7 +343,7 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' @param OTS.threshold A vector of positive numbers giving the
 ##' thresholds of the OTS blocks (in the same order). By construction
 ##' all the elements of \code{OTS.data[i]} are larger than
-##' \code{OTS.threshol[i]} for each block index \code{i}.
+##' \code{OTS.threshold[i]} for each block index \code{i}.
 ##' 
 ##' @param OTS.effDuration A vector of positive numbers giving the
 ##' durations of the OTS blocks (in the same order). 
@@ -326,7 +355,8 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' when \code{estim} is \code{"none"} or "good" initial values found
 ##' by devoted function.
 ##' 
-##' @param estim Method or XXX
+##' @param estim \code{Character} defining the function and the method
+##' that will be used to maximise the likelhood. See \strong{Details}.
 ##'
 ##' @param coefLower,coefUpper Named vectors of bounds for the
 ##' parameters. The values can be infinite \code{Inf} or \code{-Inf}.
@@ -417,6 +447,9 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' cbind("ismev" = -fit2i$nllh,
 ##'        "Renext" = fit2R$loglik,
 ##'        "potomax" = logLik(fit2p, type = "PP"))
+##'
+##' ## profile-likelihood confidence intervals on parameters
+##' confint(fit2p)
 ##' 
 ##' autoplot(fit2p) + ggtitle("Venice r-largest")
 ##'
@@ -447,6 +480,15 @@ poisGP <- function(data = NULL,
     eps <- 1e-10
     estim <-  match.arg(estim)
 
+    ## XXXX
+    if (scale) {
+        stop("'scale = TRUE' is not fully implemented for now. ",
+             "This needs work to rescale the estimated parameters ",
+             "but also to change the log-likelihood values.")
+    }
+
+
+    
     if (is(data, "Rendata")) {
         stop("Using 'data' with class \"Rendata\" is not allowed yet")
     }
@@ -487,7 +529,8 @@ poisGP <- function(data = NULL,
 
     if (trace) {
         if (scale) {
-            cat("\nThe data will be scaled by dividing then by ", scaleData, "\n")
+            cat("\nThe data will be scaled by dividing then by ",
+                scaleData, "\n")
         } else {
             cat("\nThe data will not be scaled\n")
         }

@@ -4,27 +4,28 @@
 \alias{RL.poisGP}
 \title{Return Levels and Confidence Intervals for a Poisson-GP Model}
 \usage{
-\method{RL}{poisGP}(
-  object,
-  period = NULL,
-  level = 0.7,
-  confintMethod = c("proflik", "delta", "none"),
-  out = c("data.frame", "array"),
-  trace = 0,
-  ...
-)
+\method{RL}{poisGP}(object, period = NULL, level = 0.70,
+   confintMethod = c("proflik", "delta", "none"),
+   out = c("data.frame", "array"),
+   trace = 0,
+   check = FALSE, nCheck = 50, nSigma = 4,
+   ...)
 }
 \arguments{
-\item{object}{An object with class \code{poisGPML} representing
+\item{object}{An object with class \code{"poisGP"} representing
 the inference results for a Poisson-GP model.}
 
 \item{period}{A vector of periods for which the return levels will
-be computed.}
+be computed. By default "round" periods covering the range from
+\code{1} to \code{1000} are chosen.}
 
 \item{level}{Level of confidence. Can be a vector.}
 
 \item{confintMethod}{The method used to compute the confidence
-intervals.}
+intervals. The value \code{"proflik"} corresponds to the
+profile-likelihood. The value \code{"delta"} corresponds to the
+delta method and the value \code{"none"} can be used to obtain the
+return levels without confidence limits on them.}
 
 \item{out}{The type of outpout wanted, see the \strong{Value}
 section.}
@@ -34,27 +35,93 @@ section.}
 a good practice to use \code{trace = 1}, so this may change in the
 future.}
 
+\item{check}{Logical If. \code{FALSE} the results are intended to
+be used for a return-level plot, while the value \code{TRUE}
+produce results for a graphical check of the computations.}
+
+\item{nCheck}{Number of points on a profile-likelihood curve for
+each value \eqn{T} of the return period when \code{check} is
+\code{TRUE}. These points are taken in an interval containing the
+ML estimate \eqn{\hat{\rho}(T)}{rhoHat(T)} of the return level
+\eqn{\rho(T)}{rho(T)}, with a range controled by \code{nSigma}.}
+
+\item{nSigma}{Range the of the return levels used to build the
+curve when \code{check} is \code{TRUE}. Vector of length two with
+its values \eqn{n_1}{n1} and \eqn{n_2}{n2} defining the range for the
+values of \eqn{\rho(T)}{rho(T)} from \eqn{\hat{\rho}(T) - n_1
+s(T)}{rhoHat(T) - n1 * s(T)} to \eqn{\hat{\rho}(T) + n_2
+s(T)}{rhoHat(T) + n2 * s(T)} where \eqn{s(T)} is the estimated
+standard deviation for \eqn{\hat{\rho}(T)}{rhoHat(T)}. The default
+choice usually covers the profile-likelihood interval for all
+periods. A vector of length one is recycled.}
+
 \item{...}{Not used yet.}
 }
 \value{
-An object inheriting either from \code{data.frame} or from
-\code{array} containing the results. In the first case, the object
-has class \code{"RL.poisGP"}, which allows the use of
-\code{autoplot} method without recomputing the results.
+When \code{check} is \code{FALSE} (default), an object of
+class \code{"RL.poisGP"} inheriting either from
+\code{data.frame}. It can also be a simple \code{array} containing
+the results. In the first case, the object can be used with the
+\code{autoplot} method to produce the \emph{return level} plot
+without recomputing the results.
+
+When \code{check} is \code{TRUE} the result is an object with
+class \code{RLCheck.poisGP} and can be used with \code{autoplot}
+to build a \emph{graphical check of the results} of the
+profile-likelihood method. This is a list containing two data
+frames: \code{RL} contains the confidence limits and estimates,
+while \code{negLogLik} contains a grid of values for the the
+return level \eqn{\rho(T)}{rho(T)} along with the corresponding
+values of the profile negative log-likelihood. This allows to plot
+the curve.
 }
 \description{
 Compute return levels along with confidence bounds for a Poisson-GP
 model with ML inference results.
 }
 \details{
-The return level curve corresponding to the column or to the
+The return-level curve corresponding to the column or to the
 dimension named \code{"Quant"} is obtained by plugging the ML
 estimate of the Poisson-GP parameters in the quantile. The
 confidence limits can be obtained by profile-likelihood or by the
 standard 'delta' method.
 }
+\note{
+The check for \code{check = TRUE} is built by computing the
+value of the profile-likelihood for each period \eqn{T} and each
+candidate value of \eqn{\rho(T)}{rho(T)}. This is done by using a
+two-parameter optimisation: maximise on the vector \eqn{[\lambda,
+\, \xi]}{[lambda, xi]} of the Poisson rate \eqn{\lambda} and the
+and GP shape \eqn{\xi}, the return level \eqn{\rho(T)}{rho(T)}
+being fixed. This optimisation can fail to converge, in which case
+the result is \code{NA}. For now a derivative-free optimisation is
+used (COBYLA): the computations can be quite long.
+}
+\examples{
+fitp <- poisGP(data = Garonne$OTdata$Flow,
+               effDuration = Garonne$OTinfo$effDuration,
+               MAX.data = list("hist" = Garonne$MAXdata$Flow),
+               MAX.effDuration = Garonne$MAXinfo$duration,
+               threshold = 2900, trace = 2)
+
+## RL plot with profile-likelihood confidence levels
+RL <- RL(fitp, out = "data", level = c(0.70, 0.95))
+autoplot(RL)
+
+\dontrun{
+## CHECK the results. Quite slow.
+RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
+         check = TRUE)
+autoplot(RLc) + ylim(c(NA, 540)) +
+    ggtitle("negative profile log-likelihood for rho(T)")
+}
+
+}
 \seealso{
-\code{\link{poisGP}} for an example.
+\code{\link{poisGP}} for an example
+\code{\link{autoplot.RLCheck.poisGP}}. The \code{confint} method
+has a similar check possibility, see
+\code{\link{confint.poisGP}}.
 }
 \author{
 Yves Deville

@@ -13,9 +13,14 @@ incomplete because the estimation has not yet been performed.}
 \item{...}{Arguments passed to methods.}
 }
 \value{
-A list with the results of the estimation. This include a
-\code{estimate} element and usually a \code{cov} element.
+A list with the results of the estimation. This include an
+\code{estimate} element, and usually a \code{cov} element. These
+should be extracted by the \code{coef} and \code{vcov} methods.
 }
 \description{
-Maximum-Likelihood estimation of a (usually incomplete) object.
+\code{MLE} is a generic function performing Maximum-Likelihood
+estimation of a (usually incomplete) object.
+}
+\seealso{
+\code{\link[stats]{coef}} and \code{\link[stats]{vcov}}.
 }

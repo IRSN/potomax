@@ -1,0 +1,95 @@
+\name{potomax-package}
+\alias{potomax-package}
+\alias{potomax}
+\docType{package}
+\title{
+\packageTitle{potomax}
+}
+\description{
+\packageDescription{potomax}
+}
+\details{
+
+The DESCRIPTION file:
+\packageDESCRIPTION{potomax}
+\packageIndices{potomax}
+
+As \strong{Renext} does this package focuses on a marked process called
+\emph{Poisson-GP}. Events occur at random Poisson times \eqn{T_i}{Ti}
+and each event comes with a \emph{mark} \eqn{Y_i}{Yi} with Generalised
+Pareto Distribution (GPD). The marks are assumed to be independent of
+the event times \eqn{T_i}{Ti}. This process is POT-stable: if the
+observations are thinned by selecting the marks that over a threshold
+\eqn{v}, we get a new Poisson-GP process with smaller rate \eqn{\lambda
+S(v)} where \eqn{S(y)} denotes the survival function of the GPD; the
+excesses \eqn{Y_i - v}{Yi - v} follow a GPD with its the shape \eqn{\xi}
+remaining the same.
+
+The estimation and inference can use heterogenous data corresponding to
+a a finite number of time intervals called \emph{blocks}.  For some
+blocks the complete observations can be available.  For some other
+blocks called MAX we have partial observations: the block maximum or the
+\eqn{r} largest order statistics where \eqn{r} is assumed to be
+given. For some other blocks called OTS we have partial observations:
+the events with mark \eqn{Y_i}{Yi} exceeding a block-specific threshold.
+These two schemes of partial observation can be met when working with
+historical data.
+
+As it is done in \strong{Renext}, the ML estimate of the parameter
+\eqn{[\lambda,\, \sigma, \,\xi]}{[\lambda, \sigma, \xi]} for the general
+heterogenous data is obtained by maximising a profile log-likelihood
+depending on the two GPD parameters \eqn{\sigma} and \eqn{\xi} but not
+on the Poisson rate \eqn{\lambda}. So the optimisation is a
+two-parameter one.
+
+There are two major new possibilities not found in \strong{Renext}.
+
+\itemize{
+
+  \item{
+
+    The OTS and MAX data are no longer assumed to have their threshold
+    or data over the "main" threshold, say \eqn{u}. This makes possible
+    to censor block maxima or \eqn{r}-largest data by keeping only the
+    observations \eqn{> u}.
+    
+  }
+ 
+  \item{
+
+    The preferred method to infer on the parameters and on the return
+    levels is \emph{profile likelihood}. The determination of the
+    confidence interval is obtained by using a new method which uses
+    only constrained optimisation: the profile-likelihood function is
+    not computed as such and no zero-finding is used. The methods
+    \code{confint} and \code{RL} have an optional argument \code{check}
+    that can be used to check the profile-likelhood results with a
+    classical graphical method as found in other extreme-value packages
+    like **ismev** or **extremes**.
+
+  }
+  
+}
+
+Note that the package does not allow the use of non-stationary
+Poisson-GP models.
+
+}
+\author{
+\packageAuthor{potomax}
+
+Maintainer: \packageMaintainer{potomax}
+}
+\references{
+
+  Yves Deville \emph{Renext Computing Details}. Tech. Report.
+  
+}
+\keyword{ package }
+\seealso{
+  
+  This \code{\link[Renext]{Renext-package}}. 
+  
+
+}
+%% \examples{}

@@ -1,5 +1,5 @@
 ##*****************************************************************************
-##' Confidence intervals for a \code{poisGP} object
+##' Confidence intervals for the parameters of a \code{poisGP} object.
 ##'
 ##' @title Confidence Intervals for a \code{poisGP} Object
 ##'
@@ -7,12 +7,12 @@
 ##' 
 ##' @usage 
 ##' \method{confint}{poisGP}(object, parm, level = 0.95,
-##'         method = c("delta", "proflik"),
+##'         method = c("proflik", "delta"),
 ##'         nSigma = 4,
-##'         trace = 1L,
+##'         trace = 0,
 ##'         round = TRUE,
 ##'         out = c("array", "data.frame"),
-##'         check = TRUE, nCheck = 50,
+##'         check = FALSE, nCheck = 50,
 ##'         ...) 
 ##' 
 ##' @param object An object with class \code{"poisGP"}.
@@ -32,7 +32,7 @@
 ##' that will be used. If needed an an asymmetric interval can be
 ##' defined by using two numbers e.g. \code{c(3, 5)} if it is expected
 ##' that the confidence intervals spread more on the right side of the
-##' estimates tans they do on the left side.
+##' estimates than they do on the left side.
 ##' 
 ##' @param trace Integer level of verbosity.
 ##' 
@@ -48,7 +48,8 @@
 ##' \code{"data.frame"} gives the same results in "long
 ##' format".
 ##' 
-##' @param check Logical. If \code{TRUE} the function return results
+##' @param check Logical. Used only when \code{method} is
+##' \code{"proflik"}. If \code{TRUE} the function return results
 ##' intended to be used in a graphical check of the confidence limits
 ##' and taking the form of a list of two data frames. The first data
 ##' frame contains evaluations of the profile-negative log-likelihood
@@ -89,18 +90,28 @@
 confint.poisGP <- function(object,
                            parm, 
                            level = 0.95,
-                           method = c("delta", "proflik"),
+                           method = c("proflik", "delta"),
                            nSigma = 4,
-                           trace = 1L,
+                           trace = 0,
                            round = TRUE,
                            out = c("array", "data.frame"),
-                           check = TRUE,
+                           check = FALSE,
                            nCheck = 50,
                            ...) {
     
     out <- match.arg(out)
     method <- match.arg(method)
 
+    if (method == "delta" && check) {
+        warning("Since method is \"delta\", no check is needed and 'check' is ",
+                "set to FALSE")
+        check <- FALSE
+    }
+
+    if (check) {
+        message("Use the 'autoplot' method on the result to check the results")
+    }
+    
     if (check && out == "array") {
         warning("Since 'check' is TRUE, 'out' set to \"data.frame\"")
         out <- "data.frame"

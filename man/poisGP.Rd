@@ -42,7 +42,7 @@ understood that there is only one OTS block.}
 \item{OTS.threshold}{A vector of positive numbers giving the
 thresholds of the OTS blocks (in the same order). By construction
 all the elements of \code{OTS.data[i]} are larger than
-\code{OTS.threshol[i]} for each block index \code{i}.}
+\code{OTS.threshold[i]} for each block index \code{i}.}
 
 \item{OTS.effDuration}{A vector of positive numbers giving the
 durations of the OTS blocks (in the same order).}
@@ -54,7 +54,8 @@ parameter vector stored in the object as will contain \code{NA}
 when \code{estim} is \code{"none"} or "good" initial values found
 by devoted function.}
 
-\item{estim}{Method or XXX}
+\item{estim}{\code{Character} defining the function and the method
+that will be used to maximise the likelhood. See \strong{Details}.}
 
 \item{coefLower, coefUpper}{Named vectors of bounds for the
 parameters. The values can be infinite \code{Inf} or \code{-Inf}.
@@ -96,7 +97,7 @@ the data vectors.
 Create a Poisson-GP model object, usually by ML estimation.
 }
 \details{
-The
+The functions and methods used to maximise the likelihood are as follows.
 \itemize{
 \item{\code{estim = "optim"}}{
 The classical \code{stats::optim} function is used with
@@ -185,6 +186,9 @@ cbind("ismev" = fit2i$mle,
 cbind("ismev" = -fit2i$nllh,
        "Renext" = fit2R$loglik,
        "potomax" = logLik(fit2p, type = "PP"))
+
+## profile-likelihood confidence intervals on parameters
+confint(fit2p)
 
 autoplot(fit2p) + ggtitle("Venice r-largest")
 

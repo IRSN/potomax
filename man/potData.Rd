@@ -47,7 +47,6 @@ observations and thresholds that are smaller than the main
 threshold.
 }
 \examples{
-
 potData(data = Garonne$OTdata$Flow,
         effDuration = 65,
         MAX.data = Garonne$MAXdata$Flow,

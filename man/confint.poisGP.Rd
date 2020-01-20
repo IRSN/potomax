@@ -5,12 +5,12 @@
 \title{Confidence Intervals for a \code{poisGP} Object}
 \usage{
 \method{confint}{poisGP}(object, parm, level = 0.95,
-        method = c("delta", "proflik"),
+        method = c("proflik", "delta"),
         nSigma = 4,
-        trace = 1L,
+        trace = 0,
         round = TRUE,
         out = c("array", "data.frame"),
-        check = TRUE, nCheck = 50,
+        check = FALSE, nCheck = 50,
         ...)
 }
 \arguments{
@@ -31,7 +31,7 @@ defines the number of standard deviation for the current parameter
 that will be used. If needed an an asymmetric interval can be
 defined by using two numbers e.g. \code{c(3, 5)} if it is expected
 that the confidence intervals spread more on the right side of the
-estimates tans they do on the left side.}
+estimates than they do on the left side.}
 
 \item{trace}{Integer level of verbosity.}
 
@@ -47,7 +47,8 @@ will remove the third dimension and produce a matrix. The
 \code{"data.frame"} gives the same results in "long
 format".}
 
-\item{check}{Logical. If \code{TRUE} the function return results
+\item{check}{Logical. Used only when \code{method} is
+\code{"proflik"}. If \code{TRUE} the function return results
 intended to be used in a graphical check of the confidence limits
 and taking the form of a list of two data frames. The first data
 frame contains evaluations of the profile-negative log-likelihood
@@ -69,7 +70,7 @@ frame containing the lower and upper bounds \code{"L"} and
 that is implemented for this class.
 }
 \description{
-Confidence intervals for a \code{poisGP} object
+Confidence intervals for the parameters of a \code{poisGP} object.
 }
 \examples{
 ## Maybe could we use a 'potMax object here?

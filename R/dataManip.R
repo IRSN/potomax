@@ -43,7 +43,7 @@
 ##' then non longer have any observations if the main threshold
 ##' exceeds all the observations of the original MAX block.
 ##' 
-##' @seealso \code{link{potData}}.
+##' @seealso \code{\link{potData}}.
 ##' 
 ##' @examples
 ##' set.seed(123)

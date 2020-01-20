@@ -2,25 +2,41 @@
 ##' Compute return levels along with confidence bounds for a Poisson-GP
 ##' model with ML inference results.
 ##'
-##' The return level curve corresponding to the column or to the
+##' @details
+##' The return-level curve corresponding to the column or to the
 ##' dimension named \code{"Quant"} is obtained by plugging the ML
 ##' estimate of the Poisson-GP parameters in the quantile. The
 ##' confidence limits can be obtained by profile-likelihood or by the
 ##' standard 'delta' method.
+##'
+##' 
+##' @method RL poisGP
+##'
+##' @usage
+##' \method{RL}{poisGP}(object, period = NULL, level = 0.70,
+##'    confintMethod = c("proflik", "delta", "none"),
+##'    out = c("data.frame", "array"),
+##'    trace = 0,
+##'    check = FALSE, nCheck = 50, nSigma = 4,
+##'    ...) 
 ##' 
 ##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
 ##'
-##' @param object An object with class \code{poisGPML} representing
+##' @param object An object with class \code{"poisGP"} representing
 ##' the inference results for a Poisson-GP model.
 ##'
 ##' @param period A vector of periods for which the return levels will
-##' be computed.
+##' be computed. By default "round" periods covering the range from
+##' \code{1} to \code{1000} are chosen.
 ##'
 ##' @param level Level of confidence. Can be a vector.
 ##'
 ##' @param confintMethod The method used to compute the confidence
-##' intervals.
-##'
+##' intervals. The value \code{"proflik"} corresponds to the
+##' profile-likelihood. The value \code{"delta"} corresponds to the
+##' delta method and the value \code{"none"} can be used to obtain the
+##' return levels without confidence limits on them.
+##' 
 ##' @param out The type of outpout wanted, see the \strong{Value}
 ##' section.
 ##'
@@ -29,16 +45,80 @@
 ##' a good practice to use \code{trace = 1}, so this may change in the
 ##' future.
 ##'
+##' @param check Logical If. \code{FALSE} the results are intended to
+##' be used for a return-level plot, while the value \code{TRUE}
+##' produce results for a graphical check of the computations.
+##'
+##' @param nCheck Number of points on a profile-likelihood curve for
+##' each value \eqn{T} of the return period when \code{check} is
+##' \code{TRUE}. These points are taken in an interval containing the
+##' ML estimate \eqn{\hat{\rho}(T)}{rhoHat(T)} of the return level
+##' \eqn{\rho(T)}{rho(T)}, with a range controled by \code{nSigma}.
+##'
+##' @param nSigma Range the of the return levels used to build the
+##' curve when \code{check} is \code{TRUE}. Vector of length two with
+##' its values \eqn{n_1}{n1} and \eqn{n_2}{n2} defining the range for the
+##' values of \eqn{\rho(T)}{rho(T)} from \eqn{\hat{\rho}(T) - n_1
+##' s(T)}{rhoHat(T) - n1 * s(T)} to \eqn{\hat{\rho}(T) + n_2
+##' s(T)}{rhoHat(T) + n2 * s(T)} where \eqn{s(T)} is the estimated
+##' standard deviation for \eqn{\hat{\rho}(T)}{rhoHat(T)}. The default
+##' choice usually covers the profile-likelihood interval for all
+##' periods. A vector of length one is recycled.
+##' 
 ##' @param ... Not used yet.
 ##'
-##' @return An object inheriting either from \code{data.frame} or from
-##' \code{array} containing the results. In the first case, the object
-##' has class \code{"RL.poisGP"}, which allows the use of
-##' \code{autoplot} method without recomputing the results.
+##' @return When \code{check} is \code{FALSE} (default), an object of
+##' class \code{"RL.poisGP"} inheriting either from
+##' \code{data.frame}. It can also be a simple \code{array} containing
+##' the results. In the first case, the object can be used with the
+##' \code{autoplot} method to produce the \emph{return level} plot
+##' without recomputing the results.
 ##'
+##' When \code{check} is \code{TRUE} the result is an object with
+##' class \code{RLCheck.poisGP} and can be used with \code{autoplot}
+##' to build a \emph{graphical check of the results} of the
+##' profile-likelihood method. This is a list containing two data
+##' frames: \code{RL} contains the confidence limits and estimates,
+##' while \code{negLogLik} contains a grid of values for the the
+##' return level \eqn{\rho(T)}{rho(T)} along with the corresponding
+##' values of the profile negative log-likelihood. This allows to plot
+##' the curve.
+##'
+##' @note The check for \code{check = TRUE} is built by computing the
+##' value of the profile-likelihood for each period \eqn{T} and each
+##' candidate value of \eqn{\rho(T)}{rho(T)}. This is done by using a
+##' two-parameter optimisation: maximise on the vector \eqn{[\lambda,
+##' \, \xi]}{[lambda, xi]} of the Poisson rate \eqn{\lambda} and the
+##' and GP shape \eqn{\xi}, the return level \eqn{\rho(T)}{rho(T)}
+##' being fixed. This optimisation can fail to converge, in which case
+##' the result is \code{NA}. For now a derivative-free optimisation is
+##' used (COBYLA): the computations can be quite long.
+##' 
 ##' @author Yves Deville
 ##'
-##' @seealso \code{\link{poisGP}} for an example.
+##' @seealso \code{\link{poisGP}} for an example
+##' \code{\link{autoplot.RLCheck.poisGP}}. The \code{confint} method
+##' has a similar check possibility, see
+##' \code{\link{confint.poisGP}}.
+##'
+##' @examples
+##' fitp <- poisGP(data = Garonne$OTdata$Flow,
+##'                effDuration = Garonne$OTinfo$effDuration,
+##'                MAX.data = list("hist" = Garonne$MAXdata$Flow),
+##'                MAX.effDuration = Garonne$MAXinfo$duration,
+##'                threshold = 2900, trace = 2)
+##'
+##' ## RL plot with profile-likelihood confidence levels
+##' RL <- RL(fitp, out = "data", level = c(0.70, 0.95))
+##' autoplot(RL)
+##'
+##' \dontrun{
+##' ## CHECK the results. Quite slow.
+##' RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
+##'          check = TRUE)
+##' autoplot(RLc) + ylim(c(NA, 540)) +
+##'     ggtitle("negative profile log-likelihood for rho(T)")
+##' }
 ##' 
 RL.poisGP <- function(object,
                       period = NULL,
@@ -46,8 +126,13 @@ RL.poisGP <- function(object,
                       confintMethod = c("proflik", "delta", "none"),
                       out = c("data.frame", "array"),
                       trace = 0,
+                      check = FALSE,
+                      nCheck = 50,
+                      nSigma = 4,
                       ...) {
 
+    Level <- NULL ## avoid warning in checks
+    
     ## XXX CHANGE THE DEFAULT???
     ## if (missing(trace)) {
     ##     if (confintMethod = "proflik") trace <- 1
@@ -67,7 +152,13 @@ RL.poisGP <- function(object,
         period <- sort(period)
     }
 
-    ind <- (period * thetaHat[1]) > 1.0
+    ## ========================================================================
+    ## The period 'T' must be such that the product p := 1 / lambdaHat
+    ## / T is < 1.0. A value < 1.0 but too close to 1.0 leads to
+    ## problems.
+    ## ========================================================================
+    
+    ind <- (period * thetaHat[1]) > 5
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -76,9 +167,28 @@ RL.poisGP <- function(object,
     fPeriod <- format(period)
     
     method <- match.arg(confintMethod)
- 
+
+    ## ========================================================================
+    ## Cope with the check argument
+    ## ========================================================================
+   
+    if (method == "delta" && check) {
+        warning("Since method is \"delta\", no check is needed and 'check' is ",
+                "set to FALSE")
+        check <- FALSE
+    }
+
+    if (check) {
+        message("Use the 'autoplot' method on the resulting object to ",
+                "check the profile-likelihood results.")  }
+    
+    if (check && out == "array") {
+        warning("Since 'check' is TRUE, 'out' set to \"data.frame\"")
+        out <- "data.frame"
+    }
+
     ## take into account the order. 
-    indLevel <- order(level)
+    indLevel <- order(level, decreasing = TRUE)
     level <- level[indLevel]
     fLevel <- formatLevel(level)
     nLevel <- length(level)
@@ -95,7 +205,7 @@ RL.poisGP <- function(object,
         }
         
         
-    } else if (method == "delta") {
+    } else if (method == "delta" || check) {
         
         probL <- (1 - level) / 2
         probU <- 1 - probL
@@ -130,7 +240,7 @@ RL.poisGP <- function(object,
             f <- dGPD2(x = Quant[iPer] - object$threshold,
                        scale = thetaHat[2], shape = thetaHat[3], deriv = TRUE)
             
-            gradTheta <- c("lambda" = 1 / f / thetaHat[2]^2 / period[iPer],
+            gradTheta <- c("lambda" = 1 / f / thetaHat[1]^2 / period[iPer],
                            drop(gradTheta))
             sdRL <- sqrt(t(gradTheta) %*% covTheta %*% gradTheta) 
           
@@ -138,10 +248,17 @@ RL.poisGP <- function(object,
             RL[iPer, "L",  ] <- Quant[iPer] + outer(sdRL, q[ , 1L]) 
             RL[iPer, "U",  ] <- Quant[iPer] + outer(sdRL, q[ , 2L])
             
+            
         }
        
         
-    } else if (method == "proflik") {
+    }
+
+    if (method == "proflik") {
+
+
+        ## if check store the results of the delta method
+        if (check) RLdelta <- RL
         
         constrCheck <- -5e-3
         thetaHat <- object$estimate
@@ -170,7 +287,7 @@ RL.poisGP <- function(object,
                           "xtol_rel" = 1.0e-12,
                           "ftol_abs" = 1.0e-12,
                           "ftol_rel" = 1.0e-12,
-                          "maxeval" = 200,
+                          "maxeval" = 2000,
                           "check_derivatives" = FALSE,
                           "print_level" = 0)
         
@@ -178,7 +295,7 @@ RL.poisGP <- function(object,
                           "xtol_rel" = 1.0e-12,
                           "ftol_abs" = 1.0e-12,
                           "ftol_rel" = 1.0e-12,
-                          "maxeval" = 500,
+                          "maxeval" = 8000,
                           "check_derivatives" = FALSE,
                           "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                               "xtol_rel" = 1.0e-12,
@@ -231,7 +348,7 @@ RL.poisGP <- function(object,
             f1 <- dGPD2(x = RL - object$threshold,
                         scale = theta[2], shape = theta[3], deriv = TRUE)
             
-            gradTheta <- c("lambda" = 1.0 / f1 / theta[2]^2 / period,
+            gradTheta <- c("lambda" = 1.0 / f1 / theta[1]^2 / period,
                            drop(gradTheta))
             
              if (chgSign) {
@@ -293,6 +410,99 @@ RL.poisGP <- function(object,
         chgSign <- c("L" = 0.0, "U" = 1.0)
         
         if (trace) cat("\no Finding CI for Return Levels\n")        
+
+
+        ## ====================================================================
+        ## When check is TRUE, we evaluate the profil-likelihood on a
+        ## grid of value of the Return Level rho(T) for each period T.
+        ## We store the corresponding value in a vector and
+        ## concatenate all vectors.
+        ## ====================================================================
+
+        if (check) {
+            
+            nSigma <-  rep(nSigma, length.out = 2)
+
+            ## ================================================================
+            ## Initialise vectors for the results and define a
+            ## function fo be minimised.
+            ## ================================================================
+            
+            rhoGrid <- numeric(0)
+            periodGrid <- numeric(0)
+            negLogLikCRho <- numeric(0)
+            
+            negLogLikNoRho <- function(thetaNoScale, period, iRho) {
+                theta <- rep(NA, 3)
+                theta[-2] <- thetaNoScale
+                rho  <- rhoGridPer[iRho] - object$threshold
+                if (abs(theta[3]) < 1e-6) {
+                    den <- log(theta[1] * period) 
+                } else {
+                    den <- ((theta[1] * period)^theta[3] - 1) / theta[3]
+                } 
+                theta[2] <- rho / den
+                if (all(is.finite(theta))) {
+                    negLogLikFun(theta, object = object, deriv = FALSE)
+                } else {
+                    NaN
+                }
+            }
+
+            ## ================================================================
+            ## Tune the optimisation for the determination of the
+            ## profile logLik. Note that we do not use gradients here.
+            ## ================================================================
+            lb <- c(0, 0, -0.9)
+            ub <- c(Inf, Inf, 2)
+            
+            optsNoRho <- list("algorithm" = "NLOPT_LN_COBYLA",
+                            "xtol_rel" = 1.0e-8,
+                            "xtol_abs" = 1.0e-8,
+                            "ftol_abs" = 1e-5,
+                            "maxeval" = 3000, "print_level" = 0,
+                            "check_derivatives" = FALSE)
+            
+            for (iPer in seq_along(period)) {
+                
+                Lper <- RLdelta[iPer, "Quant", 1] -
+                    nSigma[1] * (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
+                Uper <- RLdelta[iPer, "Quant", 1] +
+                    nSigma[2] * (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
+                
+                rhoGridPer <- seq(from = Lper, to = Uper, length.out = nCheck)
+                periodGridPer <- rep(period[iPer], nCheck)
+                negLogLikCRhoPer <- rep(NA, nCheck)
+                
+                for (iRho in seq_along(rhoGridPer)) {
+                    resii <-  try(nloptr(x0 = thetaHat[-2],
+                                         eval_f = negLogLikNoRho,
+                                         lb = lb[-2],
+                                         ub = ub[-2],
+                                         opts = optsNoRho,
+                                         period = period[iPer],
+                                         iRho = iRho), silent = TRUE)
+                    
+                    if (!inherits(resii, "try-error") &&
+                        (resii$status %in% c(3, 4))) {
+                        negLogLikCRhoPer[iRho] <- resii$objective
+                    }
+                    
+                }
+                
+                rhoGrid <- c(rhoGrid, rhoGridPer)
+                periodGrid <- c(periodGrid, periodGridPer)
+                negLogLikCRho <- c(negLogLikCRho, negLogLikCRhoPer)
+
+            }
+
+            negLogLikC <- data.frame(Period = periodGrid,
+                                     rho = rhoGrid,
+                                     Value = negLogLikCRho)
+            
+            
+        }
+
         
         for (LU in c("L", "U")) {
             
@@ -379,7 +589,7 @@ RL.poisGP <- function(object,
                                         object = object)
                             
                             gradDist <- distLines(x1 = checkg$jacobian,
-                                                         x2 = checkf$gradient)
+                                                  x2 = checkf$gradient)
                             
                             diagno[iPer, LU, iLev, "gradDist"] <- gradDist
                             
@@ -471,11 +681,37 @@ RL.poisGP <- function(object,
         class(RL) <- c("RL.poisGP", "data.frame")
     }
 
-    attr(RL, "title") <- "Return Levels"
-    attr(RL, "threshold") <- object$threshold
-    
-    return(RL)
-    
+    if (check) {
+        
+        RL <- reshape2::melt(RL,
+                             value.name = "Value",
+                             id.vars = c("Period", "Level"),
+                             variable.name = c("LU"))
+
+        RL1 <- subset(RL, LU != "Quant")
+        nll <- object$negLogLik + qchisq(level, df = 1) / 2.0
+        names(nll) <- fLevel
+        RL1 <- cbind(RL1, NegLogLik = nll[as.character(RL1$Level)])
+        
+        RL2 <- subset(RL, (LU == "Quant") & (Level == fLevel[1])) 
+        RL2$Level <- "est"
+        RL2 <- cbind(RL2, NegLogLik = rep(-object$logLik, nPeriod))
+                       
+        RL <- rbind(RL1, RL2, deparse.level = 1)
+        
+        L <- list(RL = RL, negLogLikC = negLogLikC)
+        class(L) <- "RLCheck.poisGP"
+        return(L)
+        
+    } else {
+        
+        attr(RL, "title") <- "Return Levels"
+        attr(RL, "threshold") <- object$threshold
+        
+        return(RL)
+
+    }
+        
 }
 
 

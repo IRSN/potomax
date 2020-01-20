@@ -173,7 +173,12 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##' Return Level plot and \code{"pp"} is for a probability plot.
 ##'
 ##' @param points The plotting position system to be used to show the
-##' data attached to the object. When \code{points} is \code{"none"}, 
+##' data attached to the object. When \code{points} is \code{"none"},
+##' the data are not shown. With the value \code{"H"} the data are
+##' shown using the "H-points" of Nelson's plotting positions. With
+##' the value \code{"p"}, the data are shown using the "p-points" are
+##' used and the argument \code{a} can be passed to the \code{ppoints}
+##' function.
 ##'
 ##' @param a The parameter used to compute the plotting positions when
 ##' \code{points} is \code{"p"}. See \code{\link{RP.potData}}.
@@ -186,6 +191,9 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##' @param ... Not used.
 ##'
 ##' @return A ggplot graphics object.
+##'
+##' @seealso \code{\link[Renext]{Hpoints}} in \strong{Renext} and
+##' \code{\link[stats]{ppoints}} in \strong{stats}.
 ##' 
 autoplot.poisGP <- function(object,
                             which = c("RL", "pp"),
@@ -241,6 +249,24 @@ autoplot.poisGP <- function(object,
 ##' @param ... Not used yet.
 ##' 
 ##' @return A ggplot graphics object.
+##'
+##' @examples
+##' u <- seq(from = 2610, to = 3000, by = 50)
+##' fits <- RLs <-  list()
+##' for (iu in seq_along(u)) {
+##'     fits[[iu]] <- poisGP(data = Garonne$OTdata$Flow,
+##'                          effDuration = Garonne$OTinfo$effDuration,
+##'                          MAX.data = list("hist" = Garonne$MAXdata$Flow),
+##'                          MAX.effDuration = Garonne$MAXinfo$duration,
+##'                          threshold = u[iu])
+##'     RLs[[iu]] <- RL(fits[[iu]], conf = "prof", out = "data")
+##' }
+##' names(fits) <- names(RLs) <- paste("thresh =",  u)
+##'
+##' ## force the S3 class of the result 
+##' class(RLs) <- "RL.poisGPList"
+##' autoplot(RLs) + theme_gray() +
+##'    ggtitle("Return level plots for Garonne and several thresholds")
 ##' 
 autoplot.RL.poisGPList <- function(object, ...) {
 
@@ -271,9 +297,34 @@ autoplot.RL.poisGPList <- function(object, ...) {
 
 }
 ## ****************************************************************************
-##' ##' Autoplot method for objects representing fitted Poisson-GP models. 
+##' Autoplot method for objects devoted to the check of the
+##' profile-likelihood confidence intervals on the parameters for
+##' Poisson-GP models.
 ##'
-##' @title Autoplot Method for \code{poisGP} Objects
+##' @details
+##' The object is a list containing two data frames named \code{ci}
+##' and \code{negLogLikC}. The \code{ci} data frame contains the
+##' confidence intervals in a long format suitable for plotting; it
+##' will be used to draw horizontal and vertical lines showing the
+##' confidence limits. The \code{negLogLikC} data frame contains
+##' evaluations of the profile log-likelihood for a grid of value of
+##' each parameter; it will be used to display a curve for each
+##' parameter.
+##'
+##' For each parameter, the two verical lines corresponding to a given
+##' confidence level represent the lower and upper bounds of the
+##' confidence interval for the parameter. The curve represent the
+##' negative profiled log-likelihood for the considered parameter. For
+##' each confidence level the two vertical lines should intersect the
+##' curve at points where the value of the profiled negative
+##' log-likelhood corrresponds to the horizontal line for the the
+##' level. The horizontal and vertical lines for the estimate should
+##' intersect at the point where the value of the negative
+##' log-likelhood is minimal. If the later condition is not true then
+##' the convergence of the ML estimation was not reached for some
+##' reason.
+##' 
+##' @title Autoplot Method for \code{confintCheck.poisGP} Objects
 ##'
 ##' @method autoplot confintCheck.poisGP
 ##' 
@@ -284,6 +335,8 @@ autoplot.RL.poisGPList <- function(object, ...) {
 ##' @param ... Not used yet.
 ##'
 ##' @return A ggplot graphics object.
+##'
+##' example(confint.poisGP)
 ##' 
 autoplot.confintCheck.poisGP <- function(object, ...) {
     
@@ -304,6 +357,63 @@ autoplot.confintCheck.poisGP <- function(object, ...) {
                               linetype = "Level", colour = "Level"))
     
     gg <- gg + facet_wrap(Name ~ ., scales = "free_x")
+    
+    gg
+
+}
+
+
+## ****************************************************************************
+##' Autoplot method for objects devoted to the check of the
+##' profile-likelihood confidence intervals on the return levels for
+##' Poisson-GP models.
+##'
+##' @details The object is a list containing two data frames named
+##' \code{RL} and \code{negLogLikC}. The \code{RL} data frame contains
+##' the confidence intervals in a long format suitable for plotting;
+##' it will be used to draw horizontal and vertical lines showing the
+##' confidence limits. The \code{negLogLikC} data frame contains
+##' evaluations of the profile log-likelihood for a grid of value of
+##' each return period; it will be used to display a curve for each
+##' parameter.
+##'
+##' The check is similar to that used for the confidence intervals as
+##' implemented in \code{\link{autoplot.confintCheck.poisGP}}. Each
+##' return level is here used as a parameter.
+##' 
+##' @title Autoplot Method for \code{RLCheck.poisGP} Objects
+##'
+##' @method autoplot RLCheck.poisGP
+##' 
+##' @param object An object with class \code{"RLCheck.poisGP"}
+##' generated by the \code{confint} method see
+##' \code{\link{confint.poisGP}}.
+##'
+##' @param ... Not used yet.
+##'
+##' @return A ggplot graphics object.
+##'
+##' @seealso \code{\link{autoplot.confintCheck.poisGP}}
+##' 
+autoplot.RLCheck.poisGP <- function(object, ...) {
+    
+    gg <- ggplot()
+    gg <- gg + geom_line(data = object$negLogLikC,
+                         mapping = aes_string(x = "rho", y = "Value", group = "Period"))
+    
+    gg <- gg + geom_point(data = object$negLogLikC,
+                          mapping = aes_string(x = "rho", y = "Value", group = "Period"),
+                          size = 0.8)
+    
+    gg <- gg + geom_vline(data = object$RL,
+                          mapping = aes_string(xintercept = "Value", group = "Period",
+                              linetype = "Level", colour = "Level"))
+    
+    gg <- gg + geom_hline(data = object$RL,
+                          mapping = aes_string(yintercept = "NegLogLik", group = "Period",
+                              linetype = "Level", colour = "Level"))
+    
+    gg <- gg + facet_wrap(Period ~ ., scales = "free_x")
     
     gg
 

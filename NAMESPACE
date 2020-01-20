@@ -49,6 +49,12 @@ S3method(autoplot, "poisGP")
 S3method(RL, "poisGP")
 S3method(autoplot, "RL.poisGP")
 S3method(autoplot, "RL.poisGPList")
+
+## ============================================================================
+## Objects used to check the results
+## ============================================================================
+
 S3method(autoplot, "confintCheck.poisGP")
+S3method(autoplot, "RLCheck.poisGP")
 
 

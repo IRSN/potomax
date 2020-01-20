@@ -19,3 +19,22 @@ A ggplot graphics object.
 Autoplot a list of RL tables, generally using the same data or
 using different data but sharing some observations.
 }
+\examples{
+u <- seq(from = 2610, to = 3000, by = 50)
+fits <- RLs <-  list()
+for (iu in seq_along(u)) {
+    fits[[iu]] <- poisGP(data = Garonne$OTdata$Flow,
+                         effDuration = Garonne$OTinfo$effDuration,
+                         MAX.data = list("hist" = Garonne$MAXdata$Flow),
+                         MAX.effDuration = Garonne$MAXinfo$duration,
+                         threshold = u[iu])
+    RLs[[iu]] <- RL(fits[[iu]], conf = "prof", out = "data")
+}
+names(fits) <- names(RLs) <- paste("thresh =",  u)
+
+## force the S3 class of the result 
+class(RLs) <- "RL.poisGPList"
+autoplot(RLs) + theme_gray() +
+   ggtitle("Return level plots for Garonne and several thresholds")
+
+}

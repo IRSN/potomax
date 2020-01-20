@@ -1,7 +1,8 @@
 Package: potomax
 Type: Package
 Title: Peaks Over Threshold and/or Block Maxima
-Version: 0.0.1
+Version: 0.1.0
+Date: 2020-01-20
 Author: Yves Deville <deville.yves@alpestat.com>
 Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Estimation and inference for standard Peak Over Threshold

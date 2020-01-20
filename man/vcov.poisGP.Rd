@@ -19,3 +19,7 @@ A covariance matrix of size three.
 \description{
 Variance-covariance matrix for a Poisson-GP object.
 }
+\note{
+The correlation matrix can be obtained by using
+\code{\link{cov2cor}} on the result.
+}

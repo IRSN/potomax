@@ -77,8 +77,8 @@ corresponding to the first argument and to the two GP
 parameters. This behaviour is the standard one for the probability
 functions of the \strong{stats} package but is unusual in R
 packages devoted to Extreme Value in which the parameters must
-generally have length one. Note that these functions can be used
-e.g.  to evaluate the quantile with a given probability for a
+generally have length one. Note that the provided functions can be
+used e.g.  to evaluate the quantile with a given probability for a
 large number of values of the parameter vector \code{c(shape,
 scale)}. This is frequently required in he Bayesian framework with
 MCMC inference.

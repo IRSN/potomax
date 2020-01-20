@@ -69,5 +69,5 @@ myData2 <- threshData(threshold = 4, data = myData, scale = FALSE)
 
 }
 \seealso{
-\code{link{potData}}.
+\code{\link{potData}}.
 }

@@ -7,8 +7,8 @@
 RL(object, ...)
 }
 \arguments{
-\item{object}{An object defining \emph{return levels} associated
-to some period values.}
+\item{object}{An object that can be used to define \emph{return
+levels} associated to some period values.}
 
 \item{...}{Arguments passed to methods.}
 }
@@ -17,5 +17,6 @@ An object inheriting from the \code{"data.frame"} class
 containing the return levels.
 }
 \description{
-Return levels associated with chosen periods.
+\code{RL} is a generic function which computes the return levels
+associated with chosen periods using a suitable model or data set.
 }

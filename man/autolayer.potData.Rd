@@ -53,6 +53,5 @@ pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
 ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
 }
 \seealso{
-\code{\link{potData}}, \code{\link[ggplot2]{scale_colour_manual}} and
-\code{\link[ggplot2]{scale_shape_manual}}.
+\code{\link{potData}}, \code{\link[ggplot2]{scale_manual}}.
 }

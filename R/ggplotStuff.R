@@ -34,8 +34,7 @@
 ##'
 ##' @return A ggplot layer.
 ##'
-##' @seealso \code{\link{potData}}, \code{\link[ggplot2]{scale_colour_manual}} and
-##' \code{\link[ggplot2]{scale_shape_manual}}.
+##' @seealso \code{\link{potData}}, \code{\link[ggplot2]{scale_manual}}.
 ##'
 ##' @note The user might have change the colour and the shape of the
 ##' points by using \code{scale_colour_manual} and

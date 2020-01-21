@@ -400,7 +400,8 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
 	if (fabs(xi) < eps) {
    
 	  if (z < 0.0) {
-	    rval[i] = 1.0;
+	    S = 1.0;
+	    rval[i] = S;
 	    rgrad[i] = 0.0;
 	    rgrad[i + n] = 0.0;
 	  } else {
@@ -426,7 +427,8 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
 	} else {
 	  
 	  if (z < 0.0) {
-	    rval[i] = 1.0;
+	    S = 1.0;
+	    rval[i] = S;
 	    rgrad[i] = 0.0;
 	    rgrad[i + n] = 0.0;	    
 	  } else {

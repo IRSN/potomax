@@ -158,7 +158,7 @@ RL.poisGP <- function(object,
     ## problems.
     ## ========================================================================
     
-    ind <- (period * thetaHat[1]) > 5
+    ind <- (period * thetaHat[1]) > 1.5
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -287,7 +287,7 @@ RL.poisGP <- function(object,
                           "xtol_rel" = 1.0e-12,
                           "ftol_abs" = 1.0e-12,
                           "ftol_rel" = 1.0e-12,
-                          "maxeval" = 2000,
+                          "maxeval" = 5000,
                           "check_derivatives" = FALSE,
                           "print_level" = 0)
         
@@ -453,8 +453,6 @@ RL.poisGP <- function(object,
             ## Tune the optimisation for the determination of the
             ## profile logLik. Note that we do not use gradients here.
             ## ================================================================
-            lb <- c(0, 0, -0.9)
-            ub <- c(Inf, Inf, 2)
             
             optsNoRho <- list("algorithm" = "NLOPT_LN_COBYLA",
                             "xtol_rel" = 1.0e-8,
@@ -477,8 +475,8 @@ RL.poisGP <- function(object,
                 for (iRho in seq_along(rhoGridPer)) {
                     resii <-  try(nloptr(x0 = thetaHat[-2],
                                          eval_f = negLogLikNoRho,
-                                         lb = lb[-2],
-                                         ub = ub[-2],
+                                         lb = object$lb[-2],
+                                         ub = object$ub[-2],
                                          opts = optsNoRho,
                                          period = period[iPer],
                                          iRho = iRho), silent = TRUE)
@@ -548,11 +546,14 @@ RL.poisGP <- function(object,
                         resOpt <- try(nloptr::nloptr(x0 = theta0,
                                                      eval_f = f,
                                                      eval_g_ineq = g,
+                                                     lb = object$lb,
+                                                     ub = object$ub,
                                                      level = lev,
                                                      period = period[iPer],
                                                      chgSign = chgSign[LU],
                                                      opts = opts[[optNum]],
-                                                     object = object))
+                                                     object = object),
+                                      silent = TRUE)
                         
                         if (!inherits(resOpt, "try-error")) {
                             
@@ -699,7 +700,9 @@ RL.poisGP <- function(object,
                        
         RL <- rbind(RL1, RL2, deparse.level = 1)
         
-        L <- list(RL = RL, negLogLikC = negLogLikC)
+        L <- list(RL = RL, negLogLikC = negLogLikC,
+                  ylim = -object$logLik + 3* (max(nll) + object$logLik))
+        
         class(L) <- "RLCheck.poisGP"
         return(L)
         

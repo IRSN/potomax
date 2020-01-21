@@ -7,8 +7,8 @@
 \method{MLE}{poisGP}(object = NULL,
     parIni = NULL,
     estim = c("optim", "nloptr", "eval", "none"),
-    coefLower, ##  = c("scale" = 0.0, "shape" = -0.99),
-    coefUpper, ## = c("scale" = Inf, "shape" = 2.0),
+    coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99),
+    coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = 2.0),
     parTrack =  FALSE,
     scale = FALSE,
     trace = 0)
@@ -16,12 +16,19 @@
 \arguments{
 \item{object}{A \code{poisGP} object that needs to be estimated.}
 
-\item{parIni}{Initial values for the parameter vector.}
+\item{parIni}{Initial values for the parameter vector. This
+is must be a named vector of length \eqn{2} with elements
+names \code{"scale"} and \code{"shape"}.}
 
 \item{estim}{Type or method chosen for the estimation.}
 
 \item{coefLower, coefUpper}{Lower and Upper bounds for the
-parameters.}
+parameters. The should be numeric vectors with names in
+\code{c("lambda", "scale", "shape")}. Only the bounds on the GP
+parameters \code{"scale"} and \code{"shape"} can be used during
+the estimation and they will only be used when \code{estim} is
+\code{"nloptr"}. However the bounds are used in the inference
+\code{\link{confint.poisGP}} and \code{\link{RL.poisGP}}.}
 
 \item{parTrack}{Not used yet.}
 
@@ -44,9 +51,13 @@ data.
 \details{
 The estimation proceeds by minimising a concentrated (or profile)
 negative log-likelihood which depends on the two GPD parameters,
-but not on the Poisson rate. However the standard (non-profile)
-negative log-likelihood function is built and returned because it
-will be used to derive profile-likelihood inference results.
+but not on the Poisson rate. So provided bound on this parameter
+will have no effect on the estimation and the estimates can fail
+to have its element \code{"lambda"} within the bounds when these
+are not \code{0.0} and \code{Inf}. However the standard
+(non-profile) negative log-likelihood function is built and
+returned because it will be used to derive profile-likelihood
+inference results.
 }
 \author{
 Yves Deville

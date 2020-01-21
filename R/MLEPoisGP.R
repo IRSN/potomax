@@ -336,9 +336,13 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##'
 ##' The estimation proceeds by minimising a concentrated (or profile)
 ##' negative log-likelihood which depends on the two GPD parameters,
-##' but not on the Poisson rate. However the standard (non-profile)
-##' negative log-likelihood function is built and returned because it
-##' will be used to derive profile-likelihood inference results.
+##' but not on the Poisson rate. So provided bound on this parameter
+##' will have no effect on the estimation and the estimates can fail
+##' to have its element \code{"lambda"} within the bounds when these
+##' are not \code{0.0} and \code{Inf}. However the standard
+##' (non-profile) negative log-likelihood function is built and
+##' returned because it will be used to derive profile-likelihood
+##' inference results.
 ##' 
 ##' @title Maximum-Likelihood Estimation of a Poisson-GP Model
 ##'
@@ -349,20 +353,27 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##' \method{MLE}{poisGP}(object = NULL,
 ##'     parIni = NULL,
 ##'     estim = c("optim", "nloptr", "eval", "none"),
-##'     coefLower, ##  = c("scale" = 0.0, "shape" = -0.99),
-##'     coefUpper, ## = c("scale" = Inf, "shape" = 2.0),
+##'     coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99),
+##'     coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = 2.0),
 ##'     parTrack =  FALSE,
 ##'     scale = FALSE,
 ##'     trace = 0)  
 ##'
 ##' @param object A \code{poisGP} object that needs to be estimated.
 ##'
-##' @param parIni Initial values for the parameter vector.
+##' @param parIni Initial values for the parameter vector. This
+##' is must be a named vector of length \eqn{2} with elements
+##' names \code{"scale"} and \code{"shape"}.
 ##'
 ##' @param estim Type or method chosen for the estimation.
 ##'
 ##' @param coefLower,coefUpper Lower and Upper bounds for the
-##' parameters.
+##' parameters. The should be numeric vectors with names in
+##' \code{c("lambda", "scale", "shape")}. Only the bounds on the GP
+##' parameters \code{"scale"} and \code{"shape"} can be used during
+##' the estimation and they will only be used when \code{estim} is
+##' \code{"nloptr"}. However the bounds are used in the inference
+##' \code{\link{confint.poisGP}} and \code{\link{RL.poisGP}}.
 ##'
 ##' @param parTrack Not used yet.
 ##'
@@ -382,8 +393,8 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 MLE.poisGP <- function(object = NULL, 
                        parIni = NULL,
                        estim = c("optim", "nloptr", "eval", "none"),
-                       coefLower, ##  = c("scale" = 0.0, "shape" = -0.99),
-                       coefUpper, ## = c("scale" = Inf, "shape" = 2.0),
+                       coefLower = c("scale" = 0.0, "shape" = -0.90),
+                       coefUpper = c("scale" = Inf, "shape" = 2.0),
                        parTrack =  FALSE,
                        scale = FALSE,
                        trace = 0) {
@@ -392,6 +403,51 @@ MLE.poisGP <- function(object = NULL,
        
     res <- list(cvg = TRUE)
 
+    ## ========================================================================
+    ## Manage the bounds
+    ## ========================================================================
+    
+    lb <- rep(c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99))
+    
+    if (length(coefLower)) {
+        lmatch <- match(names(coefLower), names(lb))
+        if ((length(lmatch) != length(coefLower)) || any(is.na(lmatch))) {
+            stop("when given, 'coefLower' must be a named vector ",
+                 "with suitable element names")
+        }
+        if (ind <- all(coefLower >= lb[lmatch])) {
+            lb[lmatch] <- coefLower
+        } else {
+            stop("Bad value in 'coefLower', element ",
+                 sprintf("\"%s\"", names(coefLower[!ind])),
+                 ". Should be >= ", lb[lmatch][!ind])
+        }           
+    }
+
+    if (scale) lb["scale"] <-  lb["scale"] / object$scaleData
+    
+    ub <- rep(c("lambda" = Inf, "scale" = Inf, "shape" = Inf))
+    
+    if (length(coefUpper)) {
+        umatch <- match(names(coefUpper), names(ub))
+        if ((length(umatch) != length(coefUpper)) || any(is.na(umatch))) {
+            stop("when given, 'coefUpper' must be a named vector ",
+                 "with suitable element names")
+        }
+        if (ind <- all(coefUpper <= ub[umatch])) {
+            ub[umatch] <- coefUpper
+        } else {
+            stop("Bad value in 'coefUpper', element ",
+                 sprintf("\"%s\"", names(coefUpper[!ind])),
+                 ". Should be <= ", ub[umatch][!ind]) 
+        }
+    }
+    
+    if (scale) ub["scale"] <-  ub["scale"] / object$scaleData
+    
+    res$lb <- lb
+    res$ub <- ub
+    
     if (estim == "optim") {
         
         ## ====================================================================
@@ -442,30 +498,6 @@ MLE.poisGP <- function(object = NULL,
 
         ## XXX caution! this works when the shape is constant only!!!
         p <- object$p - 1
-        
-        lb <- rep(c("scale" = 0.0, "shape" = -Inf))
-           
-        if (length(coefLower)) {
-            lmatch <- match(names(coefLower), names(lb))
-            if ((length(lmatch) != length(coefLower)) || any(is.na(lmatch))) {
-                stop("when given, 'coefLower' must be a named vector ",
-                     "with suitable element names")
-            }
-            lb[lmatch] <- coefLower
-        }
-        
-        if (scale) lb["scale"] <-  lb["scale"] / object$scaleData
-        ub <- rep(c("scale" = Inf, "shape" = Inf))
-        
-        if (length(coefUpper)) {
-            umatch <- match(names(coefUpper), names(ub))
-            if ((length(umatch) != length(coefUpper)) || any(is.na(umatch))) {
-                stop("when given, 'coefUpper' must be a named vector ",
-                     "with suitable element names")
-            }
-            ub[umatch] <- coefUpper
-        }
-        if (scale) ub["scale"] <-  ub["scale"] / object$scaleData
    
         dfred <- sum(lb == ub)
         res$df <- 3 - dfred
@@ -480,8 +512,8 @@ MLE.poisGP <- function(object = NULL,
         
         res$fit <- try(nloptr(x0 = parIni,
                               eval_f = negLogLikFunCD,
-                              lb = lb,
-                              ub = ub,
+                              lb = lb[-2],
+                              ub = ub[-2],
                               opts = opts,
                               object = object))
         

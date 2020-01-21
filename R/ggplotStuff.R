@@ -167,10 +167,13 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##'          ...)
 ##' 
 ##' @param object An object with class \code{"poisGP"}.
-##'
+##' 
 ##' @param which The type of plot to be built: \code{"RL"} is for a
 ##' Return Level plot and \code{"pp"} is for a probability plot.
 ##'
+##' @param level Used when \code{which} is \code{"RL"} and then passed
+##' to \code{\link{RL.poisGP}}.
+##' 
 ##' @param points The plotting position system to be used to show the
 ##' data attached to the object. When \code{points} is \code{"none"},
 ##' the data are not shown. With the value \code{"H"} the data are
@@ -186,6 +189,9 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##' limits for the \code{y} axis are set to show only the points over
 ##' the threshold. The value \code{TRUE} leads to showing all points
 ##' in the data including those which are below the threshold.
+##'
+##' @param trace Integer level of verbosity. Passed to
+##' \code{\link{RL.poisGP}}.
 ##' 
 ##' @param ... Not used.
 ##'
@@ -196,9 +202,11 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##' 
 autoplot.poisGP <- function(object,
                             which = c("RL", "pp"),
+                            level = 0.70,
                             points = c("H", "p", "none"),
                             a = 0.5,
                             allPoints = FALSE,
+                            trace = 0,
                             ...) {
 
     which <- match.arg(which)
@@ -206,7 +214,7 @@ autoplot.poisGP <- function(object,
 
     if (which == "RL") {
 
-        RLs <- RL(object)
+        RLs <- RL(object, level = level, trace = trace)
         gg <- autoplot(RLs, ...)
         if (!allPoints)  gg <- gg + ylim(object$threshold, NA)
         
@@ -355,7 +363,7 @@ autoplot.confintCheck.poisGP <- function(object, ...) {
                           mapping = aes_string(yintercept = "NegLogLik", group = "Name",
                               linetype = "Level", colour = "Level"))
     
-    gg <- gg + facet_wrap(Name ~ ., scales = "free_x")
+    gg <- gg + facet_wrap(Name ~ ., scales = "free_x") + ylab("negative log lik.")
     
     gg
 
@@ -412,10 +420,12 @@ autoplot.RLCheck.poisGP <- function(object, ...) {
                           mapping = aes_string(yintercept = "NegLogLik", group = "Period",
                               linetype = "Level", colour = "Level"))
     
-    gg <- gg + facet_wrap(Period ~ ., scales = "free_x")
+    gg <- gg + facet_wrap(Period ~ ., scales = "free_x", labeller = label_both)
     
-    gg
+    gg <- gg + ylim(c(NA, object$ylim)) + ylab("negative log lik.") +
+        xlab("Return period")
 
+    gg
 }
 
 

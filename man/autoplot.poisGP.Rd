@@ -16,6 +16,9 @@
 \item{which}{The type of plot to be built: \code{"RL"} is for a
 Return Level plot and \code{"pp"} is for a probability plot.}
 
+\item{level}{Used when \code{which} is \code{"RL"} and then passed
+to \code{\link{RL.poisGP}}.}
+
 \item{points}{The plotting position system to be used to show the
 data attached to the object. When \code{points} is \code{"none"},
 the data are not shown. With the value \code{"H"} the data are
@@ -31,6 +34,9 @@ function.}
 limits for the \code{y} axis are set to show only the points over
 the threshold. The value \code{TRUE} leads to showing all points
 in the data including those which are below the threshold.}
+
+\item{trace}{Integer level of verbosity. Passed to
+\code{\link{RL.poisGP}}.}
 
 \item{...}{Not used.}
 }

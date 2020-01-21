@@ -8,7 +8,7 @@
   used in several functions or method, not just by the creator
   `poisGP`.
 
-- Write or improve summary and print methods for the `"poisGP"` and
+- Write or improve the `summary` and `print` methods for the `"poisGP"` and
   `"potData"` classes.
 
 - **[X]** Warn about AIC and BIC. In the general context of
@@ -36,7 +36,6 @@
   huge weight in the estimation. So some theoretical work is required
   here.
 
-
 ## Changes in the classes and creator functions
 
 - Enhance the `potData` S3 class by allowing it to contain *optional*
@@ -61,12 +60,13 @@
 ## Performance
 
 - Write the log-likelihood functions in C in order to make faster the
-  functions/methos using profile-likelihood such as `confint` and `RL`.
+  functions/methods using profile-likelihood such as `confint` and `RL`.
 
-- Re-factor the `Ren2gev` function of **Renext** into a C function
-  accepting a matrix of Poisson-GP parameters and returning a matrix
-  of GEV or `"PP"` parameters with the same number of rows. This
-  function would be useful in a Bayesian framework where the
-  transformation sometimes has to be made on a full sequence of MCMC
-  iterates, the number of rows being then typically of several
-  thousands.
+- Re-factor the `Ren2gev` function of **Renext** into a C function of
+**potomax** accepting vectors for the Poisson-GP parameters `lambda`,
+`scale` and `shape` as well as for the block duration `w` and returning
+a matrix of GEV or `"PP"` parameters with a suitable number of
+rows. This function would be useful in a Bayesian framework where the
+transformation sometimes has to be made on a full sequence of MCMC
+iterates, the number of rows being then typically of several
+thousands.

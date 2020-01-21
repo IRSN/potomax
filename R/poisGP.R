@@ -552,8 +552,8 @@ poisGP <- function(data = NULL,
     
 
     if ((!missing(coefLower) || !missing(coefUpper)) && (estim == "optim")) {
-        warning("Provided values for 'coefLower' and 'coefUpper' will be ignored ",
-                "since estim is set to \"optim\"")
+        warning("Provided values for 'coefLower' and 'coefUpper' will be ",
+                "ignored since 'estim' is set to \"optim\"")
     }
     
     ## ========================================================================

@@ -81,12 +81,15 @@
 ##'               MAX.data = list("hist" = Garonne$MAXdata$Flow),
 ##'               MAX.effDuration = Garonne$MAXinfo$duration,
 ##'               threshold = 2800)
-##' 
+##'
 ##' confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+##'
+##' ## Check the results: quite long.
+##' \dontrun{
 ##' cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
 ##'                nSigma = 3, check = TRUE, trace = 0)
 ##' autoplot(cic) + theme_gray()
-##' 
+##' }
 confint.poisGP <- function(object,
                            parm, 
                            level = 0.95,
@@ -240,9 +243,6 @@ confint.poisGP <- function(object,
                     }
                 }
                 
-                lb <- c(0, 0, -0.9)
-                ub <- c(Inf, Inf, 2)
-                
                 optsNok <- list("algorithm" = "NLOPT_LN_COBYLA",
                                 "xtol_rel" = 1.0e-8,
                                 "xtol_abs" = 1.0e-8,
@@ -253,11 +253,11 @@ confint.poisGP <- function(object,
                 for (ik in seq_along(thetaGridk)) {
                     resk <-  try(nloptr(x0 = thetaHat[-k],
                                         eval_f = negLogLikNok,
-                                        lb = lb[-k],
-                                        ub = ub[-k],
+                                        lb = object$lb[-k],
+                                        ub = object$ub[-k],
                                         opts = optsNok,
                                         k = k,
-                                        i = ik))
+                                        i = ik), silent = TRUE)
                     
                     if (!inherits(resk, "try-error")) {
                         negLogLikCk[ik] <- resk$objective
@@ -306,12 +306,11 @@ confint.poisGP <- function(object,
                 resL <- try(nloptr::nloptr(x0 = theta0,
                                            eval_f = f,
                                            eval_g_ineq = g,
-                                           lb = c(0.0, 0, -0.90),
-                                           ub = c(Inf, Inf, Inf),
+                                           lb = object$lb,
+                                           ub = object$ub,
                                            k = k, level = lev, chgSign = FALSE,
                                            opts = opts1,
-                                           object = object),
-                            silent = TRUE)
+                                           object = object), silent = TRUE)
 
                 ## if (k == 3) opts1$print_level <- 0
                 
@@ -369,11 +368,11 @@ confint.poisGP <- function(object,
                 resU <- try(nloptr::nloptr(x0 = theta0,
                                            eval_f = f,
                                            eval_g_ineq = g,
-                                           lb = c(0.0, 0, -0.90),
-                                           ub = c(Inf, Inf, Inf),
+                                           lb = object$lb,
+                                           ub = object$ub,
                                            k = k, level = lev, chgSign = TRUE,
                                            opts = opts1,
-                                           object = object))
+                                           object = object), silent = TRUE)
                 
                 if (trace == 1L) {
                     cat(sprintf("%8.6f\n", -resU[["objective"]])) 

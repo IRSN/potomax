@@ -81,10 +81,13 @@ fit <- poisGP(data = Garonne$OTdata$Flow,
               threshold = 2800)
 
 confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+
+## Check the results: quite long.
+\dontrun{
 cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
                nSigma = 3, check = TRUE, trace = 0)
 autoplot(cic) + theme_gray()
-
+}
 }
 \seealso{
 \code{\link{RL.poisGP}} for the computation of the return

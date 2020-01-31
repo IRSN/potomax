@@ -6,6 +6,8 @@
 \usage{
 \method{autolayer}{potData}(object,
           type = c("RLplot", "timeplot"),
+          aes = FALSE,
+          xVar = c("T", "p"),
           group,
           points = c("p", "H"), a = 0.5,
           ...)
@@ -13,45 +15,42 @@
 \arguments{
 \item{object}{A \code{potData} object.}
 
-\item{type}{Type of plot wanted.}
+\item{type}{See \code{\link{autoplot.potData}}.}
 
-\item{group}{Character with value in \code{"block"} or
-\code{"source"}. In the first case the color and the shape of the
-points depend on the block. In the second case the color and the
-shape depend on the type or source of the block: \code{"OT"},
-\code{"MAX"} and \code{"OTS"}. By default the value of
-\code{group} is chosen to be \code{"block"} when the number of
-block is small enough and \code{"source"} otherwise.}
+\item{aes}{Logical. If \code{TRUE} the colour, fill and shape of
+the points are used within the aesthetic function \code{aes}
+wo they are registred to appear in legends.}
 
-\item{points}{Type of plotting positions to be used for a RL
-plot. See \code{\link{RP.potData}}.}
+\item{xVar}{See \code{\link{autoplot.potData}}.}
 
-\item{a}{Parameter to used in \code{ppoints} when \code{points} is
-\code{"p"}. See \code{\link{RP.potData}}.}
+\item{group}{See \code{\link{autoplot.potData}}.}
+
+\item{points, a}{See \code{\link{autoplot.potData}}.
+' \code{"p"}. See \code{\link{RP.potData}}.}
 
 \item{...}{Other arguments passed to \code{geom_point}.}
 }
 \value{
-A ggplot layer.
+A ggplot object.
 }
 \description{
 Draw a ggplot layer for a \code{potData} object.
 }
 \note{
-The user might have change the colour and the shape of the
-points by using \code{scale_colour_manual} and
-\code{scale_shape_manual}.
+With \code{aes = TRUE} it can be needed to reset the scales
+to avoid the creation of confusing legends. The package
+\strong{ggnewscale} can be of some help then.
 }
 \examples{
-pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
-                MAX.data = Garonne$MAXdata$Flow, MAX.effDuration = 143)
-ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
-## Change the label of the historical block
-pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
-                MAX.data = list("hist" = Garonne$MAXdata$Flow),
-                MAX.effDuration = 143)
-ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
+fit <- poisGP(data = Garonne, threshold = 2800)
+RL <- RL(fit)
+g <- autoplot(RL)
+g
+pdat <- as.potData(Garonne)
+g1 <- g + autolayer(pdat, aes = TRUE)
+g1
+
 }
 \seealso{
-\code{\link{potData}}, \code{\link[ggplot2]{scale_manual}}.
+\code{\link{potData}}, \code{\link{autoplot.potData}}.
 }

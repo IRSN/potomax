@@ -20,7 +20,7 @@ importFrom("scales", "trans_new")
 ## stats
 import("stats", except = c("filter"))
 
-export(RL, RP,
+export(RL, RP, as.potData,
        dGPD2, pGPD2, qGPD2, rGPD2,
        potData, threshData,
        poisGP)
@@ -29,8 +29,14 @@ export(RL, RP,
 ## Class "potData" : Similar to Rendata
 ## ============================================================================
 
+S3method(summary, "potData")
+S3method(print, "potData")
+S3method(print, "summary.potData")
+S3method(autoplot, "potData")
 S3method(autolayer, "potData")
 S3method(RP, "potData")
+S3method(as.potData, "Rendata")
+S3method(as.potData, "potData")
 
 ## ============================================================================
 ## Class "poisGP" : Poisson-GP by Maximum-Likelihood
@@ -44,6 +50,7 @@ S3method(BIC, "poisGP")
 S3method(confint, "poisGP")
 S3method(RL, "poisGP")
 S3method(summary, "poisGP")
+S3method(print, "poisGP")
 S3method(print, "summary.poisGP")
 S3method(autoplot, "poisGP")
 S3method(RL, "poisGP")

@@ -4,10 +4,12 @@
 \alias{autoplot.poisGP}
 \title{Autoplot Method for \code{poisGP} Objects}
 \usage{
-\method{autoplot}{poisGP}(object,
+\method{autoplot}{poisGP}(object, 
          which = c("RL", "pp"),
+         level = 0.70,
          points = c("H", "p", "none"), a = 0.5,
          allPoints = FALSE,
+         trace = 0,
          ...)
 }
 \arguments{

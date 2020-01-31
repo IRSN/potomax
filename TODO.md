@@ -8,8 +8,8 @@
   used in several functions or method, not just by the creator
   `poisGP`.
 
-- Write or improve the `summary` and `print` methods for the `"poisGP"` and
-  `"potData"` classes.
+- Write or improve the `summary` and `print` methods for the
+  `"poisGP"` and `"potData"` classes.
 
 - **[X]** Warn about AIC and BIC. In the general context of
   heterogeneous data, the concept of *number of observations* can be
@@ -19,9 +19,9 @@
   possible solution is setting the number of observation to `NA` when
   there is some historical information.
 
-- Improve the exchanges between the class `"potData"` and the class
-  `"Rendata"` of **Renext**. We should be able to simulate data, which
-  is very useful for testing.
+- **[X]** Improve the exchanges between the class `"potData"` and the
+  class `"Rendata"` of **Renext**. We should be able to simulate data,
+  which is very useful for testing.
 
 ## New functions or methods
 
@@ -47,9 +47,10 @@
   the data as implemented by `plot.Rendata` in **Renext**. A
   `simulate` method could also be implemented for the class.
 
-- Consistently with **Renext**, allow the `data` argument of `poisGP`
-  to be of class `"potData"`, implying that the other arguments
-  `MAX*` and `OTS*` are left missing as well as `effDuration`.
+- **[X]** Consistently with **Renext**, allow the `data` argument of
+  `poisGP` to be of class `"potData"`, implying that the other
+  arguments `MAX*` and `OTS*` are left missing as well as
+  `effDuration`.
 
 ## Data and examples
 
@@ -63,10 +64,10 @@
   functions/methods using profile-likelihood such as `confint` and `RL`.
 
 - Re-factor the `Ren2gev` function of **Renext** into a C function of
-**potomax** accepting vectors for the Poisson-GP parameters `lambda`,
-`scale` and `shape` as well as for the block duration `w` and returning
-a matrix of GEV or `"PP"` parameters with a suitable number of
-rows. This function would be useful in a Bayesian framework where the
-transformation sometimes has to be made on a full sequence of MCMC
-iterates, the number of rows being then typically of several
-thousands.
+  **potomax** accepting vectors for the Poisson-GP parameters `lambda`,
+  `scale` and `shape` as well as for the block duration `w` and
+  returning a matrix of GEV or `"PP"` parameters with a suitable number
+  of rows. This function would be useful in a Bayesian framework where
+  the transformation sometimes has to be made on a full sequence of MCMC
+  iterates, the number of rows being then typically of several
+  thousands.

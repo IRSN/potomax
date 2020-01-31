@@ -9,13 +9,19 @@ poisGP(data = NULL, threshold, effDuration,
        OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL,
        parIni = NULL,
        estim = c("optim", "nloptr", "eval", "none"),
-       coefLower = c("scale" = 0.0, "shape" = -0.90),
-       coefUpper = c("scale" = Inf, "shape" = Inf),
+       coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.90),
+       coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = Inf),
        scale = FALSE,
        trace = 0)
 }
 \arguments{
-\item{data}{A vector containing the observations for the "main" sample.}
+\item{data}{Either a vector containing the observations for the
+"main" sample or an object describing heterogeneous data. In the
+second case, \code{data} can be of class \code{"potData"} (see
+\code{\link{potData}}) or of class \code{"Rendata"} from the
+\strong{Renext} package. Mind that the class \code{"Rendata"} does not
+yet have a creator, but random \code{Rendata} objects can be
+created for testing by using \code{\link[Renext]{rRendata}}.}
 
 \item{threshold}{The \emph{main threshold} as commonly understood
 in POT.}

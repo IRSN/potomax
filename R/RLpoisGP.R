@@ -158,7 +158,7 @@ RL.poisGP <- function(object,
     ## problems.
     ## ========================================================================
     
-    ind <- (period * thetaHat[1]) > 1.5
+    ind <- (period * thetaHat[1]) > 4
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -261,6 +261,8 @@ RL.poisGP <- function(object,
         if (check) RLdelta <- RL
         
         constrCheck <- -5e-3
+        constrCheckAbs <- 5e-3
+        
         thetaHat <- object$estimate
         
         RL <- array(NA,
@@ -616,7 +618,7 @@ RL.poisGP <- function(object,
                         
                         if (!inherits(resOpt, "try-error") &&
                             (resOpt$status %in% c(3, 4)) &&
-                            (all(checkg$constraints > constrCheck))) {
+                            (all(abs(checkg$constraints) < constrCheckAbs))) {
                                 ## && (!is.na(gradDist)) &&
                                 ## (gradDist < gradLim)) {
                             

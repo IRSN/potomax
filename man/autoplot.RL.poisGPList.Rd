@@ -20,7 +20,7 @@ Autoplot a list of RL tables, generally using the same data or
 using different data but sharing some observations.
 }
 \examples{
-u <- seq(from = 2610, to = 3000, by = 50)
+u <- seq(from = 2610, to = 3000, length.out = 4)
 fits <- RLs <-  list()
 for (iu in seq_along(u)) {
     fits[[iu]] <- poisGP(data = Garonne$OTdata$Flow,

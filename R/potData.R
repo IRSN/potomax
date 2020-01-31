@@ -134,7 +134,8 @@ potData <- function(data = NULL, effDuration = NULL,
            
             OTS <- list(flag = TRUE,
                         effDuration = OTS.effDuration,
-                        r = length(MAX.data),
+                        threshold = OTS.threshold,
+                        r = length(OTS.data),
                         data = list("OTS block#1" = OTS.data))
         } else {
             if (!is.list(OTS.data) || !all(sapply(OTS.data, is.numeric))) {
@@ -156,6 +157,7 @@ potData <- function(data = NULL, effDuration = NULL,
             
             OTS <- list(flag = TRUE,
                         effDuration = OTS.effDuration,
+                        threshold = OTS.threshold,
                         r = OTS.r,
                         data = OTS.data)
         }
@@ -173,6 +175,71 @@ potData <- function(data = NULL, effDuration = NULL,
 
     class(res) <- "potData"
     res
+}
+
+summary.potData <- function(object, ...) {
+
+    res <-  object
+    class(res) <- "summary.potData"
+    res
+}
+
+print.summary.potData <- function(x, indent = 0,  ...) {
+
+    indStr <- "    "
+    if (indent == 0) {
+        indStr0 <- ""
+        bullet <- "o"
+    } else {
+        indStr0 <- indStr
+        bullet <- "-"
+    }
+    
+    if (x$OT$flag) {
+        cat(sprintf("%s%s OT data (main sample)\n", indStr0, bullet))
+        cat(sprintf("%s%sDuration (yrs):       %5.1f\n",
+                    indStr0, indStr, x$OT$effDuration))
+        cat(sprintf("%s%sNumber of obs.:       %5d\n",
+                    indStr0, indStr, x$OT$n))
+        cat(sprintf("%s%sRange:            %s\n",
+                    indStr0, indStr,
+                    sprintf("(%s)", paste(range(x$OT$data), collapse = ", "))))    
+    } else {
+        cat(sprintf("%s%s OT data: <NONE>\n", indStr0, bullet))
+    }
+    if (x$MAX$flag) {
+        cat(sprintf("\n%s%s MAX data (censored by number)\n", indStr0, bullet))
+        cat(sprintf("%s%sTotal duration (yrs): %5.1f\n",
+                    indStr0, indStr, sum(x$MAX$effDuration)))
+        cat(sprintf("%s%sNumber of blocks:     %5d\n",
+                    indStr0, indStr, length(x$MAX$data)))
+        cat(sprintf("%s%sNumber of obs:        %5d\n",
+                    indStr0, indStr, sum(x$MAX$r)))
+        cat(sprintf("%s%sRange:            %s\n",
+                    indStr0, indStr,
+                    sprintf("(%s)", paste(range(x$MAX$data), collapse = ", "))))    
+    } else {
+        cat(sprintf("\n%s%s MAX data: <NONE>\n", indStr0, bullet))
+    }
+    if (x$OTS$flag) {
+        cat(sprintf("\n%s%s OTS data (censored by number)\n", indStr0, bullet))
+        cat(sprintf("%s%sTotal duration (yrs): %5.1f\n",
+                    indStr0, indStr, sum(x$OTS$effDuration)))
+        cat(sprintf("%s%sNumber of blocks:     %5d\n",
+                    indStr0, indStr, length(x$OTS$data)))
+        cat(sprintf("%s%sNumber of obs:        %5d\n",
+                    indStr0, indStr, sum(x$OTS$r)))
+        cat(sprintf("%s%sRange:            %s\n",
+                    indStr0, indStr,
+                    sprintf("(%s)", paste(range(x$OTS$data), collapse = ", "))))    
+    } else {
+        cat(sprintf("\n%s%s OTS data: <NONE>\n", indStr0, bullet))
+    }
+    
+        
+}
+print.potData <- function(x, ...) {
+    print(summary(x, ...))
 }
 
 ## ****************************************************************************
@@ -324,7 +391,7 @@ RP.potData <- function(object,
     ## between the thresholds.
     ## ========================================================================
     
-    interv <- findInterval(x = vals, vec = u, rightmost.closed = TRUE)
+    interv <- findInterval(x = vals, vec = u, rightmost.closed = FALSE)
     A <- D <- invT.thresh <- lambda.thresh <- rep(0, J + 1L)
     ind <- list()
     for (j in J:1L) {
@@ -352,7 +419,8 @@ RP.potData <- function(object,
         if (A[j]) {
             ## reverse order
             prov <- invT.thresh[j + 1L] +
-                (invT.thresh[j] - invT.thresh[j + 1L]) * ((A[j]:1L) - a) / (A[j] -2*a + 1)
+                (invT.thresh[j] - invT.thresh[j + 1L]) *
+                    ((A[j]:1L) - a) / (A[j] -2*a + 1)
             S[ind[[j]]] <- prov / lambda
             if (!Aprec && points == "H") {
                 Sprov <- invT.thresh[j] / lambda
@@ -399,4 +467,83 @@ RP.potData <- function(object,
     
 }
 
+as.potData.potData <- function(object, ...) {
+    object
+}
+
+
+## **************************************************************************
+##' Coerce a \code{Rendata} object into an object with class
+##' \code{"potData"}.
+##'
+##' @title Coerce a \code{Rendata} Object
+##'
+##' @param object An object having the S3 class \code{"Rendata"} from the
+##' package \strong{Renext}.
+##'
+##' @param ... Not used for now. Should in the future allow to set or
+##' reset the names of the blocks using new arguments in
+##' \code{\link{potData}}.
+##'
+##' @return An object with the S3 class \code{"potData"} from the
+##' package \strong{potomax}.
+##'
+##' @note When \code{object} contains empty OTS blocks a warning is
+##' cast when attempting to find the min of an empty block.
+##' 
+##' @examples
+##' pdat <- as.potData(Garonne)
+##' pdat1 <- potData(data = Garonne$OTdata$Flow,
+##'                  effDuration = Garonne$OTinfo$effDuration,
+##'                  MAX.data = Garonne$MAXdata$Flow,
+##'                  MAX.effDuration = Garonne$MAXinfo$duration)
+##' all.equal(pdat, pdat1)
+##' 
+##' ## OTS block #2 is empty
+##' set.seed(123)
+##' rd <- rRendata(effDuration = 10,
+##'                OTS.effDuration = rep(60, 2),
+##'                OTS.threshold = rep(80, 2),
+##'                simDate = FALSE,
+##'                distname.y = "GPD", par.y = c(scale = 20, shape = 0.16))
+##' d <- as.potData(rd)
+as.potData.Rendata <- function(object, ...) {
+
+    L <- list()
+
+    vN <- object$info$varName
+    
+    if (!is.null(object$OTinfo)) {
+        d <- object$OTdata[[vN]]
+        e <- object$OTinfo$effDuration
+        L$data <- d
+        L$effDuration <- e
+    }
+    if (!is.null(object$MAXinfo)) {
+        md <- object$MAXdata[[vN]]
+        mb <- object$MAXdata$block
+        md <- tapply(md, mb, list)
+        me <- object$MAXinfo$duration
+        L$MAX.data <- md
+        L$MAX.effDuration <- me
+    }
+    if (!is.null(object$OTSinfo)) {
+        od <- object$OTSdata[[vN]]
+        ob <- object$OTSdata$block
+        ob <- factor(ob, levels = 1:nrow(object$OTSinfo))
+        tb <- table(ob)
+        od <- tapply(od, ob, function(x) if (length(x)) list(x))
+        for (i in 1:nlevels(ob)) {
+            if (tb[i] == 0) od[[i]] <- numeric(0)
+        }
+        oe <- object$OTSinfo$duration
+        ot <- object$OTSinfo$threshold
+        L$OTS.data <- od
+        L$OTS.effDuration <- oe
+        L$OTS.threshold <- ot
+    } 
+    
+    res <- do.call(potData, L)
+    res
+}
 

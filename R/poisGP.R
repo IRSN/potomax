@@ -79,15 +79,64 @@ summary.poisGP <- function(object, ...) {
     out
 }
 
-print.summary.poisGP <- function(x, ...) {
+print.summary.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 
+    data <-  match.arg(data)
+    
     cat("Poisson-GP model fitted Maximum-Likelihood\n")
     cat("\no Threshold: ", x$threshold, "\n")
     cat("\no Poisson-GP parameters and standard error\n")
     print(cbind(estimate = x$estimate, sd = x$sd))
-    cat("\no Correlation between Poisson-GP estimates\n")
-    print(cov2cor(x$cov))
+
+    cor <- try(cov2cor(x$cov), silent = TRUE)
+    if (!inherits(cor, "try-error")) {
+        cat("\no Correlation between Poisson-GP estimates\n")
+        print(cor)
+    }
     
+    if (data == "raw") {
+        cat("\no Raw data \n")
+        print(summary(x$data), indent = 1)
+    } else if (data == "fit") {
+        fd <- x$fitData
+        class(fd) <- "potData"
+        cat("\no Fit data (excesses over the treshold)\n")
+        print(summary(fd), indent = 1)
+    }
+       
+    
+}
+## ****************************************************************************
+##' Print an object with class \code{"poisGP"}.
+##'
+##' When \code{data} is \code{"fit"} some \code{"OTS"} blocks can be
+##' mentioned while no such blocks exist in the raw data, only MAX
+##' data. This is because as soon as the main threshold exceeds one
+##' observation in a MAX block this block must be turned into an OTS
+##' block with its threshold set to the main threshold.
+##'
+##' @method print poisGP
+##' 
+##' @usage
+##' 
+##' \method{print}{poisGP}(x, data = c("none", "raw", "fit"), ...) 
+##' 
+##' @title Print Method for the Class \code{"poisGP"}
+##'
+##' @param x An object with class \code{"poisGP"}.
+##'
+##' @param data Character. The value \code{"raw"} will lead to print
+##' some information about the raw data as provided to the creator
+##' \code{poisGP}. The value \code{"fit"} will lead to print some
+##' information about the data used for the fit i.e. the excesses over
+##' the threshold.
+##'
+##' @param ... Passed to \code{summary}.
+##'
+##' @return Nothing.
+##' 
+print.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
+    print(summary(object = x, ...),  data = data)
 }
 
 ## ****************************************************************************
@@ -311,12 +360,18 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##'        OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL,
 ##'        parIni = NULL,
 ##'        estim = c("optim", "nloptr", "eval", "none"),
-##'        coefLower = c("scale" = 0.0, "shape" = -0.90),
-##'        coefUpper = c("scale" = Inf, "shape" = Inf),
+##'        coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.90),
+##'        coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = Inf),
 ##'        scale = FALSE,
 ##'        trace = 0)
 ##' 
-##' @param data A vector containing the observations for the "main" sample.
+##' @param data Either a vector containing the observations for the
+##' "main" sample or an object describing heterogeneous data. In the
+##' second case, \code{data} can be of class \code{"potData"} (see
+##' \code{\link{potData}}) or of class \code{"Rendata"} from the
+##' \strong{Renext} package. Mind that the class \code{"Rendata"} does not
+##' yet have a creator, but random \code{Rendata} objects can be
+##' created for testing by using \code{\link[Renext]{rRendata}}.
 ##'
 ##' @param threshold The \emph{main threshold} as commonly understood
 ##' in POT.
@@ -472,8 +527,8 @@ poisGP <- function(data = NULL,
                    ## distname.y = "GPD",
                    parIni = NULL,
                    estim = c("optim", "nloptr", "eval", "none"),
-                   coefLower = c("scale" = 0.0, "shape" = -0.90),
-                   coefUpper = c("scale" = Inf, "shape" = Inf),
+                   coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.90),
+                   coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = Inf),
                    scale = FALSE,
                    trace = 0) {
 
@@ -487,21 +542,31 @@ poisGP <- function(data = NULL,
              "but also to change the log-likelihood values.")
     }
 
-
-    
+    cd <- class(data)
     if (is(data, "Rendata")) {
-        stop("Using 'data' with class \"Rendata\" is not allowed yet")
+        ##  stop("Using 'data' with class \"Rendata\" is not allowed yet")
+        data <- as.potData(data)
     }
 
-    ## Note that we do not pass 'threshold' here.
-    data <- potData(data = data,
-                    effDuration = effDuration,
-                    MAX.data = MAX.data,
-                    MAX.effDuration = MAX.effDuration,
-                    OTS.data = OTS.data,
-                    OTS.threshold = OTS.threshold,
-                    OTS.effDuration = OTS.effDuration)
+    if (is(data, "potData")) {
+        if (!missing(effDuration) || !missing(MAX.data) ||
+            !missing(MAX.effDuration) || !missing(OTS.data) || 
+            !missing(OTS.threshold) || !missing(OTS.effDuration)) {
+            warning("Since 'data' has class \"", cd, "\" the formal arguments ",
+                    "'effDuration', 'MAX.*' and 'OTS.*' are ignored")
+        }   
+    } else {
     
+        ## Note that we do not pass 'threshold' here.
+        data <- potData(data = data,
+                        effDuration = effDuration,
+                        MAX.data = MAX.data,
+                        MAX.effDuration = MAX.effDuration,
+                        OTS.data = OTS.data,
+                        OTS.threshold = OTS.threshold,
+                        OTS.effDuration = OTS.effDuration)
+    }
+        
     grandMin <- min(unlist(sapply(data, function(x) unlist(x$data))))
     
     scaleData <- 1.0

@@ -1,8 +1,8 @@
 Package: potomax
 Type: Package
 Title: Peaks Over Threshold and/or Block Maxima
-Version: 0.1.0
-Date: 2020-01-20
+Version: 0.1.2
+Date: 2020-01-31
 Author: Yves Deville <deville.yves@alpestat.com>
 Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Estimation and inference for standard Peak Over Threshold
@@ -13,7 +13,7 @@ Description: Estimation and inference for standard Peak Over Threshold
     in both cases be censored by discarding the observations below a
     chosen threshold.
 License: GPL-3
-Depends: Renext, nloptr, ggplot2
+Depends: Renext (>= 3.1-2), nloptr, ggplot2
 Imports: ismev, methods, scales, tidyr, dplyr, reshape2
 Suggests: numDeriv, testthat
 Encoding: UTF-8

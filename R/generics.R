@@ -1,4 +1,22 @@
 
+## ****************************************************************************
+##' Coerce an object to the \code{"potData"} class representing
+##' heterogeneous data.
+##'
+##' @title Generic Coercion Function 
+##' 
+##' @param object An object to coerce to the \code{"potData"} class.
+##'
+##' @param ... To be passed to methods.
+##'
+##' @return An object with clas \code{"potData"}.
+##' 
+##' 
+as.potData <- function(object, ...) {
+
+    UseMethod("as.potData", object)
+    
+}
 
 ## ****************************************************************************
 ##' \code{RL} is a generic function which computes the return levels

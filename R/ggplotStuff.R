@@ -1,3 +1,5 @@
+
+
 ## ****************************************************************************
 ##' Draw a ggplot layer for a \code{potData} object.
 ##'
@@ -8,13 +10,136 @@
 ##' @usage
 ##' \method{autolayer}{potData}(object,
 ##'           type = c("RLplot", "timeplot"),
+##'           aes = FALSE,
+##'           xVar = c("T", "p"),
 ##'           group,
 ##'           points = c("p", "H"), a = 0.5,
 ##'           ...)
 ##' 
 ##' @param object A \code{potData} object.
 ##'
+##' @param type See \code{\link{autoplot.potData}}.
+##'
+##' @param aes Logical. If \code{TRUE} the colour, fill and shape of
+##' the points are used within the aesthetic function \code{aes}
+##' wo they are registred to appear in legends.
+##' 
+##' @param xVar See \code{\link{autoplot.potData}}.
+##'
+##' @param group See \code{\link{autoplot.potData}}.
+##' 
+##' @param points,a  See \code{\link{autoplot.potData}}.
+##' ' \code{"p"}. See \code{\link{RP.potData}}.
+##'
+##' @param ... Other arguments passed to \code{geom_point}.
+##'
+##' @return A ggplot object.
+##'
+##' @seealso \code{\link{potData}}, \code{\link{autoplot.potData}}.
+##'
+##' @note With \code{aes = TRUE} it can be needed to reset the scales
+##' to avoid the creation of confusing legends. The package
+##' \strong{ggnewscale} can be of some help then.
+##'
+##' @examples
+##' fit <- poisGP(data = Garonne, threshold = 2800)
+##' RL <- RL(fit)
+##' g <- autoplot(RL)
+##' g
+##' pdat <- as.potData(Garonne)
+##' g1 <- g + autolayer(pdat, aes = TRUE)
+##' g1
+##' 
+autolayer.potData <- function(object,
+                              type = c("RLplot", "timeplot"),
+                              aes = FALSE,
+                              xVar = c("T", "p"),
+                              group, ## = c("block", "source"),
+                              points = c("p", "H"),
+                              a = 0.5,
+                              ...) {
+    block <- NULL ## to avoid warning
+    
+    pColour <-  c("black", "orangered", "SpringGreen3",  "SteelBlue3")
+    pShape <-  c(21, 21, 23, 24, 25)
+    pFill <-  c("black", "gold", "SpringGreen1", "SteelBlue1")
+   
+    type <- match.arg(type)
+    xVar <- match.arg(xVar)
+    ## group <- match.arg(group)
+    
+    if (type == "RLplot") {
+        
+        df <- RP(object, points = points, a = a)$data
+        if (nlevels(df$block) < 6 ) {
+            group <- "block"
+            df <- within(df, Type <- as.factor(block))
+        } else {
+            group <- "source"
+            df <- within(df, Type <- as.factor(source))
+        }
+        
+    } else {
+        stop("Not implemented yet!")
+    }
+    
+    out <- list()
+
+    if (aes) {
+        out[[1]]  <- geom_point(data = df,
+                                mapping = aes_string(x = "T", y = "x",
+                                    group = "Type",
+                                    shape = "Type", colour = "Type", fill = "Type"),
+                                stroke = 0.9, alpha = 0.8)
+    } else {
+        i <- 1
+        for (lev in levels(df$Type)) {
+            out[[i]]  <- geom_point(data = subset(df, Type == lev),
+                                    mapping = aes_string(x = "T", y = "x",
+                                        group = "Type"),
+                                    shape = pShape[i], colour = pColour[i],
+                                    fill = pFill[i],
+                                    stroke = 0.9, alpha = 0.8)
+            i <- i + 1
+        }
+
+    }
+ 
+    out
+
+}
+
+## ****************************************************************************
+##' Build ggplot graphics for a \code{potData} object.
+##'
+##' @title Build ggplot Graphics for a \code{potData} Object
+##'
+##' @method autoplot potData
+##'
+##' @usage
+##' \method{autoplot}{potData}(object,
+##'           type = c("RLplot", "timeplot"),
+##'           aes = FALSE,
+##'           xVar = c("T", "p"),
+##'           group,
+##'           points = c("p", "H"), a = 0.5,
+##'           blockDuration, 
+##'           ...)
+##' 
+##' @param object A \code{potData} object.
+##'
 ##' @param type Type of plot wanted.
+##'
+##' @param aes Logical. If \code{TRUE} the colour, fill and shape of
+##' the points are used within the aesthetic function \code{aes} wo
+##' they are registred to appear in legends.
+##' 
+##' @param xVar Used when \code{type} is \code{"RLplot"}. The variable
+##' to map the absissa \eqn{x} in the return level plot. When
+##' \code{xVar} is \code{"T"} the plotting positions are computed as
+##' explained in \emph{Renext Computing Details}. For \code{xVar =
+##' "p"} a further step is required to probability of exceedance
+##' \eqn{p} in reference with a given block duration. 
 ##'
 ##' @param group Character with value in \code{"block"} or
 ##' \code{"source"}. In the first case the color and the shape of the
@@ -30,6 +155,9 @@
 ##' @param a Parameter to used in \code{ppoints} when \code{points} is
 ##' \code{"p"}. See \code{\link{RP.potData}}.
 ##'
+##' @param blockDuration A block duration used to find the plotting
+##' positions when \code{xVar} is \code{"p"}.
+##' 
 ##' @param ... Other arguments passed to \code{geom_point}.
 ##'
 ##' @return A ggplot layer.
@@ -38,54 +166,60 @@
 ##'
 ##' @note The user might have change the colour and the shape of the
 ##' points by using \code{scale_colour_manual} and
-##' \code{scale_shape_manual}.
+##' \code{scale_shape_manual}. 
+##'
+##' @references
+##' 
+##' Yves Deville (2020). \emph{Renext Computing Details}. Technical
+##' Report.
+##' 
 ##' 
 ##' @examples
-##' pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
-##'                 MAX.data = Garonne$MAXdata$Flow, MAX.effDuration = 143)
+##' pdat <- as.potData(Garonne)
+##' autoplot(pdat) + ggtitle("Garonne potData")
+##' g <- autoplot(pdat, aes = TRUE) + ggtitle("Garonne potData")
+##' g
+##' g <- g +  scale_colour_manual(values = c("firebrick", "SpringGreen")) +
+##'        scale_shape_manual(values = c(21, 22))
+##' 
+##' ## use autolayer
 ##' ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
+##' 
 ##' ## Change the label of the historical block
 ##' pdat <- potData(data = Garonne$OTdata$Flow, effDuration = 65,
 ##'                 MAX.data = list("hist" = Garonne$MAXdata$Flow),
 ##'                 MAX.effDuration = 143)
-##' ggplot() + autolayer(pdat) + scale_x_log10() + theme_gray()
-autolayer.potData <- function(object,
+##' autoplot(pdat, aes = TRUE)
+##' 
+autoplot.potData <-  function(object,
                               type = c("RLplot", "timeplot"),
+                              aes = FALSE,
+                              xVar = c("T", "p"),
                               group, ## = c("block", "source"),
                               points = c("p", "H"),
                               a = 0.5,
+                              blockDuration, 
                               ...) {
+
     type <- match.arg(type)
-    ## group <- match.arg(group)
+    if (type == "p") {
+        stop("'type = \"p\"' not allowed yet for potData") 
+    }
     
-    if (type == "RLplot") {
-
-        df <- RP.potData(object, points = points, a = a)$data
-        if (nlevels(df$block) < 6 ) {
-            group <- "block"
-        } else {
-            group <- "source"
-        }
-
-        
-    } else {
-        stop("Not implemented yet!")
-    }
-
-    if (group == "block") {
-        geom_point(data = df,
-                   mapping = aes_string(x = "T", y = "x", group = "block",
-                       shape = "block", colour = "block", fill = "block"),
-                   ...) 
-    } else {
-        geom_point(data = df,
-                   mapping = aes_string(x = "T", y = "x",
-                       shape = "source", group = "source", colour = "source",
-                                        fill = "source"),
-                   ...)
-    }
-
+    gg <- ggplot()
+    gg <- gg + autolayer(object = object,
+                         type = type,
+                         aes = aes,
+                         xVar = xVar,
+                         points = points,
+                         a = a,
+                         ...) +
+        scale_x_log10()  + xlab("Period (years)") + ylab("Quantile")
+    gg
 }
+        
+
+
 
 ## ****************************************************************************
 ##' Autoplot method for objects of class \code{"RL.poisGP"}
@@ -160,10 +294,12 @@ autoplot.RL.poisGP <- function(object, ...) {
 ##' @method autoplot poisGP
 ##' 
 ##' @usage
-##' \method{autoplot}{poisGP}(object,
+##' \method{autoplot}{poisGP}(object, 
 ##'          which = c("RL", "pp"),
+##'          level = 0.70,
 ##'          points = c("H", "p", "none"), a = 0.5,
 ##'          allPoints = FALSE,
+##'          trace = 0,
 ##'          ...)
 ##' 
 ##' @param object An object with class \code{"poisGP"}.
@@ -258,7 +394,7 @@ autoplot.poisGP <- function(object,
 ##' @return A ggplot graphics object.
 ##'
 ##' @examples
-##' u <- seq(from = 2610, to = 3000, by = 50)
+##' u <- seq(from = 2610, to = 3000, length.out = 4)
 ##' fits <- RLs <-  list()
 ##' for (iu in seq_along(u)) {
 ##'     fits[[iu]] <- poisGP(data = Garonne$OTdata$Flow,

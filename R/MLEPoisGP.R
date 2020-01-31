@@ -353,8 +353,7 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##' \method{MLE}{poisGP}(object = NULL,
 ##'     parIni = NULL,
 ##'     estim = c("optim", "nloptr", "eval", "none"),
-##'     coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99),
-##'     coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = 2.0),
+##'     coefLower, coefUpper,
 ##'     parTrack =  FALSE,
 ##'     scale = FALSE,
 ##'     trace = 0)  
@@ -393,8 +392,8 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 MLE.poisGP <- function(object = NULL, 
                        parIni = NULL,
                        estim = c("optim", "nloptr", "eval", "none"),
-                       coefLower = c("scale" = 0.0, "shape" = -0.90),
-                       coefUpper = c("scale" = Inf, "shape" = 2.0),
+                       coefLower,
+                       coefUpper,
                        parTrack =  FALSE,
                        scale = FALSE,
                        trace = 0) {
@@ -409,7 +408,7 @@ MLE.poisGP <- function(object = NULL,
     
     lb <- rep(c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99))
     
-    if (length(coefLower)) {
+    if (!missing(coefLower)) {
         lmatch <- match(names(coefLower), names(lb))
         if ((length(lmatch) != length(coefLower)) || any(is.na(lmatch))) {
             stop("when given, 'coefLower' must be a named vector ",
@@ -428,7 +427,7 @@ MLE.poisGP <- function(object = NULL,
     
     ub <- rep(c("lambda" = Inf, "scale" = Inf, "shape" = Inf))
     
-    if (length(coefUpper)) {
+    if (!missing(coefUpper)) {
         umatch <- match(names(coefUpper), names(ub))
         if ((length(umatch) != length(coefUpper)) || any(is.na(umatch))) {
             stop("when given, 'coefUpper' must be a named vector ",

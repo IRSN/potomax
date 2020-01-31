@@ -7,8 +7,7 @@
 \method{MLE}{poisGP}(object = NULL,
     parIni = NULL,
     estim = c("optim", "nloptr", "eval", "none"),
-    coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99),
-    coefUpper = c("lambda" = Inf, "scale" = Inf, "shape" = 2.0),
+    coefLower, coefUpper,
     parTrack =  FALSE,
     scale = FALSE,
     trace = 0)

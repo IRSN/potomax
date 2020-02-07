@@ -41,8 +41,6 @@ for (i in seq_along(shape)) {
 
     e <- g[ , -2] - g0
 
-    cat("e in test\n")
-    print(e)
     test_that(desc = sprintf("Case shape %s, consistency of jacobian with Renext",
                   cases[i]),
               expect_lt(max(abs(e)), 1e-10))

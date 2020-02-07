@@ -1,7 +1,9 @@
+context("poisGP2PP")
+
 ## ***************************************************************************
 ## AUTHOR: Yves Deville <deville.yves@alpestat.com>
 ## GOAL: Test the transformation poisGP -> PP and its derivative
-## ***************************************************************************
+## *************G**************************************************************
 
 library(numDeriv)
 library(testthat)
@@ -38,7 +40,11 @@ for (i in seq_along(shape)) {
               expect_lt(max(abs(e)), 1e-10))
 
     e <- g[ , -2] - g0
+
+    cat("e in test\n")
+    print(e)
     test_that(desc = sprintf("Case shape %s, consistency of jacobian with Renext",
                   cases[i]),
               expect_lt(max(abs(e)), 1e-10))
+
 }

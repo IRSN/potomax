@@ -23,7 +23,8 @@ import("stats", except = c("filter"))
 export(RL, RP, as.potData,
        dGPD2, pGPD2, qGPD2, rGPD2,
        potData, threshData,
-       poisGP)
+       poisGP,
+       poisGP2PP)
 
 ## ============================================================================
 ## Class "potData" : Similar to Rendata

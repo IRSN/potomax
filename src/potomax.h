@@ -13,3 +13,7 @@ SEXP Call_pGPD2(SEXP q,
 SEXP Call_qGPD2(SEXP p,
 		SEXP scale, SEXP shape,
 		SEXP lowerTailFlag, SEXP derivFlag, SEXP hessianFlag);
+
+SEXP Call_poisGP2PP(SEXP lambda, SEXP loc, SEXP scale, SEXP shape,
+		    SEXP w,
+		    SEXP derivFlag);

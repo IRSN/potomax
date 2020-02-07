@@ -149,7 +149,7 @@ SEXP Call_poisGP2PP(SEXP lambda,        /*  double                          */
 	i12 = i + 2 * n;
 	rgrad[i12] = 0.0;                                    // @shapeStar / @lambda
 	rgrad[i12 + n3] = 0.0;                               // @hapeStar / @loc
-	rgrad[i12 + n3 * 3] = 0.0;                           // @shapeStar / @scale
+	rgrad[i12 + n3 * 2] = 0.0;                           // @shapeStar / @scale
 	rgrad[i12 + n3 * 3] = 1.0;                           // @shapeStar / @shape
 	
 	
@@ -181,7 +181,7 @@ SEXP Call_poisGP2PP(SEXP lambda,        /*  double                          */
 	i12 = i + 2 * n;
 	rgrad[i12] = 0.0;                                    // @shapeStar / @lambda
 	rgrad[i12 + n3] = 0.0;                               // @hapeStar / @loc
-	rgrad[i12 + n3 * 3] = 0.0;                           // @shapeStar / @scale
+	rgrad[i12 + n3 * 2] = 0.0;                           // @shapeStar / @scale
 	rgrad[i12 + n3 * 3] = 1.0;                           // @shapeStar / @shape
 	
       }

@@ -246,16 +246,13 @@ RL.poisGP <- function(object,
           
             RL[iPer, "Quant",  ] <- Quant[iPer] 
             RL[iPer, "L",  ] <- Quant[iPer] + outer(sdRL, q[ , 1L]) 
-            RL[iPer, "U",  ] <- Quant[iPer] + outer(sdRL, q[ , 2L])
-            
+            RL[iPer, "U",  ] <- Quant[iPer] + outer(sdRL, q[ , 2L])     
             
         }
-       
-        
+          
     }
 
     if (method == "proflik") {
-
 
         ## if check store the results of the delta method
         if (check) RLdelta <- RL
@@ -319,7 +316,6 @@ RL.poisGP <- function(object,
          
         f <- function(theta, level, period, chgSign = FALSE, object) {
 
-            
             prob <- 1.0 - 1.0 / theta[1] / period
 
             if (is.na(prob) || prob < 0.0 || prob > 1.0) {
@@ -502,7 +498,6 @@ RL.poisGP <- function(object,
             
             
         }
-
         
         for (LU in c("L", "U")) {
             
@@ -528,13 +523,18 @@ RL.poisGP <- function(object,
                     if (trace) {
                         cat(sprintf("\n    - Period:  %5.1f\n", period[iPer]))
                     }
-                    
-                    if ((iPer < length(period)) && !is.null(thetaIniPrec)) {
-                        ## if ((iPer > 1L) && !is.null(psiIniPrec)) {
-                        theta0 <- thetaIniPrec
-                    } else {
-                        theta0 <- thetaHat
-                    }
+
+                    ## 2020-04-02 This turns out to be worst than using the
+                    ## estimate!
+                    ## 
+                    ## if ((iPer < length(period)) && !is.null(thetaIniPrec)) {
+                    ##     ## if ((iPer > 1L) && !is.null(psiIniPrec)) {
+                    ##     theta0 <- thetaIniPrec
+                    ## } else {
+                    ##     theta0 <- thetaHat
+                    ## }
+
+                    theta0 <- thetaHat
                     
                     optDone <- FALSE
                     optNum <- 1
@@ -597,6 +597,8 @@ RL.poisGP <- function(object,
                             diagno[iPer, LU, iLev, "gradDist"] <- gradDist
                             
                             if (trace) {
+                                cat(sprintf("        Optim status : %d\n",
+                                            resOpt$status))
                                 cat(sprintf("        Constraint check %10.7f\n",
                                             checkg$constraints))
                                 cat(sprintf("        Gradient directions: %7.4f\n",
@@ -612,10 +614,17 @@ RL.poisGP <- function(object,
                             ## It seems that the distance reached is smaller when
                             ## 'T' is large.
 
+                        } else {
+                            if (trace > 1) {
+                                cat("'resOpt' is an error!!!\n")
+                            }
+                            ## test <- g(theta0, level = lev, period = period[iPer], chgSign = chgSign[LU],
+                            ##           object = object)
+                            ## print(test)
                         }
                         
                         gradLim <- 1.0 / period^0.6
-                        
+                         
                         if (!inherits(resOpt, "try-error") &&
                             (resOpt$status %in% c(3, 4)) &&
                             (all(abs(checkg$constraints) < constrCheckAbs))) {

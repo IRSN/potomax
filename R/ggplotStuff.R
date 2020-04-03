@@ -218,9 +218,6 @@ autoplot.potData <-  function(object,
     gg
 }
         
-
-
-
 ## ****************************************************************************
 ##' Autoplot method for objects of class \code{"RL.poisGP"}
 ##' representing a table of return levels.
@@ -280,7 +277,7 @@ autoplot.RL.poisGP <- function(object, ...) {
                               color = "SpringGreen3", alpha = 0.6)
     }
     
-    gg <- gg + scale_x_log10() 
+    gg <- gg + scale_x_log10() + ylab("Quantile")
  
     gg
 
@@ -369,9 +366,7 @@ autoplot.poisGP <- function(object,
         }
 
     } else {
-
         cat("Not implemented yet!")
-
     }
    
     
@@ -559,7 +554,7 @@ autoplot.RLCheck.poisGP <- function(object, ...) {
     gg <- gg + facet_wrap(Period ~ ., scales = "free_x", labeller = label_both)
     
     gg <- gg + ylim(c(NA, object$ylim)) + ylab("negative log lik.") +
-        xlab("Return period")
+        xlab("Return Level")
 
     gg
 }

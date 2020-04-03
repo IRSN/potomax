@@ -63,7 +63,7 @@
 - Write the log-likelihood functions in C in order to make faster the
   functions/methods using profile-likelihood such as `confint` and `RL`.
 
-- Re-factor the `Ren2gev` function of **Renext** into a C function of
+- **[X]** Re-factor the `Ren2gev` function of **Renext** into a C function of
   **potomax** accepting vectors for the Poisson-GP parameters `lambda`,
   `scale` and `shape` as well as for the block duration `w` and
   returning a matrix of GEV or `"PP"` parameters with a suitable number
@@ -71,3 +71,15 @@
   the transformation sometimes has to be made on a full sequence of MCMC
   iterates, the number of rows being then typically of several
   thousands.
+
+- Write a C function making the transformation inverse to `poisGP2PP`,
+  namely: take a vector of PP parameters, a block duration `w` and a
+  threshold and transform these data into a vector of Poisson-GP
+  parameters.
+
+- In the probability functions *GPD2 and in the transformation of
+  Poisson-GP parameters to PP, it is assumed that the parameters in
+  the vectors are all different. However if the shape turns out to be
+  constant some of the computations involving the shape are done
+  repeatedly. These could be avoided by testing for `i > 0` whether
+  `iShape` is zero before computing.

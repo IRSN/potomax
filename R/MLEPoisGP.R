@@ -201,6 +201,7 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
     scale <- theta[2]
     shape <- theta[3]
 
+    if (is.na(lambda)) stop("'lambda' is NA")
     if (lambda < 0.0) stop("negative value of 'lambda'")
     if (scale < 0.0) stop("negative value of 'scale'")
     

@@ -429,6 +429,11 @@ RL.poisGP <- function(object,
             rhoGrid <- numeric(0)
             periodGrid <- numeric(0)
             negLogLikCRho <- numeric(0)
+
+            ## ================================================================
+            ## Version with a gradient to be used with a "_LN_"
+            ## algorithm such as 'COBYLA'
+            ## ================================================================
             
             negLogLikNoRho <- function(thetaNoScale, period, iRho) {
                 theta <- rep(NA, 3)
@@ -437,7 +442,7 @@ RL.poisGP <- function(object,
                 if (abs(theta[3]) < 1e-6) {
                     den <- log(theta[1] * period) 
                 } else {
-                    den <- ((theta[1] * period)^theta[3] - 1) / theta[3]
+                    den <- ((theta[1] * period)^theta[3] - 1.0) / theta[3]
                 } 
                 theta[2] <- rho / den
                 if (all(is.finite(theta))) {
@@ -448,8 +453,47 @@ RL.poisGP <- function(object,
             }
 
             ## ================================================================
+            ## Version with a gradient to be used with a "_LD_"
+            ## algorithm such as 'LBFGS'
+            ## ================================================================
+            
+            negLogLikNoRhoGrad <- function(thetaNoScale, period, iRho) {
+                theta <- rep(NA, 3)
+                theta[-2] <- thetaNoScale
+                rho  <- rhoGridPer[iRho] - object$threshold
+                A <- log(theta[1] * period)
+                 
+                ## compute V and the derivatives 'd.V / d.lambda' and 'd.V / d.xi'
+                if (abs(theta[3]) < 1e-6) {
+                    V <- A
+                    dVdLambda <- 1.0 / theta[1]
+                    dVdxi <- A * A / 2.0
+                } else {
+                    V <- ((theta[1] * period)^theta[3] - 1.0) / theta[3]
+                    dVdLambda <- (V * theta[3] + 1.0) / theta[1]
+                    dVdxi <- A * V - (V - A) / theta[3]
+                }
+                theta[2] <- rho / V
+                negEll <- negLogLikFun(theta, object = object, deriv = TRUE)
+                grad <- attr(negEll, "gradient")
+                gradNoRho <- grad[1L, -2L]
+                gradNoRho[1L] <- gradNoRho[1L] - grad[1L, 2L] * rho * dVdLambda / V^2
+                gradNoRho[2L] <- gradNoRho[2L] - grad[1L, 2L] * rho * dVdxi / V^2
+                    
+                if (all(is.finite(theta))) {
+                    list("objective" = negEll,
+                         "gradient" = gradNoRho)
+                } else {
+                    list("objective" = NaN,
+                         "gradient" = rep(NaN, 2L))
+                }
+            }
+
+            ## ================================================================
             ## Tune the optimisation for the determination of the
             ## profile logLik. Note that we do not use gradients here.
+            ## Recompile the package with check_derivatives = TRUE in
+            ## case of doubt!!!
             ## ================================================================
             
             optsNoRho <- list("algorithm" = "NLOPT_LN_COBYLA",
@@ -457,7 +501,14 @@ RL.poisGP <- function(object,
                             "xtol_abs" = 1.0e-8,
                             "ftol_abs" = 1e-5,
                             "maxeval" = 3000, "print_level" = 0,
-                            "check_derivatives" = FALSE)
+                              "check_derivatives" = FALSE)
+            
+            optsNoRhoGrad <- list("algorithm" = "NLOPT_LD_LBFGS",
+                                  "xtol_rel" = 1.0e-8,
+                                  "xtol_abs" = 1.0e-8,
+                                  "ftol_abs" = 1e-5,
+                                  "maxeval" = 3000, "print_level" = 0,
+                                  "check_derivatives" = FALSE)
             
             for (iPer in seq_along(period)) {
                 
@@ -472,18 +523,27 @@ RL.poisGP <- function(object,
                 
                 for (iRho in seq_along(rhoGridPer)) {
                     resii <-  try(nloptr(x0 = thetaHat[-2],
-                                         eval_f = negLogLikNoRho,
+                                         eval_f = negLogLikNoRhoGrad,
                                          lb = object$lb[-2],
                                          ub = object$ub[-2],
-                                         opts = optsNoRho,
+                                         opts = optsNoRhoGrad,
                                          period = period[iPer],
                                          iRho = iRho), silent = TRUE)
                     
-                    if (!inherits(resii, "try-error") &&
-                        (resii$status %in% c(3, 4))) {
+                    if (!inherits(resii, "try-error") && (resii$status %in% c(3, 4))) {
                         negLogLikCRhoPer[iRho] <- resii$objective
+                    } else {
+                        resii <-  try(nloptr(x0 = thetaHat[-2],
+                                             eval_f = negLogLikNoRho,
+                                             lb = object$lb[-2],
+                                             ub = object$ub[-2],
+                                             opts = optsNoRho,
+                                             period = period[iPer],
+                                             iRho = iRho), silent = TRUE)
+                        if (!inherits(resii, "try-error") && (resii$status %in% c(3, 4))) {
+                            negLogLikCRhoPer[iRho] <- resii$objective
+                        }
                     }
-                    
                 }
                 
                 rhoGrid <- c(rhoGrid, rhoGridPer)

@@ -442,6 +442,11 @@ MLE.poisGP <- function(object = NULL,
                  ". Should be <= ", ub[umatch][!ind]) 
         }
     }
+
+    if ((lb["lambda"] > 0.0) || (ub["lambda"] < Inf)) {
+        stop("Bounds on 'lambda' must for now be '0.0' (lower) and 'Inf' (upper)")
+    }
+    
     
     if (scale) ub["scale"] <-  ub["scale"] / object$scaleData
     
@@ -460,7 +465,8 @@ MLE.poisGP <- function(object = NULL,
         ctrl <- list(maxit = 3000, trace = trace)
         if (!scale)  ctrl[["parscale"]] <- c("scale" = object$scaleData, "shape" = 1)
         
-        res$fit <- try(optim(par = parIni, fn = negLogLikFunC,
+        res$fit <- try(optim(par = parIni[-1],
+                             fn = negLogLikFunC,
                              deriv = FALSE,
                              method = "BFGS", control = ctrl,
                              object = object))
@@ -510,10 +516,10 @@ MLE.poisGP <- function(object = NULL,
             }
         }
         
-        res$fit <- try(nloptr(x0 = parIni,
+        res$fit <- try(nloptr(x0 = parIni[-1L],
                               eval_f = negLogLikFunCD,
-                              lb = lb[-2],
-                              ub = ub[-2],
+                              lb = lb[-1L],
+                              ub = ub[-1L],
                               opts = opts,
                               object = object))
         
@@ -521,7 +527,7 @@ MLE.poisGP <- function(object = NULL,
             if (res$fit$status > 0) {
                 estimate <- res$fit$solution
                 
-                if (any(estimate <= lb) || any(estimate >= ub)) {
+                if (any(estimate <= lb[-1L]) || any(estimate >= ub[-1L])) {
                     warning("some estimated parameters at ",
                             "the bounds, inference results are misleading")
                 }
@@ -626,6 +632,7 @@ MLE.poisGP <- function(object = NULL,
         
         ## ====================================================================
         ## Find the 'PP' parameters using the POT2GEV transformation
+        ## XXX. We could now use the 'poisGP2PP' function.
         ## ====================================================================
 
         estPP <- Renext::Ren2gev(res$estimate, threshold = object$threshold)

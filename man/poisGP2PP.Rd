@@ -25,17 +25,21 @@ the transformation is computed and returned as an attribute named
 }
 \value{
 A matrix with three columns representing the Point-Process
-parameters \code{loc}, code{scaele} and \code{shape}.
+parameters \code{loc}, code{scale} and \code{shape}.
 }
 \description{
 Transform Poisson-GP parameters into Point-Process (PP) parameters.
 }
 \details{
 In the POT framework the three parameters are the rate
-\code{lambda} of the Poisson process in time and the two GP
-parameters: \code{scale} \eqn{sigma} and \code{shape} \eqn{\xi}
-The vector \code{loc} contains the fixed threshold and \code{w}
-the fixed block duration.
+\code{lambda} of the Poisson process in time: \eqn{\lambda}, and
+the two GP parameters: \code{scale} \eqn{\sigma} and \code{shape}
+\eqn{\xi}. The vector \code{loc} contains the fixed threshold and
+\code{w} the fixed block duration.
+}
+\note{
+This function is essentially a re-implementation in C of
+the function \code{\link[Renext]{Ren2gev}} of \bold{Renext}.
 }
 \references{
 Yves Deville (2020). \emph{Renext Computing Details}. Technical

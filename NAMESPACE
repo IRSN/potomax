@@ -20,11 +20,11 @@ importFrom("scales", "trans_new")
 ## stats
 import("stats", except = c("filter"))
 
-export(RL, RP, as.potData,
+export(RL, RP, as.potData, profLik,
        dGPD2, pGPD2, qGPD2, rGPD2,
        potData, threshData,
        poisGP,
-       poisGP2PP)
+       poisGP2PP, PP2poisGP)
 
 ## ============================================================================
 ## Class "potData" : Similar to Rendata
@@ -43,6 +43,7 @@ S3method(as.potData, "potData")
 ## Class "poisGP" : Poisson-GP by Maximum-Likelihood
 ## ============================================================================
 
+S3method(profLik, "default")
 S3method(coef, "poisGP")
 S3method(vcov, "poisGP")
 S3method(logLik, "poisGP")

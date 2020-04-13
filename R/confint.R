@@ -300,7 +300,7 @@ confint.poisGP <- function(object,
                 } else {
                     theta0 <- thetaHat
                 }
-
+                
                 ## if (k == 3) opts1$print_level <- 3
                 
                 resL <- try(nloptr::nloptr(x0 = theta0,
@@ -333,7 +333,7 @@ confint.poisGP <- function(object,
                                               object = object)
 
                 if (trace) {
-                    cat(sprintf("   Constraint check %10.7f, %10.4f\n", check1, check2))
+                    cat(sprintf("   Constraint & value %10.7f, %10.4f\n", check1, check2))
                     grad0 <- drop(attr(check2, "gradient"))
                     cat("   Grad : ", sprintf("%8.6f", grad0 / norm(grad0, type = "2")),
                         "\n\n")

@@ -273,9 +273,9 @@ BIC.poisGP <- function(object, ...) {
 ##' @return A numeric vector of three coefficients.
 ##'
 ##' @note The \code{"poisGP"} parameters can be transformed into
-##' \code{"PP"} parameters by using \code{\link[Renext]{Ren2gev}}
-##' function of the \strong{Renext} package. This requires giving both
-##' the threshold and the block duration \code{w}.
+##' \code{"PP"} parameters by using the \code{\link{poisGP2PP}}
+##' function. This requires giving both the threshold and the block
+##' duration \code{w}.
 ##'
 ##' 
 coef.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
@@ -642,13 +642,17 @@ poisGP <- function(data = NULL,
     if (estim != "none") {
 
         if (is.null(parIni)) {
-            parIni <- coefIni(thisPoisGP, trace = pmax(0, trace - 1))[-1]
+            ## parIni <- coefIni(thisPoisGP, trace = pmax(0, trace - 1))[-1]
+            parIni <- coefIni(thisPoisGP, trace = pmax(0, trace - 1))
         }
         
         if (trace) {
             cat("\nInitial values for the parameter\n")
             print(parIni)
         }
+
+        ## Note that at this stage 'parIni', 'coefLower' and 'coefUpper'
+        ## all have length 3.
         
         res <- MLE.poisGP(object = thisPoisGP,
                           parIni = parIni,
@@ -657,6 +661,16 @@ poisGP <- function(data = NULL,
                           coefUpper = coefUpper,
                           scale = scale,
                           trace = trace)
+
+        if (res$estimate[2] < 1.0) {
+            sc <- 10^(- floor(log(res$estimate[2], 10)))
+            warning("Since the estimated scale is small, the data appear to be poorly ",
+                    "scaled,\n which might cause some problems in inference.\n",
+                    "Consider multiplying the data by a suitable factor, ",
+                    "e.g.  by ", sc, ".")
+
+        }
+
         
         for (nm1 in names(res)) {
             thisPoisGP[[nm1]] <- res[[nm1]]

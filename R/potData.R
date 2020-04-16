@@ -547,3 +547,74 @@ as.potData.Rendata <- function(object, ...) {
     res
 }
 
+
+## ****************************************************************************
+##' Method used to consistently scale each data slot in an object with
+##' class \code{"potData"}.
+##'
+##' @title Scale Method for the Class \code{"potData"}
+##'
+##' @param x A \code{potData} object.
+##'
+##' @param center Either the logical \code{FALSE} or a numeric
+##' value. In the later case, \code{center} will first be substracted
+##' to the data.
+##' 
+##' @param scale Either the logical \code{FALSE} or a numeric
+##' value. In the later case, \code{scale} the data witll be divided
+##' by \code{scale} after the substraction of \code{center} if
+##' required.
+##' 
+##' @return An object with class \code{"potData"} with the same
+##' structure a \code{x} but with the data rescaled.
+##'
+##' @note The scaling of a \code{potData} object can affect the
+##' behaviour of a \code{poisGP} object fitted form it. Fit results
+##' and profile-likelihood results can differ from those expected.
+##' 
+##' @examples
+##' L <- as.potData(Garonne)
+##' L1 <- scale(L, scale = 1000)
+##' 
+scale.potData <- function(x, center = FALSE, scale = FALSE) {
+
+    for (nm in c("OT")) {
+        if (x[[nm]]$flag) {
+            if (!identical(center, FALSE)) {
+                if (!is.numeric(center)) {
+                    stop("'center' must be FALSE or be a numeric value")
+                }
+                x[[nm]]$data <- x[[nm]]$data - center
+            }
+            if (!identical(scale, FALSE)) {
+                if (!is.numeric(scale)) {
+                    stop("'scale' must be FALSE or be a numeric value")
+                }
+                x[[nm]]$data <- x[[nm]]$data / scale
+            }
+        }
+    }
+    for (nm in c("MAX", "OTS")) {
+        if (x[[nm]]$flag) {
+            if (!identical(center, FALSE)) {
+                if (!is.numeric(center)) {
+                    stop("'center' must be FALSE or be a numeric value")
+                }
+                for (i in seq_along(x[[nm]]$data)) {
+                    x[[nm]]$data[[i]] <- x[[nm]]$data[[i]] - center
+                }
+            }
+            if (!identical(scale, FALSE)) {
+                if (!is.numeric(scale)) {
+                    stop("'scale' must be FALSE or be a numeric value")
+                }
+                for (i in seq_along(x[[nm]]$data)) {
+                    x[[nm]]$data[[i]] <- x[[nm]]$data[[i]] / scale
+                }
+            }            
+        }
+    }
+
+    x
+    
+}

@@ -36,6 +36,7 @@ S3method(print, "summary.potData")
 S3method(autoplot, "potData")
 S3method(autolayer, "potData")
 S3method(RP, "potData")
+S3method(scale, "potData")
 S3method(as.potData, "Rendata")
 S3method(as.potData, "potData")
 

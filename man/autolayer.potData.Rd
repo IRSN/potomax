@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplotStuff.R
 \name{autolayer.potData}
 \alias{autolayer.potData}
-\title{Draw a ggplot Layer for a \code{potData} object}
+\title{Draw a ggplot Layer for a \code{potData} Object}
 \usage{
 \method{autolayer}{potData}(object,
           type = c("RLplot", "timeplot"),

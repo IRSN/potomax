@@ -1,11 +1,19 @@
 ## ****************************************************************************
-##' Transform Point Process (PP) parameters into Poisson-GPparameters.
+##' Transform Point Process (PP) parameters into Poisson-GP
+##' parameters.
 ##'
-##' @details In the POT framework the three parameters are the rate of
+##' @details The provided parameters are GEV parameters: location
+##' \eqn{\mu^\star}{\mu*}, scale \eqn{\sigma^\star}{\sigma*} and shape
+##' \eqn{\xi^\star}{\xi*}. They are assumed to describe (the tail of) the
+##' distribution for a maximum on a time-interval with given duration
+##' \eqn{w}. For a given threshold chosen to be in the interior of the
+##' support of the GEV distribution, there exists a unique vector of
+##' three Poisson-GP parameters such that the maximum \eqn{M} of the
+##' marks on an interval with duration \code{w} has the prescribed GEV
+##' tail. Remind that the three Poisson-GP parameters are the rate of
 ##' the Poisson process in time: \eqn{\lambda}, and the two GP
-##' parameters: \code{scale} \eqn{\sigma} and \code{shape}
-##' \eqn{\xi}. The vector \code{threshold} contains the fixed
-##' threshold(s) and \code{w} the fixed block duration.
+##' parameters: \code{scale} \eqn{\sigma} and \code{shape} \eqn{\xi}.
+##' The shape parameters \eqn{\xi\star} and \eqn{\xi} are identical.
 ##'
 ##' @usage
 ##' PP2PoisGP(locStar = 0.0, scaleStar = 1.0, shapeStar = 0.0,
@@ -35,15 +43,22 @@
 ##'
 ##' @author Yves Deville
 ##'
-##' @note This function is essentially a re-implementation in C of
-##' the function \code{\link[Renext]{gev2Ren}} of \bold{Renext}. 
-##'
+##' @note This function is essentially a re-implementation in C of the
+##' function \code{\link[Renext]{gev2Ren}} of \bold{Renext}.  As a
+##' major improvement, this function is "vectorised" w.r.t. the
+##' parameters so it can transform efficiently a large number of PP
+##' parameter vectors as it can be required e.g. in a MCMC Bayesian
+##' inference. Note also that this function copes with values near
+##' zero for the shape parameter: it suitably computes then both the
+##' function value and its derivatives.
 ##' 
 ##' @references
 ##' 
 ##' Yves Deville (2020). \emph{Renext Computing Details}. Technical
-##' Report.
-##' 
+##' Report. (Chap. 3 and Appendix A)
+##'
+##' @seealso \code{\link{poisGP2PP}} for the reciprocal
+##' transformation.
 ##' 
 PP2poisGP <- function(locStar = 0.0, scaleStar = 1.0, shapeStar = 0.0,
                       threshold, w = 1.0,

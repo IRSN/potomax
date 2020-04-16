@@ -1,12 +1,27 @@
 ##*****************************************************************************
 ##' Confidence intervals for the parameters of a \code{poisGP} object.
 ##'
+##' This method finds confidence intervals for each of the three
+##' parameters of the chosen parameterisation: \code{"poisGP"}
+##' (default) or \code{"PP"}. The recommended (and default) method
+##' uses profile-likelihood as implemented in \code{proflik.default}.
+##' The determination of the intervals relies on a new method based on
+##' constrained optimisation: thus the profiled likelihood is not
+##' computed as such, as opposed to what is usually done. The profiled
+##' likelihood can be computed to check the results by using
+##' \code{check = TRUE}, but no zero finding is used to find the
+##' confidence limits following the classical method. The check is
+##' thus entirely based on the graphics which must be carefully
+##' inspected.
+##' 
 ##' @title Confidence Intervals for a \code{poisGP} Object
 ##'
 ##' @method confint poisGP
 ##' 
 ##' @usage 
-##' \method{confint}{poisGP}(object, parm, level = 0.95,
+##' \method{confint}{poisGP}(object,
+##'         type = c("poisGP", "PP"),
+##'         level = 0.95,
 ##'         method = c("proflik", "delta"),
 ##'         nSigma = 4,
 ##'         trace = 0,
@@ -17,19 +32,20 @@
 ##' 
 ##' @param object An object with class \code{"poisGP"}.
 ##'
-##' @param parm Not used yet.
+##' @param type The type of parameterisation wanted.
 ##' 
 ##' @param level Confidence level(s).
 ##' 
-##' @param method Character: \code{"delta"} leads to the delta method
-##' and \code{"proflik"} to the profile-likelihood.
+##' @param method Character: \code{"delta"} leads to the simplistic
+##' \emph{delta} method and \code{"proflik"} to the
+##' \emph{profile-likelihood}.
 ##' 
 ##' @param nSigma Used only when \code{check} is \code{TRUE}. It
 ##' defines the interval around the ML estimate where the profile
 ##' log-likelihood will be evaluated in order to build a curve
 ##' allowing a check of the results. The value of \code{nSigma}
 ##' defines the number of standard deviation for the current parameter
-##' that will be used. If needed an an asymmetric interval can be
+##' that will be used. If needed, an an asymmetric interval can be
 ##' defined by using two numbers e.g. \code{c(3, 5)} if it is expected
 ##' that the confidence intervals spread more on the right side of the
 ##' estimates than they do on the left side.
@@ -37,8 +53,9 @@
 ##' @param trace Integer level of verbosity.
 ##' 
 ##' @param round Logical. If \code{TRUE} the confidence limits will be
-##' rounded to a small number of digits. This number is chosen using the
-##' smallest of the standard deviations for the estimated parameters.
+##' rounded to a same small number of digits. This number is chosen
+##' using the smallest of the standard deviations for the estimated
+##' parameters.
 ##'
 ##' @param out Character giving the class of the output. By default
 ##' this is a three-dimensional array with dimensions:
@@ -71,27 +88,40 @@
 ##'
 ##' @seealso \code{\link{RL.poisGP}} for the computation of the return
 ##' levels with confidence intervals,
-##' \code{\link{autoplot.confintCheck.poisGP}} for the graphical check of the
-##' results.
+##' \code{\link{autoplot.confintCheck.poisGP}} for the graphical check
+##' of the results. The \code{profLik.default} method is used by this
+##' function.
+##'
+##' @note Remind that the \code{"PP"} parameterisation does not depend
+##' on the threshold, as opposed to the \code{"poisGP"}
+##' parameterisation. So \code{type = "PP"} should be used to
+##' investigate \emph{threshold stability} for the full parameter
+##' vector. However the confidence intervals on the two shape
+##' parameter: Poisson-GP \eqn{\xi} and PP \eqn{\xi^\star}{\xi*} are
+##' (or should be) identical.
+##' 
+##' @section Caution: The determination of the profile-likelihood
+##' intervals can fail, so it is wise to set \code{check = TRUE} and
+##' use the \code{autoplot} method on the returned object. Problems
+##' seem to be more frequently met with \code{type = "PP"}, i.e. when
+##' the Point-Process parameterisation is used.
 ##' 
 ##' @examples
-##' ## Maybe could we use a 'potMax object here?
-##' fit <- poisGP(data = Garonne$OTdata$Flow,
-##'               effDuration = Garonne$OTinfo$effDuration,
-##'               MAX.data = list("hist" = Garonne$MAXdata$Flow),
-##'               MAX.effDuration = Garonne$MAXinfo$duration,
-##'               threshold = 2800)
+##' ## fit from the object Garonne from Renext (class "Rendata")
+##' fit <- poisGP(Garonne, threshold = 2900)
 ##'
-##' confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+##' ci <- confint(fit, lev = c(0.70, 0.95), trace = 1)
 ##'
-##' ## Check the results: quite long.
+##' ## Check the results: this is quite time-consuming.
 ##' \dontrun{
-##' cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
-##'                nSigma = 3, check = TRUE, trace = 0)
+##' cic <- confint(fit, lev = c(0.95, 0.70), check = TRUE)
 ##' autoplot(cic) + theme_gray()
+##' 
+##' cicPP <- confint(fit, type = "PP", lev = c(0.95, 0.70), check = TRUE)
+##' autoplot(cicPP) + theme_gray()
 ##' }
 confint.poisGP <- function(object,
-                           parm, 
+                           type = c("poisGP", "PP"),
                            level = 0.95,
                            method = c("proflik", "delta"),
                            nSigma = 4,
@@ -104,13 +134,14 @@ confint.poisGP <- function(object,
     
     out <- match.arg(out)
     method <- match.arg(method)
+    type <- match.arg(type)
 
     if (method == "delta" && check) {
         warning("Since method is \"delta\", no check is needed and 'check' is ",
                 "set to FALSE")
         check <- FALSE
     }
-
+    
     if (check) {
         message("Use the 'autoplot' method on the result to check the results")
     }
@@ -120,153 +151,393 @@ confint.poisGP <- function(object,
         out <- "data.frame"
     } 
 
-    ## take into account the order. 
+    ## ========================================================================
+    ## Take into account the order of the levels and format them
+    ## suitably.
+    ## ========================================================================
+    
     indLevel <- order(level)
     level <- level[indLevel]
-    fLevel <- formatLevel(level)
+    fLevel <- potomax:::formatLevel(level)
     nLevel <- length(level)
     
+    ## ========================================================================
+    ## Use lists to alternatively play with the two parameterisations
+    ## "poisGP" and "PP".
+    ## ========================================================================
+    
+    thetaHat <- sigHat <- pNames <- list()
+    
+    for (typi in c("poisGP", "PP")) {
+        thetaHat[[typi]] <- coef(object, type = typi)
+        sigHat[[typi]] <- sqrt(diag(vcov(object, type = typi)))
+        pNames[[typi]] <- names(thetaHat[[typi]])
+    }
+
+    ## ========================================================================
+    ## No great difficulty with the 'delta' method: select the
+    ## suitable element in lists 'thetaHat', 'sigHat' and 'pNames'.
+    ## ========================================================================
+
     if (method == "delta") {
         
         probL <- (1 - level) / 2
         probU <- 1 - probL
-        thetaHat <- object$estimate
-        sigHat <- object$sd
+        
         q <- qnorm(cbind(probL, probU), mean = 0.0, sd = 1.0)
-
-        ci <- array(thetaHat, dim = c(object$p, 2L, nLevel),
-                   dimnames = list(object$parNames, c("L", "U"), fLevel)) 
-        cw <-  array(sigHat, dim = c(object$p, 2L, nLevel),
-                     dimnames = list(object$parNames, c("L", "U"), fLevel)) 
-
+        
+        ci <- array(thetaHat[[type]], dim = c(3L, 2L, nLevel),
+                    dimnames = list(pNames[[type]], c("L", "U"), fLevel))
+        
+        cw <-  array(sigHat[[type]], dim = c(3L, 2L, nLevel),
+                     dimnames = list(pNames[[type]], c("L", "U"), fLevel)) 
+        
         cw <- sweep(cw, MARGIN = c(3, 2), STATS = q, FUN = "*")
         ci <- ci + cw
         
     } else if (method == "proflik") {
-        
+                
         nSigma <- rep(nSigma, length.out = 2L)
         prob <- 1 - level
-        thetaHat <- object$estimate
-        sigHat <- object$sd
-        ci <- array(NA, dim = c(object$p, 2L, nLevel),
-                    dimnames = list(object$parNames, c("L", "U"), fLevel)) 
-
-        ## ===================================================================
-        ## For each parameter, we maximise/minimise it under the constraint
-        ## that the logLik remains >= max logLik - delta where delta :=
-        ## qchisq(1 - alpha) where alpha is given by the cofidence level.
-        ##
-        ## ===================================================================
-
-        opts1 <- list("algorithm" = "NLOPT_LD_AUGLAG",
-                      "xtol_rel" = 1.0e-12,
-                      "ftol_abs" = 1.0e-12, "ftol_rel" = 1.0e-12,
-                      "maxeval" = 8000,
-                      "check_derivatives" = FALSE,
-                      "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
-                          "xtol_rel" = 1.0e-12,
-                          "maxeval" = 8000,
-                          "ftol_abs" = 1.0e-12,
-                          "ftol_rel" = 1.0e-12),
-                      "print_level" = 0)
-
-        if (trace >= 2) {
-            opts1[["check_derivatives"]] <- TRUE
-            opts1[["check_derivatives_print"]] <-  "all"
-        }
-        if (trace >= 3) {
-              opts1[["print_level"]] <- 1
-        }
-
-        ## ==============================================================
-        ## note that some arguments such as 'level' are unused but are
-        ## required by the constraint
-        ## ==============================================================
         
-        f <- function(theta, k, chgSign = FALSE, level, object) {
-            
-            grad <- rep(0.0, object$p)
-            
-            if (chgSign) {
-                grad[k] <- -1.0
-                return(list("objective" = -theta[k], "gradient" = grad))
-            } else {
+        cipoisGP <- array(NA, dim = c(3L, 2L, nLevel),
+                          dimnames = list(pNames[["poisGP"]], c("L", "U"),
+                              fLevel)) 
+        
+        ci <- array(NA, dim = c(3L, 2L, nLevel),
+                    dimnames = list(pNames[[type]], c("L", "U"), fLevel)) 
+        
+        ## ====================================================================
+        ## First use the standard 'profLik' method for each parameter
+        ## with the functions dedicated to "poisGP". If type ==
+        ## "poisGP" we are done! Else, we will use the results to the
+        ## bounds on the 'poiGP' parameters, because it semms to help
+        ## much for the profLik with the "PP" parameters.
+        ## =====================================================================
+
+        if (trace) {
+            cat("\no Perform profile-likelihood for the \"poisGP\" ",
+                "parameterisation.\n\n") }
+        
+        for (k in 1:3) {
+
+            myfun <- function(theta, object) {
+                res <- theta[k]
+                grad <- rep(0.0, 3)
                 grad[k] <- 1.0
-                return(list("objective" = theta[k], "gradient" = grad))
+                attr(res, "gradient") <- grad
+                res
+            }
+            
+            pl <- profLik(object, fun = myfun, level = level, trace = trace)
+            attr(pl, "diagno") <- attr(pl, "theta") <- NULL
+            cipoisGP[k, , ] <- pl[c("L", "U"), ]   
+        }
+
+        if (trace) {
+            cat("\no Results for \"poisGP\"\n\n")
+            print(cipoisGP)
+        }
+
+        
+        if (type == "PP") {
+
+            if (trace) {
+                cat("\no Perform profile-likelihood for the \"PP\" ",
+                    "parameterisation.\n")
+            }
+            
+            for (k in 1:2) {
+                
+                if (trace > 0) {
+                    cat("\no Parameter ", pNames[[type]][k],
+                        "\n*******************\n")
+                }
+                
+                ## ============================================================
+                ## Define the function to be profiled. Note that this
+                ## is a function of the "poisGP" parameter as is
+                ## always true with our 'profLik' method.
+                ## ==============================================================
+                
+                myfun <- function(theta, object) {
+                    
+                    if ((theta[1] <= 0.0) || (theta[2] <= 0.0)) {
+                        cat("PB\n")
+                        print(theta) 
+                    }
+                    
+                    thetaStar <- poisGP2PP(lambda = theta[1],
+                                           scale = theta[2],
+                                           shape = theta[3],
+                                           loc = object$threshold, deriv = TRUE)
+                    res <- thetaStar[k]
+                    grad <- attr(thetaStar, "gradient")[1, k, c(1, 3, 4)]
+                    attr(res, "gradient") <- grad
+                    res
+                }
+
+                ## ===========================================================
+                ## Perform profile-likelihood for the "PP" fun with
+                ## the box bounds on the "poisGP" parameters set to
+                ## their confidence limits found previously. This
+                ## obviously must be done level by level. For
+                ## instance, we know that by maxi/minimising the "PP"
+                ## location 'muStar' in the 95% confidence region, the
+                ## "poisGP" parameters will remain in their respective
+                ## 95% 'marginal' confidence interval.
+                ## ============================================================
+
+                for (ilev in seq_along(level)) {
+                    
+                    object2 <- object
+                    
+                    object2$lb <- cipoisGP[ , "L", ilev]
+                    object2$ub <- cipoisGP[ , "U", ilev]
+                    plilev <- profLik(obj = object2, fun = myfun,
+                                      level = level[ilev], trace = trace)         
+                    attr(plilev, "diagno") <- attr(plilev, "theta") <- NULL
+                    ci[k, , ilev] <- plilev[c("L", "U"), 1]
+                }
+                
             }
 
-        }
-
-        g <- function(theta, k, chgSign = FALSE, level, object) {
-
-            ellL <- object$negLogLik + qchisq(level, df = 1) / 2.0
-            res <- object$negLogLikFun(theta = theta, object = object,
-                                       deriv = TRUE)
-            res2 <- list("constraints" = res - ellL,
-                         "jacobian" = attr(res, "gradient"))
-            res2 
+            ## ================================================================
+            ## For the shape parameter, no profiling is needed because
+            ## the parameter is identical to the 'poisGP' shape!!!
+            ## ================================================================
             
+            ci[3L, , ] <- cipoisGP[3L, , ]
+            
+        } else {
+            ci <- cipoisGP
         }
         
-        ## =====================================================================
-        ## note that although we recompute the gradient of the
-        ## objective and the quantile of the chi-square distribution,
-        ## this might be faster than re-defining the functions in the
-        ## loop. Some experimentations would be needed to confirm
-        ## this.
-        ## =====================================================================
-
+        ## ====================================================================
+        ## If a check is needed, then perform a series of
+        ## optimisation(s)
+        ## ====================================================================
         
-        for (k in 1L:object$p) {
+        if (check) {
             
-            if (trace) cat(sprintf("\n\no Finding CI for \"%s\"\n", object$parNames[k]))
-
-            ilevPrec <- 1L
-
-            if (check) {
-
-                thetaGridk <- seq(from = thetaHat[k] - nSigma[1L] * sigHat[k],
-                                  to = thetaHat[k] + nSigma[2L] * sigHat[k],
-                                  length.out = nCheck)
+            if (type == "PP") {
                 
-                negLogLikCk <- rep(NA, nCheck)
+                ## ============================================================
+                ## Define the negLogLik to be minimised for the
+                ## parameter number 'k'. This is a function of a
+                ## vector of length 2: the PP parameter with its k-th
+                ## element removed.
+                ## ============================================================
                 
-                negLogLikNok <- function(thetaNok, k, i) {
+                negLogLikNok <- function(thetaNok, k, thetak, deriv = TRUE) {
+                    
                     theta <- rep(NA, 3)
                     theta[-k] <- thetaNok
-                    theta[k] <- thetaGridk[i]
-                    ## cat("XXX", theta, "\n")
+                    theta[k] <- thetak
+                    
+                    theta <- try(PP2poisGP(locStar = theta[1L],
+                                           scaleStar = theta[2L],
+                                           shapeStar = theta[3L],
+                                           threshold = object$threshold,
+                                           deriv = deriv), silent = TRUE)
+                    
+                    ## ========================================================
+                    ## Remind that an error occurs when the support of
+                    ## the GEV distribution does not contain the
+                    ## threshold as an interior point.
+                    ## ========================================================
+                    
+                    if (inherits(theta, "try-error")) {
+                        if (deriv) {
+                            res <- list("objective" = Inf, 
+                                        "gradient" = rep(NaN, 2))
+                        } else res <- Inf
+                    }
+                    
                     if (all(is.finite(theta))) {
-                        negLogLikFun(theta, object = object, deriv = FALSE)
+                        nLL <-  object$negLogLikFun(theta, object = object,
+                                                    deriv = deriv)
+                        if (deriv) {
+                            grad <-  attr(nLL, "gradient") %*%
+                                attr(theta, "gradient")[1, , -k]
+                            attr(nLL, "gradient") <- NULL
+                            attr(nLL, "Cst") <- NULL
+                            res <- list("objective" = nLL, "gradient" = grad)
+                        } else {
+                            attr(nLL, "gradient") <- NULL
+                            attr(nLL, "Cst") <- NULL
+                            res <- nLL
+                        }
                     } else {
-                        NaN
+                        if (deriv) {
+                            res <- list("objective" = NaN,
+                                        "gradient" = rep(NaN, 2))
+                        } else res <- NaN
+                    }
+                    res
+                    
+                }
+                
+            } else if (type == "poisGP") {
+                
+                ## =============================================================
+                ## Define the negLogLik to be minimised for the
+                ## parameter numer 'k'. This is a function of a vector
+                ## of length 2: the poisGP parameter with its k-th
+                ## element removed.
+                ## =============================================================
+                
+                negLogLikNok <- function(thetaNok, k, thetak, deriv = TRUE) {
+                    
+                    theta <- rep(NA, 3)
+                    theta[-k] <- thetaNok
+                    theta[k] <- thetak
+                    
+                    if (all(is.finite(theta))) {
+                        nLL <-  object$negLogLikFun(theta, object = object,
+                                                    deriv = deriv)
+                        if (deriv) {
+                            grad <- attr(nLL, "gradient")
+                            grad <- grad[1L, -k, drop = FALSE]
+                            attr(nLL, "gradient") <- attr(nLL, "Cst") <- NULL
+                            res <- list("objective" = nLL, "gradient" = grad)
+                        } else {
+                            attr(nLL, "gradient") <- NULL
+                            attr(nLL, "Cst") <- NULL
+                            res <- nLL
+                        }
+                    } else {
+                        if (deriv) {
+                            res <- list("objective" = NaN,
+                                        "gradient" = rep(NaN, 2))
+                        } else res <- NaN
+                    }
+                    res
+                    
+                }
+            }
+            
+            ## ================================================================
+            ## Parameters to tune the optimisation. This settings have
+            ## a considerable impact on the availability and even on
+            ## the precision of the profile-likelihood value. 
+            ##
+            ## o 'ftol_rel' seems to improve but must be set to a very
+            ## small value.
+            ##
+            ## Finding the best settings will need some work in the
+            ## future...
+            ## ================================================================
+            
+            optsNok <- list("algorithm" = "NLOPT_LN_COBYLA",
+                            "xtol_rel" = 1.0e-8,
+                            ## "xtol_abs" = 1.0e-8,
+                            "ftol_abs" = 1e-12,
+                            "ftol_rel" = 1e-12,
+                            "maxeval" = 3000, "print_level" = 0,
+                            "check_derivatives" = FALSE)
+            
+            optsNokDeriv <- list("algorithm" = "NLOPT_LD_LBFGS",
+                                 "xtol_rel" = 1.0e-8,
+                                 ## "xtol_abs" = 1.0e-8,
+                                 "ftol_abs" = 1e-12,
+                                 "ftol_rel" = 1e-12,
+                                 "maxeval" = 8000, "print_level" = 0,
+                                 "check_derivatives" = FALSE)
+            
+            for (k in 1:3) {
+                
+                thetaNok <- thetaHat[[type]][-k]
+                
+                thetaGridk <- seq(from = thetaHat[[type]][k] -
+                                      nSigma[1L] * sigHat[[type]][k],
+                                  to = thetaHat[[type]][k] +
+                                      nSigma[2L] * sigHat[[type]][k],
+                                  length.out = nCheck)
+                negLogLikCk <- rep(NA, length(thetaGridk))
+                
+                status <- rep(NA,  length(thetaGridk))
+                useGrad  <- rep(FALSE,  length(thetaGridk))
+                
+                ## ============================================================
+                ## Manage bounds on the parameters. When 'type' is
+                ## "poisGP" we can use the parameters set by the user
+                ## at the creation, but this not possible in the "PP"
+                ## case, except for the shape parameter. Note that we
+                ## typically consider here parameter values that are
+                ## outside of the confidence intervals.
+                ## ============================================================
+                
+                if (type == "poisGP") {
+                    lbk <- object$lb[-k]
+                    ubk <- object$ub[-k]
+                } else {
+                    lbk <- 
+                        c("loc" = -Inf, "scale" = 0.0, "shape" = object$lb[3])[-k]
+                    ubk <-
+                        c("loc" = Inf, "scale" = Inf, "shape" = object$ub[3])[-k]
+                }
+                
+                ## ============================================================
+                ## Loop over all grid values. For each value we first
+                ## try an optimisation with derivative. If this fail
+                ## we try a new optimisation without derivative.
+                ## ============================================================
+                
+                for (i in seq_along(thetaGridk)) {
+                    
+                    thetak <- thetaGridk[i]
+                    thetaNok <- thetaHat[[type]][-k]
+                    
+                    resii <-  try(nloptr(x0 = thetaNok,
+                                         eval_f = negLogLikNok,
+                                         opts = optsNokDeriv,
+                                         lb = lbk,
+                                         ub = ubk,
+                                         k = k,
+                                         thetak = thetak,
+                                         deriv = TRUE), silent = TRUE)
+                    
+                    if (inherits(resii, "try-error")) print(resii)
+                    
+                    if (!inherits(resii, "try-error") &&
+                        (resii$status %in% 1:4)) {
+                        negLogLikCk[i] <- resii$objective
+                        useGrad[i] <- TRUE
+                    } else {
+                        resii <-  try(nloptr(x0 = thetaNok,
+                                             eval_f = negLogLikNok,
+                                             opts = optsNokDeriv,
+                                             lb = lbk,
+                                             ub = ubk,
+                                             k = k,
+                                             thetak = thetak,
+                                             deriv = FALSE), silent = TRUE)
+                        
+                        if (!inherits(resii, "try-error") &&
+                            (resii$status %in% 1:4)) {
+                            negLogLikCk[i] <- resii$objective
+                        }
+                    }
+                    
+                    if (!inherits(resii, "try-error")) {
+                        if (trace > 1) cat("status = ", resii$status, "\n")
+                        status[i] <-  resii$status
+                    } else {
+                        if (trace > 1) cat("Optim error\n")
+                        ## print(resii)
                     }
                 }
                 
-                optsNok <- list("algorithm" = "NLOPT_LN_COBYLA",
-                                "xtol_rel" = 1.0e-8,
-                                "xtol_abs" = 1.0e-8,
-                                "ftol_abs" = 1e-5,
-                                "maxeval" = 1000, "print_level" = 0,
-                                "check_derivatives" = FALSE)
+                ## ============================================================
+                ## define the data frame 'negLogLikC' containing the
+                ## value of the profiled negative log-likelihood or
+                ## add rows to this dataframe if k > 1
+                ## ============================================================
                 
-                for (ik in seq_along(thetaGridk)) {
-                    resk <-  try(nloptr(x0 = thetaHat[-k],
-                                        eval_f = negLogLikNok,
-                                        lb = object$lb[-k],
-                                        ub = object$ub[-k],
-                                        opts = optsNok,
-                                        k = k,
-                                        i = ik), silent = TRUE)
-                    
-                    if (!inherits(resk, "try-error")) {
-                        negLogLikCk[ik] <- resk$objective
-                    }
-                    
-                }
-
                 if (k == 1) {
-                    negLogLikC <- data.frame(Name = rep(object$parNames[k], nCheck),
+                    negLogLikC <- data.frame(Name = rep(pNames[[type]][k],
+                                                 nCheck),
                                              Par = thetaGridk,
                                              Value = negLogLikCk,
                                              stringsAsFactors = FALSE)
@@ -274,145 +545,19 @@ confint.poisGP <- function(object,
                 } else {
                     negLogLikC <-
                         dplyr::bind_rows(negLogLikC,
-                                         data.frame(Name = rep(object$parNames[k], nCheck),
+                                         data.frame(Name = rep(pNames[[type]][k],
+                                                        nCheck),
                                                     Par = thetaGridk,
                                                     Value = negLogLikCk,
                                                     stringsAsFactors = FALSE)) 
-                }
+                }      
             }
-            
-            for (ilev in seq_along(level)) {
-                
-                lev <- level[ilev]
-                
-                if (trace) {
-                    cat(sprintf("\n   o %s, lower bound: ", fLevel[ilev]))
-                }
-
-                ## =========================================================
-                ## if we have successfully computed the result for a
-                ## larger confidence level (and the same parameter),
-                ## use it as initial guess
-                ## ==========================================================
-                
-                if ((ilevPrec > 1L) && (!is.null(thetaLPrec))) {
-                    theta0 <- thetaLPrec
-                } else {
-                    theta0 <- thetaHat
-                }
-                
-                ## if (k == 3) opts1$print_level <- 3
-                
-                resL <- try(nloptr::nloptr(x0 = theta0,
-                                           eval_f = f,
-                                           eval_g_ineq = g,
-                                           lb = object$lb,
-                                           ub = object$ub,
-                                           k = k, level = lev, chgSign = FALSE,
-                                           opts = opts1,
-                                           object = object), silent = TRUE)
-
-                ## if (k == 3) opts1$print_level <- 0
-                
-                if (!inherits(resL, "try-error")) {
-                    if (trace == 1L) {
-                        cat(sprintf("%7.2f\n", resL[["objective"]])) 
-                    } else if (trace > 1L) {
-                        cat("SOLUTION\n")
-                        print(resL)
-                    }
-                } else {
-                    print(resL)
-                }
-                
-                ## the constraint must be active
-                check1 <- g(resL$solution, object = object, k = k, level = lev)$constraints
-
-                check2 <- object$negLogLikFun(theta = resL$solution,
-                                              deriv = TRUE,
-                                              object = object)
-
-                if (trace) {
-                    cat(sprintf("   Constraint & value %10.7f, %10.4f\n", check1, check2))
-                    grad0 <- drop(attr(check2, "gradient"))
-                    cat("   Grad : ", sprintf("%8.6f", grad0 / norm(grad0, type = "2")),
-                        "\n\n")
-                }
-                
-                check1 <- (check1 > -1e-3)
-                
-                if (!inherits(resL, "try-error") && (resL$status %in% c(3, 4))) {
-                    thetaLPrec <- resL[["solution"]]
-                    ci[k, "L", ilev] <- thetaLPrec[k]
-                } else {
-                    thetaLPrec <- NULL
-                }
-                
-                ## here we maximise will 'nloptr' only minimises things
-                if (trace) {
-                    cat(sprintf("   %s, upper bound: ", fLevel[ilev]))
-                }
-
-                ## =========================================================
-                ## if we have successfully computed the result for a
-                ## larger confidence level (and the same parameter),
-                ## use it as initial guess
-                ## ==========================================================
-                
-                if ((ilevPrec > 1L) && (!is.null(thetaUPrec))) {
-                    theta0 <- thetaUPrec
-                } else {
-                    theta0 <- thetaHat
-                }
-            
-                resU <- try(nloptr::nloptr(x0 = theta0,
-                                           eval_f = f,
-                                           eval_g_ineq = g,
-                                           lb = object$lb,
-                                           ub = object$ub,
-                                           k = k, level = lev, chgSign = TRUE,
-                                           opts = opts1,
-                                           object = object), silent = TRUE)
-                
-                if (trace == 1L) {
-                    cat(sprintf("%8.6f\n", -resU[["objective"]])) 
-                } else  if (trace > 1L) {
-                    cat("SOLUTION\n")
-                    print(resU)
-                }
-                
-                ## the constraint must be active
-                check1 <- g(resU$solution, object = object, k = k, level = lev)$constraints
-
-                check2 <- object$negLogLikFun(theta = resU$solution,
-                                              deriv = TRUE, object = object)
-
-                if (trace) {
-                    cat(sprintf("   Constraint & value %10.7f, %10.4f\n", check1, check2))
-                    grad0 <- drop(attr(check2, "gradient"))
-                    cat("   Grad : ", sprintf("%7.5f", grad0 / norm(grad0, type = "2")),
-                        "\n\n")
-                }
-
-                
-                check1 <- (check1 > -1e-3)
-                
-                if (!inherits(resU, "try-error") && (resU$status %in% c(3, 4))) {
-                    thetaUPrec <- resU[["solution"]]
-                    ci[k, "U", ilev] <- thetaUPrec[k]
-                } else {
-                    thetaUPrec <- NULL
-                }
-                
-                ilevPrec <- ilev
-            }
-
         }
-        
     }
 
-    if (round && (!is.null(object$sd)) && (!any(is.na(object$sd)))) {
-        d <- ceiling(-log(min(object$sd), 10)) + 1
+
+    if (round && (!any(is.na(sigHat[[type]])))) {
+        d <- ceiling(-log(min(sigHat[[type]]), 10)) + 1
         ci <- round(ci, digits = d)
     }
     
@@ -424,13 +569,13 @@ confint.poisGP <- function(object,
         names(nll) <- fLevel
         ci <- cbind(ci, NegLogLik = nll[as.character(ci$Level)])
     }
-
+    
     if (check) {
         
-        ciPlus <- data.frame(Name = object$parNames,
+        ciPlus <- data.frame(Name = pNames[[type]],
                              LU = rep("est", 3),
                              Level = rep("est", 3),
-                             Value = object$estimate,
+                             Value = thetaHat[[type]],
                              NegLogLik = rep(-object$logLik, 3))
         
         ci <- rbind(ci, ciPlus, deparse.level = 1)
@@ -441,6 +586,5 @@ confint.poisGP <- function(object,
     } else {
         ci
     }
+    
 }
-
-

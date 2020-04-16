@@ -91,29 +91,33 @@ The check for \code{check = TRUE} is built by computing the
 value of the profile-likelihood for each period \eqn{T} and each
 candidate value of \eqn{\rho(T)}{rho(T)}. This is done by using a
 two-parameter optimisation: maximise on the vector \eqn{[\lambda,
-\, \xi]}{[lambda, xi]} of the Poisson rate \eqn{\lambda} and the
+\, \xi]}{[\lambda, \xi]} of the Poisson rate \eqn{\lambda} and the
 and GP shape \eqn{\xi}, the return level \eqn{\rho(T)}{rho(T)}
 being fixed. This optimisation can fail to converge, in which case
 the result is \code{NA}. For now a derivative-free optimisation is
 used (COBYLA): the computations can be quite long.
 }
 \examples{
-fitp <- poisGP(data = Garonne$OTdata$Flow,
-               effDuration = Garonne$OTinfo$effDuration,
-               MAX.data = list("hist" = Garonne$MAXdata$Flow),
-               MAX.effDuration = Garonne$MAXinfo$duration,
-               threshold = 2900, trace = 2)
+## ================================================================
+## Use the 'Garonne' data from Renext, which embeds both OT data
+## and MAX data
+## ================================================================
+fitp <- poisGP(data = Garonne, threshold = 2900, trace = 2)
 
+## ================================================================
 ## RL plot with profile-likelihood confidence levels
+## ================================================================
 RL <- RL(fitp, out = "data", level = c(0.70, 0.95))
 autoplot(RL)
 
 \dontrun{
-## CHECK the results. Quite slow.
-RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
-         check = TRUE)
-autoplot(RLc) + ylim(c(NA, 540)) +
-    ggtitle("negative profile log-likelihood for rho(T)")
+   ## ================================================================
+   ## CHECK the results. Quite slow!
+   ## ================================================================
+   RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
+             check = TRUE)
+   autoplot(RLc) + ylim(c(NA, 540)) +
+       ggtitle("negative profile log-likelihood for rho(T)")
 }
 
 }

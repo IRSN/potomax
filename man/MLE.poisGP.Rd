@@ -50,10 +50,10 @@ data.
 \details{
 The estimation proceeds by minimising a concentrated (or profile)
 negative log-likelihood which depends on the two GPD parameters,
-but not on the Poisson rate. So provided bound on this parameter
-will have no effect on the estimation and the estimates can fail
-to have its element \code{"lambda"} within the bounds when these
-are not \code{0.0} and \code{Inf}. However the standard
+but not on the Poisson rate. So provided bounds on this parameter
+(if any) will have no effect on the estimation and the estimates
+can fail to have its element \code{"lambda"} within the bounds
+when these are not \code{0.0} and \code{Inf}. However the standard
 (non-profile) negative log-likelihood function is built and
 returned because it will be used to derive profile-likelihood
 inference results.

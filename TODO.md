@@ -8,7 +8,7 @@
   used in several functions or method, not just by the creator
   `poisGP`.
 
-- Write or improve the `summary` and `print` methods for the
+- **[X]** Write or improve the `summary` and `print` methods for the
   `"poisGP"` and `"potData"` classes.
 
 - **[X]** Warn about AIC and BIC. In the general context of
@@ -19,9 +19,14 @@
   possible solution is setting the number of observation to `NA` when
   there is some historical information.
 
-- **[X]** Improve the exchanges between the class `"potData"` and the
-  class `"Rendata"` of **Renext**. We should be able to simulate data,
+- **[X]** Improve the *exchanges between the class `"potData"` and the
+  class `"Rendata"`*  of **Renext**. We should be able to simulate data,
   which is very useful for testing.
+
+- Improve the *management of the constraints*. For now the initial
+  values are in general not compliant with the constraints. If for
+  instance a constraint shape > 0.1 is imposed the initial value
+  could be modified to be compliant with the constaints.
 
 ## New functions or methods
 
@@ -72,7 +77,7 @@
   iterates, the number of rows being then typically of several
   thousands.
 
-- Write a C function making the transformation inverse to `poisGP2PP`,
+- **[X]** Write a C function making the transformation inverse to `poisGP2PP`,
   namely: take a vector of PP parameters, a block duration `w` and a
   threshold and transform these data into a vector of Poisson-GP
   parameters.

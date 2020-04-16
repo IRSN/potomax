@@ -88,7 +88,7 @@
 ##' value of the profile-likelihood for each period \eqn{T} and each
 ##' candidate value of \eqn{\rho(T)}{rho(T)}. This is done by using a
 ##' two-parameter optimisation: maximise on the vector \eqn{[\lambda,
-##' \, \xi]}{[lambda, xi]} of the Poisson rate \eqn{\lambda} and the
+##' \, \xi]}{[\lambda, \xi]} of the Poisson rate \eqn{\lambda} and the
 ##' and GP shape \eqn{\xi}, the return level \eqn{\rho(T)}{rho(T)}
 ##' being fixed. This optimisation can fail to converge, in which case
 ##' the result is \code{NA}. For now a derivative-free optimisation is
@@ -102,22 +102,26 @@
 ##' \code{\link{confint.poisGP}}.
 ##'
 ##' @examples
-##' fitp <- poisGP(data = Garonne$OTdata$Flow,
-##'                effDuration = Garonne$OTinfo$effDuration,
-##'                MAX.data = list("hist" = Garonne$MAXdata$Flow),
-##'                MAX.effDuration = Garonne$MAXinfo$duration,
-##'                threshold = 2900, trace = 2)
+##' ## ================================================================
+##' ## Use the 'Garonne' data from Renext, which embeds both OT data
+##' ## and MAX data
+##' ## ================================================================
+##' fitp <- poisGP(data = Garonne, threshold = 2900, trace = 2)
 ##'
+##' ## ================================================================
 ##' ## RL plot with profile-likelihood confidence levels
+##' ## ================================================================
 ##' RL <- RL(fitp, out = "data", level = c(0.70, 0.95))
 ##' autoplot(RL)
 ##'
 ##' \dontrun{
-##' ## CHECK the results. Quite slow.
-##' RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
-##'          check = TRUE)
-##' autoplot(RLc) + ylim(c(NA, 540)) +
-##'     ggtitle("negative profile log-likelihood for rho(T)")
+##'    ## ================================================================
+##'    ## CHECK the results. Quite slow!
+##'    ## ================================================================
+##'    RLc <- RL(fitp, out = "data", level = c(0.70, 0.95),
+##'              check = TRUE)
+##'    autoplot(RLc) + ylim(c(NA, 540)) +
+##'        ggtitle("negative profile log-likelihood for rho(T)")
 ##' }
 ##' 
 RL.poisGP <- function(object,
@@ -158,7 +162,7 @@ RL.poisGP <- function(object,
     ## problems.
     ## ========================================================================
     
-    ind <- (period * thetaHat[1]) > 4
+    ind <- (period * thetaHat[1]) > 1
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -512,10 +516,10 @@ RL.poisGP <- function(object,
             
             for (iPer in seq_along(period)) {
                 
-                Lper <- RLdelta[iPer, "Quant", 1] -
-                    nSigma[1] * (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
-                Uper <- RLdelta[iPer, "Quant", 1] +
-                    nSigma[2] * (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
+                Lper <- RLdelta[iPer, "Quant", 1] - nSigma[1] *
+                    (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
+                Uper <- RLdelta[iPer, "Quant", 1] + nSigma[2] *
+                    (RLdelta[iPer, "U", 1] - RLdelta[iPer, "Quant", 1])
                 
                 rhoGridPer <- seq(from = Lper, to = Uper, length.out = nCheck)
                 periodGridPer <- rep(period[iPer], nCheck)
@@ -530,7 +534,8 @@ RL.poisGP <- function(object,
                                          period = period[iPer],
                                          iRho = iRho), silent = TRUE)
                     
-                    if (!inherits(resii, "try-error") && (resii$status %in% c(3, 4))) {
+                    if (!inherits(resii, "try-error") &&
+                        (resii$status %in% 1:4)) {
                         negLogLikCRhoPer[iRho] <- resii$objective
                     } else {
                         resii <-  try(nloptr(x0 = thetaHat[-2],
@@ -540,7 +545,8 @@ RL.poisGP <- function(object,
                                              opts = optsNoRho,
                                              period = period[iPer],
                                              iRho = iRho), silent = TRUE)
-                        if (!inherits(resii, "try-error") && (resii$status %in% c(3, 4))) {
+                        if (!inherits(resii, "try-error") &&
+                            (resii$status %in% 1:4)) {
                             negLogLikCRhoPer[iRho] <- resii$objective
                         }
                     }
@@ -678,7 +684,8 @@ RL.poisGP <- function(object,
                             if (trace > 1) {
                                 cat("'resOpt' is an error!!!\n")
                             }
-                            ## test <- g(theta0, level = lev, period = period[iPer], chgSign = chgSign[LU],
+                            ## test <- g(theta0, level = lev, period = period[iPer],
+                            ##           chgSign = chgSign[LU],
                             ##           object = object)
                             ## print(test)
                         }
@@ -686,10 +693,10 @@ RL.poisGP <- function(object,
                         gradLim <- 1.0 / period^0.6
                          
                         if (!inherits(resOpt, "try-error") &&
-                            (resOpt$status %in% c(3, 4)) &&
+                            (resOpt$status %in% 1:4) &&
                             (all(abs(checkg$constraints) < constrCheckAbs))) {
-                                ## && (!is.na(gradDist)) &&
-                                ## (gradDist < gradLim)) {
+                            ## && (!is.na(gradDist)) &&
+                            ## (gradDist < gradLim)) {
                             
                             optDone <- TRUE
                             thetaIniPrec <- resOpt[["solution"]]

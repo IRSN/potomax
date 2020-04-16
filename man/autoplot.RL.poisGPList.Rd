@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplotStuff.R
 \name{autoplot.RL.poisGPList}
 \alias{autoplot.RL.poisGPList}
-\title{Autoplot method for a list of Return Levels Tables}
+\title{Autoplot Method for a List of Return Levels Tables}
 \usage{
 \method{autoplot}{RL.poisGPList}(object, ...)
 }

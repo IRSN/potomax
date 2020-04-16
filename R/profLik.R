@@ -68,6 +68,19 @@ profLik <- function(object, fun, ...) {
 ##'
 ##' @param trace Level of verbosity; \code{trace = 0} prints nothing.
 ##'
+##' @param diagno Logical. When \code{TRUE} two diagnostics are
+##' returned as two attributes \code{"diagno"} and \code{"theta"} of
+##' the returned array. The array in attribute \code{"diagno"}
+##' contains the return codes of \code{nloptr} (named
+##' \code{"status"}), the values of the objective and of the
+##' constraint functions as well as a value named \code{"gradDist"}
+##' whcih measures the distance between the two directions of the two
+##' gradients: objective and constraint.  The array in attribute
+##' \code{"theta"} contains the value of the Poisson-GP parameter that
+##' was found to maxi/minimise the function \code{fun} under the
+##' constraint of a high log-likelihood. See section \bold{Note}.
+##' 
+##' 
 ##' @param ... Not used yet. 
 ##'
 ##' @return An array with the value of the function and the
@@ -82,30 +95,44 @@ profLik <- function(object, fun, ...) {
 ##'
 ##' @references
 ##'
-##' Deville Y. (2017) "Profile-likelihood using constrained
-##' optimisation". Unpublished Tech. Report.
+##' Deville Y. (2017) "Profile-Likelihood Using Constrained
+##' Optimisation". Unpublished Tech. Report.
+##' 
+##' Johnson S.G. \emph{The NLopt Nonlinear-Optimization Package}.
+##' \url{http://github.com/stevengj/nlopt}.
 ##'
+##' Section \bold{Return values} in the manual
+##' \href{https://nlopt.readthedocs.io/en/latest/NLopt_Reference}{NLOPT
+##' Reference}.
+##' 
 ##' @note For each confidence limit the numerical optimisation may
 ##' fail, in which case the limit will be \code{NA}. Using \code{trace
-##' = 1} can be useful to further check the optimisation. The
-##' \code{Optimisation status} value should be \code{3} or \code{4}
-##' for small changes on the parameter or on the objective. On the
-##' other hand, a value of \code{5} indicates that the maximal number
-##' of iterations was reached, which is considered here as a
-##' failure. The \code{Constaint check} value should be small because
-##' the constraint must be active at the optimum. The \code{gradDist}
-##' is the distance between the two directions of the gradient vectors
-##' (objective and constraint). It should be small as well because the
-##' gradients must be colinear at the optimum (Lagrange conditions).
+##' = 1} can be useful to further check the optimisation. We encourage
+##' the user to inspect the set of important diagnostics returned when
+##' \code{diagno = TRUE}, especially those in the attribute of the
+##' result named \code{"diagno"}. The \emph{optimisation status} value
+##' in \code{status} should be between \code{1} and \code{4} to
+##' indicate that small changes on the parameter or on the objective
+##' were eventually obtained. On the other hand, a value of \code{5}
+##' for \code{status} indicates that the maximal number of iterations
+##' was reached, which is considered here as a failure. Both the
+##' \code{constraint} and \code{gradDist} values should be small
+##' because the constraint must be active at the optimum and the two
+##' gradients for the objective and the constraint must be colinear at
+##' the optimum (Lagrange conditions). In other words the optimum
+##' parameter vector must lie on the boundary of the high-likelihood
+##' region corresponding to the chosen confidence level.
 ##' 
 ##' @examples
-##'
 ##' object <- poisGP(Garonne)
-##' 
-##' ## define a function of the parameter vector: here the first component
-##' ## This is for illustration only since the the result can be obtained
+##'
+##' ## =========================================================================
+##' ## Define a function of the parameter vector: here the first component of
+##' ## the "PP" parameter vector.
+##' ## This is for code illustration only, since the the result can be obtained
 ##' ## using the 'confint' method with \code{method = "proflik"}, which
 ##' ## gives the confidence intervals for each of the parameters.
+##' ## =========================================================================
 ##'
 ##' numPP <- 2
 ##' myfun <- function(theta, object) {
@@ -128,6 +155,13 @@ profLik.default <- function(object,
                             ...) {
 
     .diagno <- diagno
+
+    ## ========================================================================
+    ## XXX TO IMPLEMENTED LATER. To allow the use of dots, we will
+    ## need some 'do.call' and also the replacement method `formal<-`
+    ## in order to add the formal arguments to both 'f' and 'g'. So
+    ## some care will be required.
+    ## ========================================================================
     
     if (FALSE) {
         dots <- match.call(expand.dots = FALSE)[["..."]]
@@ -168,16 +202,16 @@ profLik.default <- function(object,
     ## ===================================================================
 
     opts1 <- list("algorithm" = "NLOPT_LD_AUGLAG",
+                  "xtol_rel" = 1.0e-12,
+                  "ftol_abs" = 1.0e-12, "ftol_rel" = 1.0e-12,
+                  "maxeval" = 8000,
+                  "check_derivatives" = FALSE,
+                  "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                       "xtol_rel" = 1.0e-12,
-                      "ftol_abs" = 1.0e-12, "ftol_rel" = 1.0e-12,
                       "maxeval" = 8000,
-                      "check_derivatives" = FALSE,
-                      "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
-                          "xtol_rel" = 1.0e-12,
-                          "maxeval" = 8000,
-                          "ftol_abs" = 1.0e-12,
-                          "ftol_rel" = 1.0e-12),
-                   "print_level" = 0)
+                      "ftol_abs" = 1.0e-12,
+                      "ftol_rel" = 1.0e-12),
+                  "print_level" = 0)
     
     if (trace >= 2) {
         opts1[["check_derivatives"]] <- TRUE
@@ -296,6 +330,8 @@ profLik.default <- function(object,
             resOpt <- try(nloptr::nloptr(x0 = theta0,
                                          eval_f = f,
                                          eval_g_ineq = g,
+                                         lb = object$lb,
+                                         ub = object$ub,
                                          level = lev,
                                          chgSign = chgSign[LU],
                                          opts = opts1,
@@ -325,7 +361,7 @@ profLik.default <- function(object,
             ## is active at solution
             ## ================================================================
 
-            if (!inherits(resOpt, "try-error") && (resOpt$status %in% c(3, 4))) {
+            if (!inherits(resOpt, "try-error") && (resOpt$status %in% 1:4)) {
                 
                 checkg <- g(theta = resOpt$solution,
                             level = lev,

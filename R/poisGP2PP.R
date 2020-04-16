@@ -5,7 +5,12 @@
 ##' \code{lambda} of the Poisson process in time: \eqn{\lambda}, and
 ##' the two GP parameters: \code{scale} \eqn{\sigma} and \code{shape}
 ##' \eqn{\xi}. The vector \code{loc} contains the fixed threshold and
-##' \code{w} the fixed block duration.
+##' \code{w} the fixed block duration. These parameters are converted
+##' into the vector of three parameters of the GEV distribution for
+##' the maximum of the marks \eqn{Y_i}{Yi} on a time interval with
+##' duration \code{w}, the number \eqn{N} of these marks being a
+##' r.v. with Poisson distribution. More precisely, the GEV
+##' distibution applies when \eqn{N > 0}.
 ##'
 ##' @usage
 ##' poisGP2PP(lambda, loc = 0.0, scale = 1.0, shape = 0.0,
@@ -33,15 +38,22 @@
 ##'
 ##' @author Yves Deville
 ##'
-##' @note This function is essentially a re-implementation in C of
-##' the function \code{\link[Renext]{Ren2gev}} of \bold{Renext}. 
-##'
+##' @note This function is essentially a re-implementation in C of the
+##' function \code{\link[Renext]{Ren2gev}} of \bold{Renext}. As a
+##' major improvement, this function is "vectorised" w.r.t. the
+##' parameters so it can transform efficiently a large number of
+##' Poisson-GP parameter vectors as it can be required e.g. in a MCMC
+##' Bayesian inference. Note also that this function copes with values
+##' near zero for the shape parameter: it suitably computes then both
+##' the function value and its derivatives.
 ##' 
 ##' @references
 ##' 
 ##' Yves Deville (2020). \emph{Renext Computing Details}. Technical
-##' Report.
+##' Report. (Chap. 3 and Appendix A)
 ##' 
+##' @seealso \code{\link{PP2poisGP}} for the reciprocal
+##' transformation.
 ##' 
 poisGP2PP <- function(lambda, loc = 0.0, scale = 1.0, shape = 0.0,
                       w = 1.0,

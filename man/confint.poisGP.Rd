@@ -4,7 +4,9 @@
 \alias{confint.poisGP}
 \title{Confidence Intervals for a \code{poisGP} Object}
 \usage{
-\method{confint}{poisGP}(object, parm, level = 0.95,
+\method{confint}{poisGP}(object,
+        type = c("poisGP", "PP"),
+        level = 0.95,
         method = c("proflik", "delta"),
         nSigma = 4,
         trace = 0,
@@ -16,19 +18,20 @@
 \arguments{
 \item{object}{An object with class \code{"poisGP"}.}
 
-\item{parm}{Not used yet.}
+\item{type}{The type of parameterisation wanted.}
 
 \item{level}{Confidence level(s).}
 
-\item{method}{Character: \code{"delta"} leads to the delta method
-and \code{"proflik"} to the profile-likelihood.}
+\item{method}{Character: \code{"delta"} leads to the simplistic
+\emph{delta} method and \code{"proflik"} to the
+\emph{profile-likelihood}.}
 
 \item{nSigma}{Used only when \code{check} is \code{TRUE}. It
 defines the interval around the ML estimate where the profile
 log-likelihood will be evaluated in order to build a curve
 allowing a check of the results. The value of \code{nSigma}
 defines the number of standard deviation for the current parameter
-that will be used. If needed an an asymmetric interval can be
+that will be used. If needed, an an asymmetric interval can be
 defined by using two numbers e.g. \code{c(3, 5)} if it is expected
 that the confidence intervals spread more on the right side of the
 estimates than they do on the left side.}
@@ -36,8 +39,9 @@ estimates than they do on the left side.}
 \item{trace}{Integer level of verbosity.}
 
 \item{round}{Logical. If \code{TRUE} the confidence limits will be
-rounded to a small number of digits. This number is chosen using the
-smallest of the standard deviations for the estimated parameters.}
+rounded to a same small number of digits. This number is chosen
+using the smallest of the standard deviations for the estimated
+parameters.}
 
 \item{out}{Character giving the class of the output. By default
 this is a three-dimensional array with dimensions:
@@ -72,26 +76,56 @@ that is implemented for this class.
 \description{
 Confidence intervals for the parameters of a \code{poisGP} object.
 }
+\details{
+This method finds confidence intervals for each of the three
+parameters of the chosen parameterisation: \code{"poisGP"}
+(default) or \code{"PP"}. The recommended (and default) method
+uses profile-likelihood as implemented in \code{proflik.default}.
+The determination of the intervals relies on a new method based on
+constrained optimisation: thus the profiled likelihood is not
+computed as such, as opposed to what is usually done. The profiled
+likelihood can be computed to check the results by using
+\code{check = TRUE}, but no zero finding is used to find the
+confidence limits following the classical method. The check is
+thus entirely based on the graphics which must be carefully
+inspected.
+}
+\note{
+Remind that the \code{"PP"} parameterisation does not depend
+on the threshold, as opposed to the \code{"poisGP"}
+parameterisation. So \code{type = "PP"} should be used to
+investigate \emph{threshold stability} for the full parameter
+vector. However the confidence intervals on the two shape
+parameter: Poisson-GP \eqn{\xi} and PP \eqn{\xi^\star}{\xi*} are
+(or should be) identical.
+}
+\section{Caution}{
+ The determination of the profile-likelihood
+intervals can fail, so it is wise to set \code{check = TRUE} and
+use the \code{autoplot} method on the returned object. Problems
+seem to be more frequently met with \code{type = "PP"}, i.e. when
+the Point-Process parameterisation is used.
+}
+
 \examples{
-## Maybe could we use a 'potMax object here?
-fit <- poisGP(data = Garonne$OTdata$Flow,
-              effDuration = Garonne$OTinfo$effDuration,
-              MAX.data = list("hist" = Garonne$MAXdata$Flow),
-              MAX.effDuration = Garonne$MAXinfo$duration,
-              threshold = 2800)
+## fit from the object Garonne from Renext (class "Rendata")
+fit <- poisGP(Garonne, threshold = 2900)
 
-confint(fit, method = "prof", lev = c(0.70, 0.95), trace = 1)
+ci <- confint(fit, lev = c(0.70, 0.95), trace = 1)
 
-## Check the results: quite long.
+## Check the results: this is quite time-consuming.
 \dontrun{
-cic <- confint(fit, method = "prof", lev = c(0.95, 0.70),
-               nSigma = 3, check = TRUE, trace = 0)
+cic <- confint(fit, lev = c(0.95, 0.70), check = TRUE)
 autoplot(cic) + theme_gray()
+
+cicPP <- confint(fit, type = "PP", lev = c(0.95, 0.70), check = TRUE)
+autoplot(cicPP) + theme_gray()
 }
 }
 \seealso{
 \code{\link{RL.poisGP}} for the computation of the return
 levels with confidence intervals,
-\code{\link{autoplot.confintCheck.poisGP}} for the graphical check of the
-results.
+\code{\link{autoplot.confintCheck.poisGP}} for the graphical check
+of the results. The \code{profLik.default} method is used by this
+function.
 }

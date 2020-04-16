@@ -3,7 +3,7 @@
 ## ****************************************************************************
 ##' Draw a ggplot layer for a \code{potData} object.
 ##'
-##' @title Draw a ggplot Layer for a \code{potData} object
+##' @title Draw a ggplot Layer for a \code{potData} Object
 ##'
 ##' @method autolayer potData
 ##'
@@ -377,7 +377,7 @@ autoplot.poisGP <- function(object,
 ##' Autoplot a list of RL tables, generally using the same data or
 ##' using different data but sharing some observations.
 ##'
-##' @title Autoplot method for a list of Return Levels Tables
+##' @title Autoplot Method for a List of Return Levels Tables
 ##'
 ##' @method autoplot RL.poisGPList
 ##' 
@@ -494,7 +494,8 @@ autoplot.confintCheck.poisGP <- function(object, ...) {
                           mapping = aes_string(yintercept = "NegLogLik", group = "Name",
                               linetype = "Level", colour = "Level"))
     
-    gg <- gg + facet_wrap(Name ~ ., scales = "free_x") + ylab("negative log lik.")
+    gg <- gg + facet_wrap(Name ~ ., scales = "free_x") + ylab("negative log lik.") +
+        xlab("param. value")
     
     gg
 

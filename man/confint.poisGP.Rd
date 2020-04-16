@@ -5,8 +5,9 @@
 \title{Confidence Intervals for a \code{poisGP} Object}
 \usage{
 \method{confint}{poisGP}(object,
-        type = c("poisGP", "PP"),
+        parm = NULL,
         level = 0.95,
+        type = c("poisGP", "PP"),
         method = c("proflik", "delta"),
         nSigma = 4,
         trace = 0,
@@ -18,9 +19,13 @@
 \arguments{
 \item{object}{An object with class \code{"poisGP"}.}
 
-\item{type}{The type of parameterisation wanted.}
+\item{parm}{Not used yet. Confidence intervals are computed for
+each of the three parameters.}
 
 \item{level}{Confidence level(s).}
+
+\item{type}{The type of parameterisation wanted: \emph{Poisson-GP}
+or \emph{Point-Process}.}
 
 \item{method}{Character: \code{"delta"} leads to the simplistic
 \emph{delta} method and \code{"proflik"} to the

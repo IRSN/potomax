@@ -5,7 +5,7 @@
 \title{Transform Point-Process Parameters into Poisson-GP
 Parameters}
 \usage{
-PP2PoisGP(locStar = 0.0, scaleStar = 1.0, shapeStar = 0.0,
+PP2poisGP(locStar = 0.0, scaleStar = 1.0, shapeStar = 0.0,
           threshold,
           w = 1.0, deriv = FALSE)
 }

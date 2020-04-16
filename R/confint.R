@@ -20,8 +20,9 @@
 ##' 
 ##' @usage 
 ##' \method{confint}{poisGP}(object,
-##'         type = c("poisGP", "PP"),
+##'         parm = NULL,
 ##'         level = 0.95,
+##'         type = c("poisGP", "PP"),
 ##'         method = c("proflik", "delta"),
 ##'         nSigma = 4,
 ##'         trace = 0,
@@ -32,10 +33,14 @@
 ##' 
 ##' @param object An object with class \code{"poisGP"}.
 ##'
-##' @param type The type of parameterisation wanted.
+##' @param parm Not used yet. Confidence intervals are computed for
+##' each of the three parameters.
 ##' 
 ##' @param level Confidence level(s).
 ##' 
+##' @param type The type of parameterisation wanted: \emph{Poisson-GP}
+##' or \emph{Point-Process}.
+##'
 ##' @param method Character: \code{"delta"} leads to the simplistic
 ##' \emph{delta} method and \code{"proflik"} to the
 ##' \emph{profile-likelihood}.
@@ -121,8 +126,9 @@
 ##' autoplot(cicPP) + theme_gray()
 ##' }
 confint.poisGP <- function(object,
-                           type = c("poisGP", "PP"),
+                           parm = NULL,
                            level = 0.95,
+                           type = c("poisGP", "PP"),
                            method = c("proflik", "delta"),
                            nSigma = 4,
                            trace = 0,
@@ -158,7 +164,7 @@ confint.poisGP <- function(object,
     
     indLevel <- order(level)
     level <- level[indLevel]
-    fLevel <- potomax:::formatLevel(level)
+    fLevel <- formatLevel(level)
     nLevel <- length(level)
     
     ## ========================================================================
@@ -294,7 +300,7 @@ confint.poisGP <- function(object,
                     
                     object2$lb <- cipoisGP[ , "L", ilev]
                     object2$ub <- cipoisGP[ , "U", ilev]
-                    plilev <- profLik(obj = object2, fun = myfun,
+                    plilev <- profLik(object = object2, fun = myfun,
                                       level = level[ilev], trace = trace)         
                     attr(plilev, "diagno") <- attr(plilev, "theta") <- NULL
                     ci[k, , ilev] <- plilev[c("L", "U"), 1]

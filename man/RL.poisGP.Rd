@@ -9,6 +9,7 @@
    out = c("data.frame", "array"),
    trace = 0,
    check = FALSE, nCheck = 50, nSigma = 4,
+   ftol_abs = 1e-12, ftol_rel = 1e-7,
    ...)
 }
 \arguments{
@@ -54,6 +55,16 @@ s(T)}{rhoHat(T) + n2 * s(T)} where \eqn{s(T)} is the estimated
 standard deviation for \eqn{\hat{\rho}(T)}{rhoHat(T)}. The default
 choice usually covers the profile-likelihood interval for all
 periods. A vector of length one is recycled.}
+
+\item{ftol_abs, ftol_rel}{Absolute and relative tolerance to stop
+the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+apply to the objective of the constrained optimisation, which is
+here the return level as a function of the Poisson-GP parameter
+vector. The smallest possible values reaching convergence should
+be chosen. By increasing either of thes values the convergence
+will be easier to get but the results may not be as precise as
+wanted. This can/should be checked by using \code{check = TRUE}
+and a subsequent call to \code{autoplot}.}
 
 \item{...}{Not used yet.}
 }
@@ -118,6 +129,17 @@ autoplot(RL)
              check = TRUE)
    autoplot(RLc) + ylim(c(NA, 540)) +
        ggtitle("negative profile log-likelihood for rho(T)")
+
+   ## ================================================================
+   ## Using values for ftol_abs or ftol_rel that are not small enough
+   ## we get problems in the precision of the result.
+   ## ================================================================
+
+   RLc <- RL(fitp, out = "data", level = c(0.70, 0.95), ftol_rel = 1e-5,
+             check = TRUE)
+   autoplot(RLc) + ylim(c(NA, 540)) +
+       ggtitle(paste("negative profile log-likelihood for rho(T) ",
+                     " with 'ftol_rel' too large"))
 }
 
 }

@@ -24,15 +24,19 @@ of a confidence interval for the given function of the parameter
 vector.
 }
 \details{
-The requirement for the method to work is that \code{object} has
-suitable "slots", i.e. is a list with suitable elements. These
-are: the number \code{p} of parameters, the vector \code{parNames}
-of the parameter names, the vector \code{estimate} of ML
-estimates, the closure \code{negLogLikFun} computing the negative
-log-likelihood function and the value \code{negLogLik} of the
-minimised negative log-likelihood. The result returned by
-\code{object$negLogLikFun} should have a \code{"gradient"}
-attribute to allow the use of derivatives.
+Under suitable conditions such as the smoothness of the function
+\eqn{f(\boldsymbol{\theta})}{f(\theta}) given in \code{fun},
+\eqn{\eta := \boldsymbol{\theta}}{\eta := f(\theta)} can be
+considered as a parameter of the model in a suitable
+re-parameterisation of it. So it makes sense to use the
+profile-likelihood method to derive confidence intervals on
+it. Although different methods can be used for this the
+\bold{potomax} package flavours using an optimisation of
+\eqn{f(\boldsymbol{\theta})}{f(\theta}) under a constraint of high
+log-likelihood \eqn{\ell(\boldsymbol{\theta}) \geq
+\ell_{\textrm{max}} - \delta}{l(\theta) >= lMax - \delta} where
+\eqn{\delta} is a small positive value depending on the confidence
+level.
 }
 \author{
 Yves Deville

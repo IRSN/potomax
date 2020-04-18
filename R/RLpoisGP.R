@@ -18,6 +18,7 @@
 ##'    out = c("data.frame", "array"),
 ##'    trace = 0,
 ##'    check = FALSE, nCheck = 50, nSigma = 4,
+##'    ftol_abs = 1e-12, ftol_rel = 1e-7,
 ##'    ...) 
 ##' 
 ##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
@@ -64,6 +65,16 @@
 ##' standard deviation for \eqn{\hat{\rho}(T)}{rhoHat(T)}. The default
 ##' choice usually covers the profile-likelihood interval for all
 ##' periods. A vector of length one is recycled.
+##'
+##' @param ftol_abs,ftol_rel Absolute and relative tolerance to stop
+##' the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+##' apply to the objective of the constrained optimisation, which is
+##' here the return level as a function of the Poisson-GP parameter
+##' vector. The smallest possible values reaching convergence should
+##' be chosen. By increasing either of thes values the convergence
+##' will be easier to get but the results may not be as precise as
+##' wanted. This can/should be checked by using \code{check = TRUE}
+##' and a subsequent call to \code{autoplot}.
 ##' 
 ##' @param ... Not used yet.
 ##'
@@ -122,6 +133,17 @@
 ##'              check = TRUE)
 ##'    autoplot(RLc) + ylim(c(NA, 540)) +
 ##'        ggtitle("negative profile log-likelihood for rho(T)")
+##'
+##'    ## ================================================================
+##'    ## Using values for ftol_abs or ftol_rel that are not small enough
+##'    ## we get problems in the precision of the result.
+##'    ## ================================================================
+##'
+##'    RLc <- RL(fitp, out = "data", level = c(0.70, 0.95), ftol_rel = 1e-5,
+##'              check = TRUE)
+##'    autoplot(RLc) + ylim(c(NA, 540)) +
+##'        ggtitle(paste("negative profile log-likelihood for rho(T) ",
+##'                      " with 'ftol_rel' too large"))
 ##' }
 ##' 
 RL.poisGP <- function(object,
@@ -133,6 +155,8 @@ RL.poisGP <- function(object,
                       check = FALSE,
                       nCheck = 50,
                       nSigma = 4,
+                      ftol_abs = 1e-12,
+                      ftol_rel = 1e-8,
                       ...) {
 
     Level <- NULL ## avoid warning in checks
@@ -288,23 +312,23 @@ RL.poisGP <- function(object,
         opts <- list()
         opts[[1]] <- list("algorithm" = "NLOPT_LD_MMA",
                           "xtol_rel" = 1.0e-12,
-                          "ftol_abs" = 1.0e-12,
-                          "ftol_rel" = 1.0e-12,
+                          "ftol_abs" = ftol_abs,
+                          "ftol_rel" = ftol_rel,
                           "maxeval" = 5000,
                           "check_derivatives" = FALSE,
                           "print_level" = 0)
         
         opts[[2]] <- list("algorithm" = "NLOPT_LD_AUGLAG",
                           "xtol_rel" = 1.0e-12,
-                          "ftol_abs" = 1.0e-12,
-                          "ftol_rel" = 1.0e-12,
+                          "ftol_abs" = ftol_abs,
+                          "ftol_rel" = ftol_rel,
                           "maxeval" = 8000,
                           "check_derivatives" = FALSE,
                           "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                               "xtol_rel" = 1.0e-12,
                               "maxeval" = 1000,
-                              "ftol_abs" = 1.0e-12,
-                              "ftol_rel" = 1.0e-12),
+                              "ftol_abs" = ftol_abs,
+                              "ftol_rel" = ftol_rel),
                           "print_level" = 0)
         
         
@@ -412,7 +436,6 @@ RL.poisGP <- function(object,
         chgSign <- c("L" = 0.0, "U" = 1.0)
         
         if (trace) cat("\no Finding CI for Return Levels\n")        
-
 
         ## ====================================================================
         ## When check is TRUE, we evaluate the profil-likelihood on a

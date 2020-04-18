@@ -5,7 +5,14 @@
 \title{Profile-Likelihood Inference for Fitted Parametric Model
 Objects}
 \usage{
-\method{profLik}{default}(object, fun, level = 0.95, deriv = TRUE, trace = 0, diagno = TRUE, ...)
+\method{profLik}{default}(object,
+        fun,
+        level = 0.95,
+        deriv = TRUE,
+        trace = 0,
+        diagno = TRUE,
+        ftol_abs = 1e-12, ftol_rel = 1e-8,
+        ...)
 }
 \arguments{
 \item{object}{A fitted model object. See \bold{Details}.}
@@ -14,8 +21,11 @@ Objects}
 profile-likelihood will be carried over. This function must have
 the arguments: \code{theta} for the vector of parameters and
 \code{object} for the model object; so the function can use the
-some of slots of \code{object}. If needed, a wrapper function can
-be used use more arguments, see \bold{Details}.}
+velue of some of slots of \code{object} see \bold{Details}. The
+function must return a list with two elements with names
+\code{"objective"} and \code{"gradient"} as required by
+\code{\link[nloptr]{nloptr}} see \bold{Examples}. If needed, a
+wrapper function can be used to use more arguments.}
 
 \item{level}{Level of confidence. Can be of length \code{> 1}.}
 
@@ -25,7 +35,8 @@ assumed to provide a gradient vector as an attribute named
 \code{TRUE}, which implies that \code{fun} \emph{must} compute the
 gradient.}
 
-\item{trace}{Level of verbosity; \code{trace = 0} prints nothing.}
+\item{trace}{Level of verbosity; the value \code{0} prints
+nothing.}
 
 \item{diagno}{Logical. When \code{TRUE} two diagnostics are
 returned as two attributes \code{"diagno"} and \code{"theta"} of
@@ -38,6 +49,12 @@ gradients: objective and constraint.  The array in attribute
 \code{"theta"} contains the value of the Poisson-GP parameter that
 was found to maxi/minimise the function \code{fun} under the
 constraint of a high log-likelihood. See section \bold{Note}.}
+
+\item{ftol_abs, ftol_rel}{Absolute and relative tolerance to stop
+the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+apply to the objective of the constrained optimisation that is to
+the value of \code{fun}. Remind that \code{ftol_abs} is thus given
+with the same unit as \code{fun}.}
 
 \item{...}{Not used yet.}
 }
@@ -54,17 +71,29 @@ vector of parameter that maximised or minimised the function
 Profile-likelihood inference for fitted model objects.
 }
 \details{
-Compute the lower and upper end-points of a profile-likelihood
-based confidence interval. The (apparently new) method used here
-relies on maximising and minimising the function of interest, say
-\eqn{\eta(\boldsymbol(\theta)}{\eta(\theta)}, under the constraint
-that the log-likelihood is greater than the maximal log-likelihood
-minus a positive quantity \eqn{\delta} depending on the confidence
-level. This differs from the usual method which relies on an
-univariate zero-finding for the profile-likelihood function (minus
-a constant). Remind that each evaluation of the profile requires a
-\eqn{p-1} dimensional optimisation. As a major advantage, the new
-method does not require a re-parameterisation of the model.
+Compute the lower and upper end-points of a
+profile-likelihood based confidence interval. The (apparently new)
+method used here relies on maximising and minimising the function
+of interest, say \eqn{\eta(\boldsymbol(\theta)}{\eta(\theta)},
+under the constraint that the log-likelihood is greater than the
+maximal log-likelihood minus a positive quantity \eqn{\delta}
+depending on the confidence level. This differs from the usual
+method which relies on an univariate zero-finding for the
+profile-likelihood function (minus a constant). Remind that each
+evaluation of the profile requires a \eqn{p-1} dimensional
+optimisation. As a major advantage, the new method does not
+require a re-parameterisation of the model.
+
+The requirement for the method to work is that \code{object} has
+suitable "slots", i.e. is a list with suitable elements. These
+are: the number \code{p} of parameters, the vector \code{parNames}
+of the parameter names, the vector \code{estimate} of ML
+estimates, the closure \code{negLogLikFun} computing the negative
+log-likelihood function and the value \code{negLogLik} of the
+minimised negative log-likelihood. These requirements are
+fulfilled for \code{\link{poisGP}} objects of the package. The
+result returned by \code{object$negLogLikFun} should have a
+\code{"gradient"} attribute to allow the use of derivatives.
 }
 \note{
 For each confidence limit the numerical optimisation may
@@ -92,8 +121,9 @@ object <- poisGP(Garonne)
 ## Define a function of the parameter vector: here the first component of
 ## the "PP" parameter vector.
 ## This is for code illustration only, since the the result can be obtained
-## using the 'confint' method with \code{method = "proflik"}, which
-## gives the confidence intervals for each of the parameters.
+## using the 'confint' method with 'method = "proflik"', which
+## gives the profile-likelihood confidence intervals for each of the
+## three parameters.
 ## =========================================================================
 
 numPP <- 2
@@ -119,6 +149,10 @@ Johnson S.G. \emph{The NLopt Nonlinear-Optimization Package}.
 Section \bold{Return values} in the manual
 \href{https://nlopt.readthedocs.io/en/latest/NLopt_Reference}{NLOPT
 Reference}.
+}
+\seealso{
+\code{\link[nloptr]{nloptr}} for details on the
+optimisation.
 }
 \author{
 Yves Deville

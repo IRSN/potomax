@@ -3,16 +3,20 @@
 ##' of a confidence interval for the given function of the parameter
 ##' vector.
 ##'
-##' The requirement for the method to work is that \code{object} has
-##' suitable "slots", i.e. is a list with suitable elements. These
-##' are: the number \code{p} of parameters, the vector \code{parNames}
-##' of the parameter names, the vector \code{estimate} of ML
-##' estimates, the closure \code{negLogLikFun} computing the negative
-##' log-likelihood function and the value \code{negLogLik} of the
-##' minimised negative log-likelihood. The result returned by
-##' \code{object$negLogLikFun} should have a \code{"gradient"}
-##' attribute to allow the use of derivatives.
-##'
+##' Under suitable conditions such as the smoothness of the function
+##' \eqn{f(\boldsymbol{\theta})}{f(\theta}) given in \code{fun},
+##' \eqn{\eta := \boldsymbol{\theta}}{\eta := f(\theta)} can be
+##' considered as a parameter of the model in a suitable
+##' re-parameterisation of it. So it makes sense to use the
+##' profile-likelihood method to derive confidence intervals on
+##' it. Although different methods can be used for this the
+##' \bold{potomax} package flavours using an optimisation of
+##' \eqn{f(\boldsymbol{\theta})}{f(\theta}) under a constraint of high
+##' log-likelihood \eqn{\ell(\boldsymbol{\theta}) \geq
+##' \ell_{\textrm{max}} - \delta}{l(\theta) >= lMax - \delta} where
+##' \eqn{\delta} is a small positive value depending on the confidence
+##' level.
+##' 
 ##' @title Profile-Likelihood Inference Method
 ##'
 ##' @param object An object representing a fitted parametric model.
@@ -34,20 +38,42 @@ profLik <- function(object, fun, ...) {
 ## *************************************************************************
 ##' Profile-likelihood inference for fitted model objects.
 ##'
-##' Compute the lower and upper end-points of a profile-likelihood
-##' based confidence interval. The (apparently new) method used here
-##' relies on maximising and minimising the function of interest, say
-##' \eqn{\eta(\boldsymbol(\theta)}{\eta(\theta)}, under the constraint
-##' that the log-likelihood is greater than the maximal log-likelihood
-##' minus a positive quantity \eqn{\delta} depending on the confidence
-##' level. This differs from the usual method which relies on an
-##' univariate zero-finding for the profile-likelihood function (minus
-##' a constant). Remind that each evaluation of the profile requires a
-##' \eqn{p-1} dimensional optimisation. As a major advantage, the new
-##' method does not require a re-parameterisation of the model.
+##' @details Compute the lower and upper end-points of a
+##' profile-likelihood based confidence interval. The (apparently new)
+##' method used here relies on maximising and minimising the function
+##' of interest, say \eqn{\eta(\boldsymbol(\theta)}{\eta(\theta)},
+##' under the constraint that the log-likelihood is greater than the
+##' maximal log-likelihood minus a positive quantity \eqn{\delta}
+##' depending on the confidence level. This differs from the usual
+##' method which relies on an univariate zero-finding for the
+##' profile-likelihood function (minus a constant). Remind that each
+##' evaluation of the profile requires a \eqn{p-1} dimensional
+##' optimisation. As a major advantage, the new method does not
+##' require a re-parameterisation of the model.
+##'
+##' The requirement for the method to work is that \code{object} has
+##' suitable "slots", i.e. is a list with suitable elements. These
+##' are: the number \code{p} of parameters, the vector \code{parNames}
+##' of the parameter names, the vector \code{estimate} of ML
+##' estimates, the closure \code{negLogLikFun} computing the negative
+##' log-likelihood function and the value \code{negLogLik} of the
+##' minimised negative log-likelihood. These requirements are
+##' fulfilled for \code{\link{poisGP}} objects of the package. The
+##' result returned by \code{object$negLogLikFun} should have a
+##' \code{"gradient"} attribute to allow the use of derivatives.
 ##' 
 ##' @title Profile-Likelihood Inference for Fitted Parametric Model
 ##' Objects
+##'
+##' @usage 
+##' \method{profLik}{default}(object,
+##'         fun,
+##'         level = 0.95,
+##'         deriv = TRUE,
+##'         trace = 0,
+##'         diagno = TRUE,
+##'         ftol_abs = 1e-12, ftol_rel = 1e-8,
+##'         ...)
 ##' 
 ##' @param object A fitted model object. See \bold{Details}.
 ##'
@@ -55,8 +81,11 @@ profLik <- function(object, fun, ...) {
 ##' profile-likelihood will be carried over. This function must have
 ##' the arguments: \code{theta} for the vector of parameters and
 ##' \code{object} for the model object; so the function can use the
-##' some of slots of \code{object}. If needed, a wrapper function can
-##' be used use more arguments, see \bold{Details}.
+##' velue of some of slots of \code{object} see \bold{Details}. The
+##' function must return a list with two elements with names
+##' \code{"objective"} and \code{"gradient"} as required by
+##' \code{\link[nloptr]{nloptr}} see \bold{Examples}. If needed, a
+##' wrapper function can be used to use more arguments.
 ##' 
 ##' @param level Level of confidence. Can be of length \code{> 1}.
 ##'
@@ -66,7 +95,8 @@ profLik <- function(object, fun, ...) {
 ##' \code{TRUE}, which implies that \code{fun} \emph{must} compute the
 ##' gradient.
 ##'
-##' @param trace Level of verbosity; \code{trace = 0} prints nothing.
+##' @param trace Level of verbosity; the value \code{0} prints
+##' nothing.
 ##'
 ##' @param diagno Logical. When \code{TRUE} two diagnostics are
 ##' returned as two attributes \code{"diagno"} and \code{"theta"} of
@@ -80,6 +110,11 @@ profLik <- function(object, fun, ...) {
 ##' was found to maxi/minimise the function \code{fun} under the
 ##' constraint of a high log-likelihood. See section \bold{Note}.
 ##' 
+##' @param ftol_abs,ftol_rel Absolute and relative tolerance to stop
+##' the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+##' apply to the objective of the constrained optimisation that is to
+##' the value of \code{fun}. Remind that \code{ftol_abs} is thus given
+##' with the same unit as \code{fun}.
 ##' 
 ##' @param ... Not used yet. 
 ##'
@@ -122,6 +157,9 @@ profLik <- function(object, fun, ...) {
 ##' the optimum (Lagrange conditions). In other words the optimum
 ##' parameter vector must lie on the boundary of the high-likelihood
 ##' region corresponding to the chosen confidence level.
+##'
+##' @seealso \code{\link[nloptr]{nloptr}} for details on the
+##' optimisation.
 ##' 
 ##' @examples
 ##' object <- poisGP(Garonne)
@@ -130,8 +168,9 @@ profLik <- function(object, fun, ...) {
 ##' ## Define a function of the parameter vector: here the first component of
 ##' ## the "PP" parameter vector.
 ##' ## This is for code illustration only, since the the result can be obtained
-##' ## using the 'confint' method with \code{method = "proflik"}, which
-##' ## gives the confidence intervals for each of the parameters.
+##' ## using the 'confint' method with 'method = "proflik"', which
+##' ## gives the profile-likelihood confidence intervals for each of the
+##' ## three parameters.
 ##' ## =========================================================================
 ##'
 ##' numPP <- 2
@@ -152,6 +191,8 @@ profLik.default <- function(object,
                             deriv = TRUE,
                             trace = 0,
                             diagno = TRUE,
+                            ftol_abs = 1e-12,
+                            ftol_rel = 1e-8,
                             ...) {
 
     .diagno <- diagno
@@ -203,14 +244,15 @@ profLik.default <- function(object,
 
     opts1 <- list("algorithm" = "NLOPT_LD_AUGLAG",
                   "xtol_rel" = 1.0e-12,
-                  "ftol_abs" = 1.0e-12, "ftol_rel" = 1.0e-12,
+                  "ftol_abs" = ftol_abs,
+                  "ftol_rel" = ftol_rel,
                   "maxeval" = 8000,
                   "check_derivatives" = FALSE,
                   "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                       "xtol_rel" = 1.0e-12,
                       "maxeval" = 8000,
-                      "ftol_abs" = 1.0e-12,
-                      "ftol_rel" = 1.0e-12),
+                      "ftol_abs" = ftol_abs,
+                      "ftol_rel" = ftol_rel),
                   "print_level" = 0)
     
     if (trace >= 2) {
@@ -249,13 +291,8 @@ profLik.default <- function(object,
             ellL <- object$negLogLik + qchisq(level, df = 1) / 2.0
             res <- object$negLogLikFun(theta = theta, object = object, deriv = TRUE)
             
-            if (TRUE) {
-                res2 <- list("constraints" = res - ellL,
-                             "jacobian" = attr(res, "gradient"))
-            } else {
-                res2 <-  list("constraints" = 1,
-                              "jacobian" = rep(NaN, object$p))
-            }
+            res2 <- list("constraints" = res - ellL,
+                         "jacobian" = attr(res, "gradient"))
             res2 
         }
         

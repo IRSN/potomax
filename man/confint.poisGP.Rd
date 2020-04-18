@@ -68,7 +68,10 @@ bounds in "long format".}
 \item{nCheck}{Number of evaluations of the profile log-likelihood if
 \code{check} is \code{TRUE}.}
 
-\item{...}{Not used yet.}
+\item{...}{Further arguments passed to the \code{\link{profLik}}
+method for the class of \code{object}. The arguments
+\code{ftol_abs} and \code{ftol_rel} can be modified when some
+problems are met.}
 }
 \value{
 When \code{check} is \code{FALSE}, an array or a data
@@ -121,10 +124,12 @@ ci <- confint(fit, lev = c(0.70, 0.95), trace = 1)
 ## Check the results: this is quite time-consuming.
 \dontrun{
 cic <- confint(fit, lev = c(0.95, 0.70), check = TRUE)
-autoplot(cic) + theme_gray()
+autoplot(cic) + theme_gray() +
+    ggtitle("Poisson-GP parameterisation")
 
 cicPP <- confint(fit, type = "PP", lev = c(0.95, 0.70), check = TRUE)
-autoplot(cicPP) + theme_gray()
+autoplot(cicPP) + theme_gray() +
+    ggtitle("Point-Process (PP) parameterisation")
 }
 }
 \seealso{

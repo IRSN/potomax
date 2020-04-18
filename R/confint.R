@@ -82,7 +82,10 @@
 ##' @param nCheck Number of evaluations of the profile log-likelihood if
 ##' \code{check} is \code{TRUE}.
 ##'
-##' @param ... Not used yet.
+##' @param ... Further arguments passed to the \code{\link{profLik}}
+##' method for the class of \code{object}. The arguments
+##' \code{ftol_abs} and \code{ftol_rel} can be modified when some
+##' problems are met.
 ##'
 ##' @return When \code{check} is \code{FALSE}, an array or a data
 ##' frame containing the lower and upper bounds \code{"L"} and
@@ -120,10 +123,12 @@
 ##' ## Check the results: this is quite time-consuming.
 ##' \dontrun{
 ##' cic <- confint(fit, lev = c(0.95, 0.70), check = TRUE)
-##' autoplot(cic) + theme_gray()
+##' autoplot(cic) + theme_gray() +
+##'     ggtitle("Poisson-GP parameterisation")
 ##' 
 ##' cicPP <- confint(fit, type = "PP", lev = c(0.95, 0.70), check = TRUE)
-##' autoplot(cicPP) + theme_gray()
+##' autoplot(cicPP) + theme_gray() +
+##'     ggtitle("Point-Process (PP) parameterisation")
 ##' }
 confint.poisGP <- function(object,
                            parm = NULL,
@@ -227,6 +232,11 @@ confint.poisGP <- function(object,
         
         for (k in 1:3) {
 
+            if (trace > 0) {
+                cat("\no Parameter ", pNames[[type]][k],
+                    "\n*******************\n")
+            }
+
             myfun <- function(theta, object) {
                 res <- theta[k]
                 grad <- rep(0.0, 3)
@@ -235,7 +245,8 @@ confint.poisGP <- function(object,
                 res
             }
             
-            pl <- profLik(object, fun = myfun, level = level, trace = trace)
+            pl <- profLik(object, fun = myfun, level = level,
+                          trace = trace, ...)
             attr(pl, "diagno") <- attr(pl, "theta") <- NULL
             cipoisGP[k, , ] <- pl[c("L", "U"), ]   
         }

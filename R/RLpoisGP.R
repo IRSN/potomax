@@ -380,8 +380,9 @@ RL.poisGP <- function(object,
             if (trace > 2) {
                 val <- RL
                 if (chgSign) val <- -val 
-                cat(sprintf("%7.4f %7.2f %7.4f, f = %7.2f \n",
-                            theta[1], theta[2], theta[3], val))
+                cat(sprintf("%d %7.4f %7.2f %7.4f, f = %7.2f \n",
+                            count, theta[1], theta[2], theta[3], val))
+                count <<- count +1
             }
             
              if (chgSign) {
@@ -640,7 +641,8 @@ RL.poisGP <- function(object,
                         if (trace && (optNum > 1)) {
                             cat("        <retrying optimisation!>\n")
                         }
-                        
+
+                        if (trace > 2) count <- 0
                         resOpt <- try(nloptr::nloptr(x0 = theta0,
                                                      eval_f = f,
                                                      eval_g_ineq = g,

@@ -381,7 +381,7 @@ RL.poisGP <- function(object,
                 val <- RL
                 if (chgSign) val <- -val
                 ftol <- abs(val - valPrec) / valPrec
-                cat(sprintf("%d %7.4f %7.2f %7.4f, f = %7.2f ftol = %16.14f \n",
+                cat(sprintf("%d %7.4f %7.2f %7.4f, f = %16.14f ftol = %16.14f \n",
                             count, theta[1], theta[2], theta[3], val, ftol))
                 count <<- count + 1
                 valPrec <<- val

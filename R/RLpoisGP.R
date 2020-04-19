@@ -376,6 +376,13 @@ RL.poisGP <- function(object,
             
             gradTheta <- c("lambda" = 1.0 / f1 / theta[1]^2 / period,
                            drop(gradTheta))
+
+            if (trace > 2) {
+                val <- RL
+                if (chgSign) val <- -val 
+                cat(sprintf("%7.4f %7.2f %7.4f, f = %7.2f \n",
+                            theta[1], theta[2], theta[3], val))
+            }
             
              if (chgSign) {
                  return(list("objective" = -RL, "gradient" = -gradTheta))

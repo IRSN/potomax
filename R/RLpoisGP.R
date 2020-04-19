@@ -310,13 +310,6 @@ RL.poisGP <- function(object,
         ## ===================================================================
 
         opts <- list()
-        opts[[1]] <- list("algorithm" = "NLOPT_LD_MMA",
-                          "xtol_rel" = 1.0e-12,
-                          "ftol_abs" = ftol_abs,
-                          "ftol_rel" = ftol_rel,
-                          "maxeval" = 5000,
-                          "check_derivatives" = FALSE,
-                          "print_level" = 0)
         
         opts[[2]] <- list("algorithm" = "NLOPT_LD_AUGLAG",
                           "xtol_rel" = 1.0e-12,
@@ -326,11 +319,18 @@ RL.poisGP <- function(object,
                           "check_derivatives" = FALSE,
                           "local_opts" = list("algorithm" = "NLOPT_LD_MMA",
                               "xtol_rel" = 1.0e-12,
-                              "maxeval" = 1000,
+                              "maxeval" = 5000,
                               "ftol_abs" = ftol_abs,
-                              "ftol_rel" = ftol_rel),
+                         "ftol_rel" = ftol_rel),
                           "print_level" = 0)
         
+        opts[[1]] <- list("algorithm" = "NLOPT_LD_MMA",
+                          "xtol_rel" = 1.0e-12,
+                          "ftol_abs" = ftol_abs,
+                          "ftol_rel" = ftol_rel,
+                          "maxeval" = 5000,
+                          "check_derivatives" = FALSE,
+                          "print_level" = 0)
         
         if (trace >= 2) {
             opts[["check_derivatives"]] <- TRUE
@@ -622,11 +622,11 @@ RL.poisGP <- function(object,
                     ## } else {
                     ##     theta0 <- thetaHat
                     ## }
-
-                    theta0 <- thetaHat
                     
                     optDone <- FALSE
                     optNum <- 1
+
+                    theta0 <- thetaHat
                     
                     while (!optDone && (optNum <= 2)) {
                         
@@ -726,8 +726,15 @@ RL.poisGP <- function(object,
                             RL[iPer, LU, iLev] <- sign[LU] * resOpt[["objective"]]
                             
                         } else {
+
+                            ## try another initial value. We could use the value
+                            ## of theta obtained for a smaller confidence level?
+                            if ((iPer < length(period) &&
+                                     diagno[iPer + 1, LU, iLev, "status"] %in% 1:4)) {
+                                theta0 <- thetaIniPrec
+                                thetaIniPrec <- NULL
+                            } 
                             optNum <- optNum + 1
-                            thetaIniPrec <- NULL
                         }
                         
                     }

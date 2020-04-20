@@ -18,7 +18,7 @@
 ##'    out = c("data.frame", "array"),
 ##'    trace = 0,
 ##'    check = FALSE, nCheck = 50, nSigma = 4,
-##'    ftol_abs = 1e-12, ftol_rel = 1e-7,
+##'    ftol_abs = 1e-12, ftol_rel = 1e-8,
 ##'    ...) 
 ##' 
 ##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
@@ -67,7 +67,7 @@
 ##' periods. A vector of length one is recycled.
 ##'
 ##' @param ftol_abs,ftol_rel Absolute and relative tolerance to stop
-##' the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+##' the constrained optimisation \code{\link[nloptr]{nloptr}}. These
 ##' apply to the objective of the constrained optimisation, which is
 ##' here the return level as a function of the Poisson-GP parameter
 ##' vector. The smallest possible values reaching convergence should
@@ -377,15 +377,15 @@ RL.poisGP <- function(object,
             gradTheta <- c("lambda" = 1.0 / f1 / theta[1]^2 / period,
                            drop(gradTheta))
 
-            if (trace > 2) {
-                val <- RL
-                if (chgSign) val <- -val
-                ftol <- abs(val - valPrec) / valPrec
-                cat(sprintf("%d %7.4f %7.2f %7.4f, f = %16.14f ftol = %16.14f \n",
-                            count, theta[1], theta[2], theta[3], val, ftol))
-                count <<- count + 1
-                valPrec <<- val
-            }
+            ## if (trace > 2) {
+            ##     val <- RL
+            ##     if (chgSign) val <- -val
+            ##     ftol <- abs(val - valPrec) / valPrec
+            ##     cat(sprintf("%d %7.4f %7.2f %7.4f, f = %16.14f ftol = %16.14f \n",
+            ##                 count, theta[1], theta[2], theta[3], val, ftol))
+            ##     count <<- count + 1
+            ##     valPrec <<- val
+            ## }
             
              if (chgSign) {
                  return(list("objective" = -RL, "gradient" = -gradTheta))
@@ -644,10 +644,10 @@ RL.poisGP <- function(object,
                             cat("        <retrying optimisation!>\n")
                         }
 
-                        if (trace > 2) {
-                            count <- 0
-                            valPrec <- NA
-                        }
+                        ## if (trace > 2) {
+                        ##     count <- 0
+                        ##     valPrec <- NA
+                        ## }
                         resOpt <- try(nloptr::nloptr(x0 = theta0,
                                                      eval_f = f,
                                                      eval_g_ineq = g,

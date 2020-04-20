@@ -9,7 +9,7 @@
    out = c("data.frame", "array"),
    trace = 0,
    check = FALSE, nCheck = 50, nSigma = 4,
-   ftol_abs = 1e-12, ftol_rel = 1e-7,
+   ftol_abs = 1e-12, ftol_rel = 1e-8,
    ...)
 }
 \arguments{

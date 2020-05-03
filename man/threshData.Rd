@@ -5,7 +5,7 @@
 \title{Select the Observations Over a Threshold within
 Heterogeneous Data provided as a \code{potData} object}
 \usage{
-threshData(threshold = NULL, data, scale = FALSE)
+threshData(threshold = NULL, data, exceed = FALSE, scale = FALSE, warn = FALSE)
 }
 \arguments{
 \item{threshold}{The "main" threshold used to select the
@@ -15,6 +15,10 @@ observations in each block.}
 sublist contains a \code{flag} logical element a \code{data}
 vector or list and a numeric \code{duration}.}
 
+\item{exceed}{Logical. If \code{TRUE} the data returned contains
+the exceedances over the threshold, i.e. the threshold is
+substracted from the data.}
+
 \item{scale}{Logical. If \code{TRUE} the excesses over the
 threshold will all be scaled by dividing them by a common "round"
 positive number. This is intended to avoid numerical problems
@@ -23,6 +27,9 @@ during optimisation. Note that the round scaling number (a power of
 attribute of the result. Even though the data are not scaled this
 number can be used in the \code{optim} function to set the
 \code{parScale} element of the \code{control} list.}
+
+\item{warn}{Logical. If \code{TRUE} the function warns about a
+threshold which is smaller than all the observation in 'data'.}
 }
 \value{
 A list which is comparable to \code{data} but with the
@@ -65,8 +72,9 @@ myData <-
             OTS.data = list("OTS1" = 1.8 + rexp(5),
                             "OTS2" = 3.2 + rexp(3),
                             "OTS3" = 5.0 + rexp(2)))
-myData2 <- threshData(threshold = 4, data = myData, scale = FALSE)
 
+myData2 <- threshData(threshold = 4, data = myData)
+autoplot(myData)
 }
 \seealso{
 \code{\link{potData}}.

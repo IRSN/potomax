@@ -25,7 +25,7 @@ the transformation is computed and returned as an attribute named
 }
 \value{
 A matrix with three columns representing the Point-Process
-parameters \code{loc}, code{scale} and \code{shape}.
+parameters \code{loc}, \code{scale} and \code{shape}.
 }
 \description{
 Transform Poisson-GP parameters into Point-Process (PP) parameters.

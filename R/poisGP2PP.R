@@ -34,7 +34,7 @@
 ##' \code{"gradient"} of the attribute.
 ##'
 ##' @return A matrix with three columns representing the Point-Process
-##' parameters \code{loc}, code{scale} and \code{shape}.
+##' parameters \code{loc}, \code{scale} and \code{shape}.
 ##'
 ##' @author Yves Deville
 ##'

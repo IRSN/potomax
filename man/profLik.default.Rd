@@ -51,7 +51,7 @@ was found to maxi/minimise the function \code{fun} under the
 constraint of a high log-likelihood. See section \bold{Note}.}
 
 \item{ftol_abs, ftol_rel}{Absolute and relative tolerance to stop
-the constrained optimisation \code{\link[nlopr]{nloptr}}. These
+the constrained optimisation \code{\link[nloptr]{nloptr}}. These
 apply to the objective of the constrained optimisation that is to
 the value of \code{fun}. Remind that \code{ftol_abs} is thus given
 with the same unit as \code{fun}.}

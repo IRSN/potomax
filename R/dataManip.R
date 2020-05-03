@@ -21,6 +21,10 @@
 ##' sublist contains a \code{flag} logical element a \code{data}
 ##' vector or list and a numeric \code{duration}.
 ##'
+##' @param exceed Logical. If \code{TRUE} the data returned contains
+##' the exceedances over the threshold, i.e. the threshold is
+##' substracted from the data.
+##' 
 ##' @param scale Logical. If \code{TRUE} the excesses over the
 ##' threshold will all be scaled by dividing them by a common "round"
 ##' positive number. This is intended to avoid numerical problems
@@ -29,6 +33,9 @@
 ##' attribute of the result. Even though the data are not scaled this
 ##' number can be used in the \code{optim} function to set the
 ##' \code{parScale} element of the \code{control} list.
+##'
+##' @param warn Logical. If \code{TRUE} the function warns about a
+##' threshold which is smaller than all the observation in 'data'.
 ##' 
 ##' @return A list which is comparable to \code{data} but with the
 ##' observations below the threshold removed, and the related
@@ -57,19 +64,23 @@
 ##'             OTS.data = list("OTS1" = 1.8 + rexp(5),
 ##'                             "OTS2" = 3.2 + rexp(3),
 ##'                             "OTS3" = 5.0 + rexp(2)))
-##' myData2 <- threshData(threshold = 4, data = myData, scale = FALSE)
 ##' 
-threshData <- function(threshold = NULL, data, scale = FALSE) {
-
+##' myData2 <- threshData(threshold = 4, data = myData)
+##' autoplot(myData)
+threshData <- function(threshold = NULL, data, exceed = FALSE, scale = FALSE,
+                       warn = FALSE) {
+    
     eps <- 1e-4
     out <- list()
-    
+
     grandMin <- min(unlist(sapply(data, function(x) unlist(x$data))))
     grandMax <- max(unlist(sapply(data, function(x) unlist(x$data))))
 
     if (length(threshold) == 0) {
-        warning("'threshold' is missing and set just below the ",
-                "smallest obsevation")
+        if (warn) {
+            warning("'threshold' is missing and set just below the ",
+                    "smallest obsevation")
+        }
         out$threshold <- threshold <- grandMin - eps
     } else {
         if (threshold < grandMin) {
@@ -83,7 +94,10 @@ threshData <- function(threshold = NULL, data, scale = FALSE) {
     out$OT <- data$OT
 
     if (data$OT$flag) {
-        out$OT$data <- (data$OT$data[data$OT$data > threshold] - threshold)
+        ind <- data$OT$data > threshold
+        out$OT$data <- data$OT$data[ind]
+        if (exceed)  out$OT$data <- out$OT$data - threshold
+        
         if (scale) out$OT$data <- out$OT$data / sc
         out$OT$n <- length(out$OT$data)
     } 
@@ -98,17 +112,21 @@ threshData <- function(threshold = NULL, data, scale = FALSE) {
     
     if (data$OTS$flag) {
         for (b in seq_along(data$OTS$data)) {
-            out$OTS$threshold[b] <-
-                pmax(threshold, data$OTS$threshold[[b]]) - out$threshold
-            out$OTS$data[[b]] <-
-                (data$OTS$data[[b]][data$OTS$data[[b]] > threshold] -
-                     out$threshold) 
+            out$OTS$threshold[b] <- pmax(threshold, data$OTS$threshold[[b]])
+            if (exceed) {
+                out$OTS$threshold[b] <- out$OTS$threshold[b] - out$threshold
+            }
+            ind <- data$OTS$data[[b]] > threshold
+            out$OTS$data[[b]] <- data$OTS$data[[b]][ind]
+            if (exceed) {
+                out$OTS$data[[b]] <- out$OTS$data[[b]] - out$threshold
+            }
             if (scale) out$MAX$data[[b]] <- out$MAX$data[[b]] / sc
             out$OTS$r[b] <- length(out$OTS$data[[b]])
         }
         names(out$OTS$data) <- names(data$OTS$data)
     }
-
+    
     out$MAX <- list(flag = FALSE)
 
     n.OTS <- n.OTS0 <- length(out$OTS$data)
@@ -131,7 +149,9 @@ threshData <- function(threshold = NULL, data, scale = FALSE) {
             dur <- data$MAX$effDuration[b]
             dat <- data$MAX$data[[b]]
             ind <- (dat > threshold)
-            dat <- dat[ind] - threshold
+            dat <- dat[ind]
+
+            if (exceed) dat <- dat - threshold
             if (scale) dat <- dat / sc
 
             ## cat(sprintf("b = %d, threshold = %5.3f\n", b, threshold))
@@ -191,6 +211,12 @@ threshData <- function(threshold = NULL, data, scale = FALSE) {
     }
     
     attr(out, "scale") <- sc
+
+    if (!exceed) {
+        out$threshold <- NULL
+        class(out) <- "potData"
+    }
+    
     out
     
 }

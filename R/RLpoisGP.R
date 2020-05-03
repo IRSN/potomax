@@ -18,7 +18,7 @@
 ##'    out = c("data.frame", "array"),
 ##'    trace = 0,
 ##'    check = FALSE, nCheck = 50, nSigma = 4,
-##'    ftol_abs = 1e-12, ftol_rel = 1e-8,
+##'    ftol_abs = 1e-12, ftol_rel = 1e-9,
 ##'    ...) 
 ##' 
 ##' @title Return Levels and Confidence Intervals for a Poisson-GP Model
@@ -156,7 +156,7 @@ RL.poisGP <- function(object,
                       nCheck = 50,
                       nSigma = 4,
                       ftol_abs = 1e-12,
-                      ftol_rel = 1e-8,
+                      ftol_rel = 1e-9,
                       ...) {
 
     Level <- NULL ## avoid warning in checks

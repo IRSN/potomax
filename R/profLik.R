@@ -10,7 +10,7 @@
 ##' re-parameterisation of it. So it makes sense to use the
 ##' profile-likelihood method to derive confidence intervals on
 ##' it. Although different methods can be used for this the
-##' \bold{potomax} package flavours using an optimisation of
+##' \bold{potomax} package favours using an optimisation of
 ##' \eqn{f(\boldsymbol{\theta})}{f(\theta}) under a constraint of high
 ##' log-likelihood \eqn{\ell(\boldsymbol{\theta}) \geq
 ##' \ell_{\textrm{max}} - \delta}{l(\theta) >= lMax - \delta} where

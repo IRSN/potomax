@@ -13,7 +13,7 @@
 ##' tail. Remind that the three Poisson-GP parameters are the rate of
 ##' the Poisson process in time: \eqn{\lambda}, and the two GP
 ##' parameters: \code{scale} \eqn{\sigma} and \code{shape} \eqn{\xi}.
-##' The shape parameters \eqn{\xi\star} and \eqn{\xi} are identical.
+##' The shape parameters \eqn{\xi^\star}{\si*} and \eqn{\xi} are identical.
 ##'
 ##' @usage
 ##' PP2poisGP(locStar = 0.0, scaleStar = 1.0, shapeStar = 0.0,

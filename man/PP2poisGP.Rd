@@ -45,7 +45,7 @@ marks on an interval with duration \code{w} has the prescribed GEV
 tail. Remind that the three Poisson-GP parameters are the rate of
 the Poisson process in time: \eqn{\lambda}, and the two GP
 parameters: \code{scale} \eqn{\sigma} and \code{shape} \eqn{\xi}.
-The shape parameters \eqn{\xi\star} and \eqn{\xi} are identical.
+The shape parameters \eqn{\xi^\star}{\si*} and \eqn{\xi} are identical.
 }
 \note{
 This function is essentially a re-implementation in C of the

@@ -566,7 +566,7 @@ poisGP <- function(data = NULL,
                         OTS.threshold = OTS.threshold,
                         OTS.effDuration = OTS.effDuration)
     }
-        
+    
     grandMin <- min(unlist(sapply(data, function(x) unlist(x$data))))
     
     scaleData <- 1.0
@@ -589,7 +589,8 @@ poisGP <- function(data = NULL,
     ## "nloptr".
     ## ========================================================================
     
-    fitData <- threshData(threshold = threshold, data, scale = scale)
+    fitData <- threshData(threshold = threshold, data, exceed = TRUE,
+                          scale = scale, warn = TRUE)
     scaleData <- attr(fitData, "scale")
 
     if (trace) {
@@ -600,7 +601,13 @@ poisGP <- function(data = NULL,
             cat("\nThe data will not be scaled\n")
         }
     }
-
+    
+    ## XXX changed on 2020-05-03 'data' should only contain
+    ## observations over the threshold
+    
+    data <- threshData(data, threshold = threshold, exceed = FALSE,
+                       scale = FALSE)
+    
     ## ========================================================================
     ## Compute a possible number of observations. Since in the general
     ## case the observations can have a very different impact on the

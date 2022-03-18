@@ -1,7 +1,7 @@
 Package: potomax
 Type: Package
 Title: Peaks Over Threshold and/or Block Maxima
-Version: 0.1.8
+Version: 0.2.0
 Date: 2020-05-04
 Author: Yves Deville <deville.yves@alpestat.com>
 Maintainer: Yves Deville <deville.yves@alpestat.com>
@@ -18,4 +18,4 @@ Imports: ismev, methods, scales, tidyr, dplyr, reshape2
 Suggests: numDeriv, testthat
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2.9000
+RoxygenNote: 7.1.2

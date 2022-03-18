@@ -1,7 +1,7 @@
 
 ## ****************************************************************************
 ##' Compute the ML estimate of the rate of the Poisson process given
-##' the GPD parameters.
+##' the GPD parameters. 
 ##'
 ##' @noRd
 ##' 
@@ -10,29 +10,35 @@
 ##' @param thetaGP Parameter vector (GP part only).
 ##'
 ##' @param object The \code{poisGP} object corresponding to the
-##' estimation.
+##'     estimation.
 ##'
-##' @param log Logical. If \code{TRUE} the function returns
-##' \eqn{\log \hat{lambda}}{log(lambdaHat)} possibly with its gradient, else it
-##' returns \eqn{\hat{\lambda}}{lambdaHat}.
+##' @param log Logical. If \code{TRUE} the function returns \eqn{\log
+##'     \hat{lambda}}{log(lambdaHat)} possibly with its gradient, else
+##'     it returns \eqn{\hat{\lambda}}{lambdaHat}.
 ##'
 ##' @param deriv Logical. Should the gradient be computed and be
-##' returned as the \code{"gradient"} attribute of the result?
+##'     returned as the \code{"gradient"} attribute of the result?
 ##'
 ##' @return The value \eqn{\hat{\lambda}}{lambdaHat} of the estimated
-##' rate with an attribute named \code{"r"} corresponding to the
-##' number of observations. When \code{deriv} is \code{TRUE} the
-##' result has an attribute named \code{"gradient"} the value of which
-##' is a row matrix with two columns.
+##'     rate with an attribute named \code{"r"} corresponding to the
+##'     number of observations. When \code{deriv} is \code{TRUE} the
+##'     result has an attribute named \code{"gradient"} the value of
+##'     which is a row matrix with two columns.
+##'
+##' @note For versions \code{>= 0.2.0}, the distribution of the
+##'     exceedances can be exponential as described here
+##'     \code{\link{Exp1}}.
 ##' 
 lambdaHat <- function(thetaGP, object, log = TRUE, deriv = TRUE) {
     
     fd <-   object$fitData
+    distName <- object$distName
+    p <- object$p
     
-    scale <- thetaGP[1]
-    shape <- thetaGP[2]
+    ## scale <- thetaGP[1]
+    ## shape <- thetaGP[2]
     
-    if (deriv) grad <- array(0.0, dim = c(1L, 2L))
+    if (deriv) grad <- array(0.0, dim = c(1L, p - 1L))
     
     r <- 0
     w <- 0.0
@@ -45,8 +51,9 @@ lambdaHat <- function(thetaGP, object, log = TRUE, deriv = TRUE) {
     
     for (nm in c("MAX", "OTS")) {
         if (fd[[nm]]$flag) {
-            S <- pGPD2(q = fd[[nm]]$threshold, scale = scale, shape = shape,
-                       lower.tail = FALSE, deriv = deriv)
+            S <- Excd[[distName]]$pFun(q = fd[[nm]]$threshold,
+                                       theta = thetaGP,
+                                       lower.tail = FALSE, deriv = deriv)
             w <- w + sum(fd[[nm]]$effDuration * S)
             r <- r + sum(fd[[nm]]$r)
             if (deriv) {
@@ -80,30 +87,36 @@ lambdaHat <- function(thetaGP, object, log = TRUE, deriv = TRUE) {
 ##' @noRd
 ##' 
 ##' @title Concentrated or Profile Negative Log-Likelihood Function
-##' for a \code{poisGP} Object
+##'     for a \code{poisGP} Object
 ##'
 ##' @param thetaGP Parameter vector (GP part only).
 ##'
 ##' @param object The \code{poisGP} object corresponding to the
-##' estimation.
+##'     estimation.
 ##'
 ##' @param deriv Logical. Should the gradient be computed and be
-##' returned as the \code{"gradient"} attribute of the result?
+##'     returned as the \code{"gradient"} attribute of the result?
 ##'
 ##' @return The value of the negative log-likelihood. When
-##' \code{deriv} is \code{TRUE} the result has an attribute named
-##' \code{"gradient"} the value of which is a row matrix with two
-##' columns.
+##'     \code{deriv} is \code{TRUE} the result has an attribute named
+##'     \code{"gradient"} the value of which is a row matrix with two
+##'     columns.
 ##' 
-##'
+##' @note For versions \code{>= 0.2.0}, the distribution of the
+##'     exceedances can be exponential as described here
+##'     \code{\link{Exp1}}.
+##' 
 negLogLikFunC <- function(thetaGP, object, deriv = TRUE) {
 
-    scale <- thetaGP[1L]
-    shape <- thetaGP[2L]
+    ## scale <- thetaGP[1L]
+    ## shape <- thetaGP[2L]
 
-    if (scale < 0.0) return(NA)
+    distName <- object$distName
+    p <- object$p
     
-    if (deriv) grad <- array(0.0, dim = c(1L, 2L))
+    if (thetaGP[1L] < 0.0) return(NA)
+    
+    if (deriv) grad <- array(0.0, dim = c(1L, p - 1))
     
     fd <-   object$fitData
     
@@ -122,9 +135,9 @@ negLogLikFunC <- function(thetaGP, object, deriv = TRUE) {
     }
     
     if (fd[["OT"]]$flag) {
-        ldens <- dGPD2(x = fd[["OT"]]$data,
-                       scale = scale, shape = shape,
-                       log = TRUE, deriv = deriv)
+        ldens <- Excd[[distName]]$dFun(x = fd[["OT"]]$data,
+                                       theta = thetaGP,
+                                       log = TRUE, deriv = deriv)
         negLogL <- negLogL - sum(ldens)
         if (deriv) {
             grad <- grad - apply(attr(ldens, "gradient"), 2, sum)
@@ -134,9 +147,9 @@ negLogLikFunC <- function(thetaGP, object, deriv = TRUE) {
     for (nm in c("MAX", "OTS")){
         if (fd[[nm]]$flag) {
             if (sum(fd[[nm]]$r) > 0) {
-                ldens <- dGPD2(x = unlist(fd[[nm]]$data),
-                               scale = scale, shape = shape,
-                               log = TRUE, deriv = deriv)
+                ldens <- Excd[[distName]]$dFun(x = unlist(fd[[nm]]$data),
+                                               theta = thetaGP,
+                                               log = TRUE, deriv = deriv)
                 negLogL <- negLogL - sum(ldens)
                 if (deriv) {
                     grad <- grad - apply(attr(ldens, "gradient"), 2, sum)
@@ -198,20 +211,25 @@ negLogLikFunCD <- function(thetaGP, object) {
 negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 
     ## cat("XXX", theta, "\n")
+
+    distName <- object$distName
+    p <- object$p
+    indGP <- 2L:p
     
     lambda <- theta[1]
-    scale <- theta[2]
-    shape <- theta[3]
+    ## scale <- theta[2]
+    ## shape <- theta[3]
+    thetaGP <- theta[-1]
 
     if (is.na(lambda)) stop("'lambda' is NA")
     if (lambda < 0.0) stop("negative value of 'lambda'")
-    if (scale < 0.0) stop("negative value of 'scale'")
+    if (thetaGP[1] < 0.0) stop("negative value of 'scale'")
     
     negLogL <- 0
     if (deriv) {
-        grad <- array(0.0, dim = c(1L, 3L))
+        grad <- array(0.0, dim = c(1L, p))
         if (hessian) {
-            hess <- array(0.0, dim = c(1L, 3L, 3L))
+            hess <- array(0.0, dim = c(1L, p, p))
         }
     }
     
@@ -242,16 +260,18 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
         
         if (fd[["OT"]]$n > 0) {
 
-            ldens <- dGPD2(x = fd[["OT"]]$data, scale = scale, shape = shape,
-                           log = TRUE, deriv = deriv, hessian = hessian)
+            ldens <- Excd[[distName]]$dFun(x = fd[["OT"]]$data,
+                                           theta = thetaGP,
+                                           log = TRUE,
+                                           deriv = deriv, hessian = hessian)
             negLogL  <- negLogL - sum(ldens)
             
             if (deriv) {
-                grad[1L, 2L:3L] <- grad[1L, 2L:3L] -
+                grad[1L, indGP] <- grad[1L, indGP] -
                     apply(attr(ldens, "gradient"), 2L, sum)
                 if (hessian) {
-                    hess[1L, 2L:3L, 2L:3L] <-  hess[1L, 2L:3L, 2L:3L] -
-                        apply(attr(ldens, "hessian"), 2L:3L, sum)
+                    hess[1L, indGP, indGP] <-  hess[1L, indGP, indGP] -
+                        apply(attr(ldens, "hessian"), indGP, sum)
                 }
             }
         }
@@ -282,37 +302,40 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
             Cst <- Cst - sum(fd[[nm]]$r * (1 - log(w)))
             
             ## 2-nd term: GP survival
-            S <- pGPD2(q = fd[[nm]]$threshold, scale = scale, shape = shape,
-                       deriv = TRUE, hessian = hessian, lower.tail = FALSE)
+            S <- Excd[[distName]]$pFun(q = fd[[nm]]$threshold,
+                                       theta = thetaGP,
+                                       deriv = TRUE, hessian = hessian,
+                                       lower.tail = FALSE)
             negLogL <- negLogL + sum(lw * S)
 
             if (deriv) {
                 grad[1L] <- grad[1L] + sum(w * S) 
-                grad[2L:3L] <- grad[2L:3L] + crossprod(lw, attr(S, "gradient"))
+                grad[indGP] <- grad[indGP] + crossprod(lw, attr(S, "gradient"))
                 if (hessian) {
                     ##  2nd order derivative w.r.t. 'lambda' and 'thetaGP'
-                    hess[1L, 1L, 2L:3L] <- hess[1L, 1L, 2L:3L] +
+                    hess[1L, 1L, indGP] <- hess[1L, 1L, indGP] +
                         crossprod(w, attr(S, "gradient"))
-                    hess[1L, 2L:3L, 1L] <- hess[1L, 1L, 2L:3L]
+                    hess[1L, indGP, 1L] <- hess[1L, 1L, indGP]
                     ## 2nd order derivatives w.r.t. 'thetaGP' and 'thetaGP'
-                    hess[1L, 2L:3L, 2L:3L] <- hess[1L, 2L:3L, 2L:3L] + lambda *
-                        apply(attr(S, "hessian"), MARGIN = 2L:3L,
+                    hess[1L, indGP, indGP] <- hess[1L, indGP, indGP] + lambda *
+                        apply(attr(S, "hessian"), MARGIN = indGP,
                               function(x) crossprod(w, x))
                 }
             }
             
             ## 3-rd term: GP density
             if (rSum > 0) { 
-                ldens <- dGPD2(x = unlist(fd[[nm]]$data),
-                               scale = scale, shape = shape,
-                               deriv = TRUE, hessian = hessian, log = TRUE)
+                ldens <- Excd[[distName]]$dFun(x = unlist(fd[[nm]]$data),
+                                              theta = thetaGP,
+                                              deriv = TRUE, hessian = hessian,
+                                              log = TRUE)
                 negLogL <- negLogL - sum(ldens)
                 if (deriv) {
-                    grad[1L, 2L:3L] <- grad[1L, 2L:3L] -
+                    grad[1L, indGP] <- grad[1L, indGP] -
                         apply(attr(ldens, "gradient"), MARGIN = 2L, sum)
                     if (hessian) {
-                        hess[1L, 2L:3L, 2L:3L] <- hess[1L, 2L:3L, 2L:3L] -
-                            apply(attr(ldens, "hessian"), MARGIN = 2L:3L, sum)
+                        hess[1L, indGP, indGP] <- hess[1L, indGP, indGP] -
+                            apply(attr(ldens, "hessian"), MARGIN = indGP, sum)
                     }
                 }
             }
@@ -333,7 +356,7 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
      
 }
 
-## ****************************************************************************
+## ******************************************************************************
 ##' Maximum-Likelihood Estimation of a Poisson-GP model using heterogeneous
 ##' data.
 ##'
@@ -363,32 +386,33 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##'
 ##' @param object A \code{poisGP} object that needs to be estimated.
 ##'
-##' @param parIni Initial values for the parameter vector. This
-##' is must be a named vector of length \eqn{2} with elements
-##' names \code{"scale"} and \code{"shape"}.
+##' @param parIni Initial values for the parameter vector. This is
+##'     must be a named vector of length \eqn{2} with elements names
+##'     \code{"scale"} and \code{"shape"}.
 ##'
 ##' @param estim Type or method chosen for the estimation.
 ##'
 ##' @param coefLower,coefUpper Lower and Upper bounds for the
-##' parameters. The should be numeric vectors with names in
-##' \code{c("lambda", "scale", "shape")}. Only the bounds on the GP
-##' parameters \code{"scale"} and \code{"shape"} can be used during
-##' the estimation and they will only be used when \code{estim} is
-##' \code{"nloptr"}. However the bounds are used in the inference
-##' \code{\link{confint.poisGP}} and \code{\link{RL.poisGP}}.
+##'     parameters. The should be numeric vectors with names in
+##'     \code{c("lambda", "scale", "shape")}. Only the bounds on the
+##'     GP parameters \code{"scale"} and \code{"shape"} can be used
+##'     during the estimation and they will only be used when
+##'     \code{estim} is \code{"nloptr"}. However the bounds are used
+##'     in the inference \code{\link{confint.poisGP}} and
+##'     \code{\link{RL.poisGP}}.
 ##'
 ##' @param parTrack Not used yet.
 ##'
 ##' @param scale Logical. If \code{TRUE} the data used in the
-##' optimisation are scaled , see \code{\link{threshData}}. NOT
-##' IMPLEMENTED YET.
+##'     optimisation are scaled , see \code{\link{threshData}}. NOT
+##'     IMPLEMENTED YET.
 ##'
 ##' @param trace Integer Level of verbosity.
 ##'
 ##' @return A list with the results of the likelihood
-##' maximisation. The content of the list depends on the method as
-##' given by \code{estim}, yet it should contain an element
-##' \code{logLik} giving the maximised log-likelihood.
+##'     maximisation. The content of the list depends on the method as
+##'     given by \code{estim}, yet it should always contain an element
+##'     \code{logLik} giving the maximised log-likelihood.
 ##' 
 ##' @author Yves Deville
 ##' 
@@ -405,9 +429,13 @@ MLE.poisGP <- function(object = NULL,
        
     res <- list(cvg = TRUE)
 
-    ## ========================================================================
+    distName <- object$distName
+    parNames <- object$parNames
+    p <- object$p
+    
+    ## ==========================================================================
     ## Manage the bounds
-    ## ========================================================================
+    ## ==========================================================================
     
     lb <- rep(c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99))
     
@@ -425,8 +453,9 @@ MLE.poisGP <- function(object = NULL,
                  ". Should be >= ", lb[lmatch][!ind])
         }           
     }
-
-    if (scale) lb["scale"] <-  lb["scale"] / object$scaleData
+    lb <- lb[parNames]
+    
+    if (scale) lb["scale"] <- lb["scale"] / object$scaleData
     
     ub <- rep(c("lambda" = Inf, "scale" = Inf, "shape" = Inf))
     
@@ -444,11 +473,12 @@ MLE.poisGP <- function(object = NULL,
                  ". Should be <= ", ub[umatch][!ind]) 
         }
     }
+    ub <- ub[parNames]
 
     if ((lb["lambda"] > 0.0) || (ub["lambda"] < Inf)) {
-        stop("Bounds on 'lambda' must for now be '0.0' (lower) and 'Inf' (upper)")
+        stop("Bounds on 'lambda' must for now be '0.0' (lower) and 'Inf' ",
+             "(upper)")
     }
-    
     
     if (scale) ub["scale"] <-  ub["scale"] / object$scaleData
     
@@ -457,16 +487,20 @@ MLE.poisGP <- function(object = NULL,
     
     if (estim == "optim") {
         
-        ## ====================================================================
+        ## ======================================================================
         ## When `estim` is "optim" we use the standard BFGS algorithm,
         ## with no gradient, so `deriv` is FALSE.
-        ## ====================================================================
+        ## ======================================================================
 
-        res$df <- 3
+        res$df <- p
         
         ctrl <- list(maxit = 3000, trace = trace)
-        if (!scale)  ctrl[["parscale"]] <- c("scale" = object$scaleData, "shape" = 1)
-        
+        if (!scale) {
+            psc <- rep(1.0, p - 1)
+            names(psc) <- parNames[-1]
+            psc["scale"] <- object$scaleData
+            ctrl[["parscale"]] <- psc
+        }
         res$fit <- try(optim(par = parIni[-1],
                              fn = negLogLikFunC,
                              deriv = FALSE,
@@ -487,11 +521,11 @@ MLE.poisGP <- function(object = NULL,
         
     } else if (estim == "nloptr") {
         
-        ## ====================================================================
+        ## ======================================================================
         ## When `estim` is "nloptr" we use the BFGS algorithm with
         ## gradient. The result returned by the function must be a
         ## list. We can use box contraints on the parameters.
-        ## ====================================================================
+        ## ======================================================================
 
         if (trace) {
             cat("\nUsing the \"NLOPT_LD_BFGS\" algorithm with derivatives.\n")
@@ -503,9 +537,6 @@ MLE.poisGP <- function(object = NULL,
                      "ftol_abs" = 1e-5,
                      "maxeval" = 1000, "print_level" = 0,
                      "check_derivatives" = FALSE)
-
-        ## XXX caution! this works when the shape is constant only!!!
-        p <- object$p - 1
    
         dfred <- sum(lb == ub)
         res$df <- 3 - dfred
@@ -534,7 +565,7 @@ MLE.poisGP <- function(object = NULL,
                             "the bounds, inference results are misleading")
                 }
 
-                names(estimate) <- c("scale", "shape") ## object$parNames
+                names(estimate) <- parNames[-1]
                 res$estimate <- estimate
                 res$negLogLik <- res$fit$objective
             } else {
@@ -547,14 +578,14 @@ MLE.poisGP <- function(object = NULL,
 
         res$df <- 0
         
-        ## ====================================================================
+        ## =====================================================================
         ## When `estim` is "eval": if a valid vector of GP parameters
         ## is provided in 'parIni', we will find the corresponding
         ## Poisson rate, compute the log-likelihood and its
         ## derivatives. This is nearly what would be done by
         ## specifying two identical vectors in 'coefLower' and
         ## 'coefUpper'.
-        ## ====================================================================
+        ## =====================================================================
 
         if (is.null(parIni)) {
             eval <- FALSE
@@ -564,7 +595,8 @@ MLE.poisGP <- function(object = NULL,
             res$estimate <- parIni
         }
 
-        warning("\nNo optimisation performed. Inference results can be misleading.\n")
+        warning("\nNo optimisation performed. Inference results can be ",
+                "misleading.\n")
         res$cvg <- FALSE
         
     }
@@ -607,7 +639,6 @@ MLE.poisGP <- function(object = NULL,
                                        x = res$estimate,
                                        deriv = FALSE,
                                        object = object)
-
         }
 
         finalEval <- negLogLikFun(theta = res$estimate, object = object,
@@ -626,25 +657,31 @@ MLE.poisGP <- function(object = NULL,
         res$negLogLik <- finalEval
         
         res$cov <- try(solve(res$hessian))
-        if (inherits(res$cov, "try-error") || (rev(eigen(res$cov)$value)[1] < 0.0)) { 
+        if (inherits(res$cov, "try-error") ||
+            (rev(eigen(res$cov)$value)[1] < 0.0)) { 
             res$cov <- array(NA, dim = c(3, 3))
         } 
         rownames(res$cov) <- colnames(res$cov) <- object$parNames
         res$sd <- sqrt(diag(res$cov))
         
-        ## ====================================================================
+        ## =====================================================================
         ## Find the 'PP' parameters using the POT2GEV transformation
         ## XXX. We could now use the 'poisGP2PP' function.
-        ## ====================================================================
-
-        estPP <- Renext::Ren2gev(res$estimate, threshold = object$threshold)
-        covPP <- attr(estPP, "jacobian") %*% res$cov %*% t(attr(estPP, "jacobian"))
+        ## =====================================================================
+        
+        est <- res$estimate
+        if (distName == "exp1") est <- c(est, "shape" = 0.0)
+        estPP <- Renext::Ren2gev(est,
+                                 threshold = object$threshold,
+                                 distname.y = "GPD")
+        jac <- attr(estPP, "jacobian")[1L:p, 1L:p]
+        covPP <- jac %*% res$cov %*% t(jac)
+       
         attr(estPP, "jacobian") <- attr(estPP, "threshold") <- NULL
-        res$PP <- list(estimate = estPP,
+        res$PP <- list(estimate = estPP[1:p],
                        cov = covPP,
                        sd = sqrt(diag(covPP)))
-        
-        
+       
     }
     
     ## if (parTrack) {

@@ -16,12 +16,13 @@ poisGP(data = NULL, threshold, effDuration,
 }
 \arguments{
 \item{data}{Either a vector containing the observations for the
-"main" sample or an object describing heterogeneous data. In the
-second case, \code{data} can be of class \code{"potData"} (see
-\code{\link{potData}}) or of class \code{"Rendata"} from the
-\strong{Renext} package. Mind that the class \code{"Rendata"} does not
-yet have a creator, but random \code{Rendata} objects can be
-created for testing by using \code{\link[Renext]{rRendata}}.}
+"main" sample or an object describing heterogeneous data. In
+the second case, \code{data} can be of class \code{"potData"}
+(see \code{\link{potData}}) or of class \code{"Rendata"} from
+the \strong{Renext} package. Mind that the class
+\code{"Rendata"} does not yet have a creator, but random
+\code{Rendata} objects can be created for testing by using
+\code{\link[Renext]{rRendata}}.}
 
 \item{threshold}{The \emph{main threshold} as commonly understood
 in POT.}
@@ -32,51 +33,58 @@ period corresponding to the \code{data}.}
 \item{MAX.data}{A list of numeric vectors corresponding to periods
 or \emph{blocks}. Each vector contains the \eqn{r}-largest
 observations for the block, where \eqn{r>0} can vary across
-blocks. When a numeric vector is passed instead of a list, it is
-understood that there is only one MAX block.}
+blocks. When a numeric vector is passed instead of a list, it
+is understood that there is only one MAX block.}
 
 \item{MAX.effDuration}{A vector of positive numbers giving the
 durations of the MAX blocks (in the same order).}
 
 \item{OTS.data}{A list of numeric vectors corresponding to periods
-or \emph{blocks}. Each vector contains all observations for the
-block which exceeded the corresponding threshold as given in
-\code{OTS.threshold}. So the number \eqn{r \geq 0} vary across
-blocks. When a numeric vector is passed instead of a list, it is
-understood that there is only one OTS block.}
+or \emph{blocks}. Each vector contains all observations for
+the block which exceeded the corresponding threshold as given
+in \code{OTS.threshold}. So the number \eqn{r \geq 0} vary
+across blocks. When a numeric vector is passed instead of a
+list, it is understood that there is only one OTS block.}
 
 \item{OTS.threshold}{A vector of positive numbers giving the
-thresholds of the OTS blocks (in the same order). By construction
-all the elements of \code{OTS.data[i]} are larger than
-\code{OTS.threshold[i]} for each block index \code{i}.}
+thresholds of the OTS blocks (in the same order). By
+construction all the elements of \code{OTS.data[i]} are larger
+than \code{OTS.threshold[i]} for each block index \code{i}.}
 
 \item{OTS.effDuration}{A vector of positive numbers giving the
 durations of the OTS blocks (in the same order).}
 
+\item{distName}{Character name of the distribution to be used for
+the excesses over the threshold. For now thids can be
+\code{"GPD2"} corresponding to \code{\link{GPD2}}, or
+\code{"exp1"} corresponding to \code{\link{Exp1}}. Note that
+in all cases the first parameter is a (the) \emph{scale
+parameter}.}
+
 \item{parIni}{A named parameter vector. This will be used to set
-the values if \code{estim} is \code{"none"} or to provide initial
-values in the other cases. When \code{parIni} is \code{NULL} the
-parameter vector stored in the object as will contain \code{NA}
-when \code{estim} is \code{"none"} or "good" initial values found
-by devoted function.}
+the values if \code{estim} is \code{"none"} or to provide
+initial values in the other cases. When \code{parIni} is
+\code{NULL} the parameter vector stored in the object as will
+contain \code{NA} when \code{estim} is \code{"none"} or "good"
+initial values found by devoted function.}
 
 \item{estim}{\code{Character} defining the function and the method
 that will be used to maximise the likelhood. See \strong{Details}.}
 
 \item{coefLower, coefUpper}{Named vectors of bounds for the
-parameters. The values can be infinite \code{Inf} or \code{-Inf}.
-However, note that without bounds on the shape parameter \eqn{\xi}
-the maximum likelihood is infinite and obtained for \eqn{\xi =
--1}. Note also that the bounds are ignored when \code{estim}
-is set to \code{"optim"}.}
+parameters. The values can be infinite \code{Inf} or
+\code{-Inf}.  However, note that without bounds on the shape
+parameter \eqn{\xi} the maximum likelihood is infinite and
+obtained for \eqn{\xi = -1}. Note also that the bounds are
+ignored when \code{estim} is set to \code{"optim"}.}
 
 \item{scale}{Logical. If \code{TRUE} the observations in
-\code{data}, \code{MAX.data} and \code{OTS.data} are all divided
-by a common positive number in order to avoid numerical
-problems. This number is returned as the \code{scaleData} element
-of the returned list. Except from the numerical problems, the
-value of the scale does not impact the results such as the
-estimates of their covariance.}
+\code{data}, \code{MAX.data} and \code{OTS.data} are all
+divided by a common positive number in order to avoid
+numerical problems. This number is returned as the
+\code{scaleData} element of the returned list. Except from the
+numerical problems, the value of the scale does not impact the
+results such as the estimates of their covariance.}
 
 \item{trace}{Integer level of verbosity.}
 }
@@ -85,17 +93,17 @@ A list with among which the following objects are found
 
 \item{data}{
 
-A copy of the data provided in \code{data} and the other formals
-\code{MAX.*} or \code{OTS.*}
+    A copy of the data provided in \code{data} and the other
+    formals \code{MAX.*} or \code{OTS.*}
 
 }
 \item{fitData}{
 
-A modified version of \code{data} where the observations that do
-not exceed the main threshold \eqn{u} are discarded and each
-remaining observation \eqn{y_i} is replaced by the corresponding
-excess \eqn{y_i - u}. So only positive observations are found in
-the data vectors.
+    A modified version of \code{data} where the observations that
+    do not exceed the main threshold \eqn{u} are discarded and
+    each remaining observation \eqn{y_i} is replaced by the
+    corresponding excess \eqn{y_i - u}. So only positive
+    observations are found in the data vectors.
 
 }
 }
@@ -103,42 +111,50 @@ the data vectors.
 Create a Poisson-GP model object, usually by ML estimation.
 }
 \details{
-The functions and methods used to maximise the likelihood are as follows.
-\itemize{
-\item{\code{estim = "optim"}}{
-The classical \code{stats::optim} function is used with
-\code{method ="BFGS"}. The derivatives are not used and nor do the
-bounds on the parameters given in \code{coefLower} and
-\code{coefUpper}.
-}
-\item{\code{estim = "nloptr"}}{
-The \code{nloptr::nloptr} function is used with the
-\code{"NLOPT_LD_BFGS"} algorithm option. The derivatives are used
-as well as the bounds on the parameters, leading to "box
-constraints". The bounds can be used to fix the value of a GP
-parameter by using the same value in \code{coefLower} and
-\code{coefUpper}. For instance an exponential distribution can be
-fitted by using a zero value for the shape both in
-\code{coefLower} and \code{coefUpper}.
-}
-\item{\code{estim = "eval"}}{
-No optimisation is performed: the rate \code{lambda} corresponding
-to the provided GP parameters is computed and the negative
-log-likelihood and its first derivatives are evaluated, allowing
-the determination of a (putative) covariance matrix for the
-estimates. The named vector \code{parIni} should then contain
-values for the Poisson-GP parameters, and valid values for the GP
-parameters \code{"scale"} and \code{"shape"}. This possibility can
-be used to check the results provided by other packages, e.g. to
-recompute return levels. Note however that the provided parameters
-may not be approximately maximising the likelihood and the
-corresponding results will then be misleading.
-}
-\item{\code{estim = "none"}}{
-No optimisation is performed. The log-likelihood and negative
-log-likelihoods remain NA, and the initial values are ignored.
+The functions and methods used to maximise the likelihood depends
+on \code{estim} as follows.
 
-}}
+\itemize{
+
+   \item{\code{estim = "optim"}}{
+         The classical \code{stats::optim} function is used with
+         \code{method ="BFGS"}. The derivatives are not used and nor
+         do the bounds on the parameters given in \code{coefLower} and
+         \code{coefUpper}.
+    }
+    \item{\code{estim = "nloptr"}}{
+        The \code{nloptr::nloptr} function is used with the
+        \code{"NLOPT_LD_BFGS"} algorithm option. The derivatives
+        are used as well as the bounds on the parameters, leading
+        to "box constraints". The bounds can be used to fix the
+        value of a GP parameter by using the same value in
+        \code{coefLower} and \code{coefUpper}. For instance an
+        exponential distribution can be fitted by using a zero
+        value for the shape both in \code{coefLower} and
+        \code{coefUpper}.
+    }
+    \item{\code{estim = "eval"}}{
+        No optimisation is performed: the rate \code{lambda}
+        corresponding to the provided GP parameters is computed
+        and the negative log-likelihood and its first derivatives
+        are evaluated, allowing the determination of a (putative)
+        covariance matrix for the estimates. The named vector
+        \code{parIni} should then contain values for the
+        Poisson-GP parameters, and valid values for the GP
+        parameters \code{"scale"} and \code{"shape"}. This
+        possibility can be used to check the results provided by
+        other packages, e.g. to recompute return levels. Note
+        however that the provided parameters may not be
+        approximately maximising the likelihood and the
+        corresponding results will then be misleading.
+    }
+    \item{\code{estim = "none"}}{
+        No optimisation is performed. The log-likelihood and
+        negative log-likelihoods remain NA, and the initial values
+        are ignored.
+    }
+
+}
 }
 \examples{
 ## =====================================================================
@@ -157,13 +173,13 @@ cbind(Renext = coef(fit1R), potomax = coef(fit1p))
 ## CAUTION when comparing log-likelihoods, see ?logLik.poisGP
 cbind(Renext = logLik(fit1R), potomax = logLik(fit1p))
 
-## ==============================================================
+## =====================================================================
 ## Use the 'venice' data from the 'ismev' package. Contains
 ## r-largest observations as a matrix with one row by year and NA.
 ## So some transformations are needed. Note that first
 ## of 'venice' must be removed, and that the 'venice' data from
 ## the evd package may misleadingly be used instead.
-## ==============================================================
+## =====================================================================
 
 rm(venice)
 data(venice, package = "ismev")

@@ -143,15 +143,22 @@ SEXP Call_dGPD2(SEXP x,             /*  double                          */
 
 	  } else {
 	    
-	    rval[i] = -log(sigma) - z;
+	    // rval[i] = -log(sigma) - z;
+
+	    // better approx
+	    rval[i] = -log(sigma) -
+	      z * (xi + 1.0) * (1.0 + (z * xi) * (-1.0 / 2.0  + (z * xi) / 3.0));
 	    
-	    rgrad[i] = -(1.0 - (xi + 1.0) * z) / sigma;
-	    rgrad[i + n] = 0.5 * z * (z - 2.0);
+	    // rgrad[i] = (z - 1.0) / sigma;
+	    // rgrad[i + n] = 0.5 * z * (z - 2.0);
+	    // better approxs
+	    rgrad[i] = ((z - 1.0) * (1 - z * xi)) / sigma;
+	    rgrad[i + n] =  z * ((0.5 * z - 1.0) + (-2.0 * z / 3.0 * z + 1.0) * z * xi);
 	    
 	    if (hessian) {
 
 	      // row 'sigma'
-	      rhess[i] =  (z + 1) * (z + 1) / sigma / sigma;
+	      rhess[i] =  (1 - 2 * z) / sigma / sigma;
 	      rhess[i + n] =  - z * (z - 1.0) / sigma;
 	      rhess[i + 2 * n] = rhess[i + n];
 	      // row 'xi'
@@ -185,7 +192,6 @@ SEXP Call_dGPD2(SEXP x,             /*  double                          */
 	      rhess[i + 2 * n] = rhess[i + n];
 	      // row 'xi'
 	      rhess[i + 3 * n] = (-2.0 * A + xi * B * (2.0 + xi * B1)) / xi / xi / xi;
-
 	    }
 	    
 	  } else {
@@ -265,7 +271,9 @@ SEXP Call_dGPD2(SEXP x,             /*  double                          */
 	  if (z < 0.0) {
 	    rval[i] = 0.0;	  
 	  } else {
-	    rval[i] = -log(rscale[iscale]) - z;	
+	    rval[i] = -log(rscale[iscale]) - z;
+	    rval[i] = -log(rscale[iscale]) -
+	      z * (xi + 1.0) * (1.0 + (z * xi) * (-1.0 / 2.0  + (z * xi) / 3.0));
 	  }
 	  
 	} else {
@@ -314,7 +322,7 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
   int n, nq, nscale, nshape, i, iq, iscale, ishape,
     deriv = INTEGER(derivFlag)[0], hessian = INTEGER(hessianFlag)[0];
   
-  double eps = 1e-6, z, V, A, B, S, sigma, xi;
+  double eps = 1e-6, z, V, A, B, S, sigma, xi, u, H, dHdsigma, dHdxi;
   
   SEXP val;
   
@@ -405,10 +413,15 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
 	    rgrad[i] = 0.0;
 	    rgrad[i + n] = 0.0;
 	  } else {
-	    S = exp(-z);
+	    // improve precision for small xi
+	    u = xi * z;
+	    H = z * (1 - u * (1.0 / 2.0 - u  / 3.0)); 
+	    S = exp(-H);
+	    dHdsigma = - z * (1.0 - u) / sigma;
+	    dHdxi = - z * z * (1.0 / 2.0 - 2.0 * u / 3.0);
 	    rval[i] = S;
-	    rgrad[i] = S * z / sigma;
-	    rgrad[i + n] = S * z * z / 2;
+	    rgrad[i] = - S * dHdsigma;
+	    rgrad[i + n] = - S * dHdxi;
 	  }
 
 	  // Rprintf("%4d, %4d, %6.3f, %7.2f, %6.3f, %6.3f", i, ishape, xi, z, Z, rscale[iscale]);
@@ -424,7 +437,7 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
 	    rhess[i + 3 * n] = - z * z * z * (8.0 - 3.0 * z) * S / 12.0;
 	  }
 	 
-	} else {
+	} else {      // non "quasi-exponential" case
 	  
 	  if (z < 0.0) {
 	    S = 1.0;
@@ -525,7 +538,11 @@ SEXP Call_pGPD2(SEXP q,               /*  double                          */
 	    rval[i] = 1.0;
 	  }	  
 	  else {
-	    rval[i] = exp(-z);
+	    // rval[i] = exp(-z);
+	    // improved approx
+	    u = xi * z;
+	    H = z * (1 - u * (1.0 / 2.0 - u  / 3.0)); 
+	    rval[i] = exp(-H);
 	  }
 	} else {
 	  if (z < 0.0) {
@@ -672,10 +689,12 @@ SEXP Call_qGPD2(SEXP p,               /*  double                          */
 
 	  V = - lq;
 	  W = lq * lq / 2.0;
-	  rval[i] = sigma * V;
 	  
-	  rgrad[i] =  V;
-	  rgrad[i + n] = sigma * W;
+	  // improved approximation
+	  rval[i] = rscale[iscale] * (-lq * (1.0 - lq * xi * (0.5 - lq * xi / 6.0))) ;	  
+
+	  rgrad[i] =  lq * (-1.0 - 0.5 * lq * xi) ;
+	  rgrad[i + n] = sigma * lq * lq * (0.5 - lq * xi / 3.0);
 
 	  if (hessian) {
 	    // row 'sigma'
@@ -743,10 +762,13 @@ SEXP Call_qGPD2(SEXP p,               /*  double                          */
 
 	xi = rshape[ishape];
 	q = 1 - rp[ip];
-
+	lq = log(q);
+	
 	if (fabs(xi) < eps) {
 
-	  rval[i] = -rscale[iscale] * log(q);	  
+	  // rval[i] = -rscale[iscale] * log(q);
+	  // better approx
+	  rval[i] = rscale[iscale] * (-lq * (1.0 - lq * xi * (0.5 - lq * xi / 6.0))) ;	  
 	  
 	} else {
 

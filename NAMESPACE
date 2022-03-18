@@ -24,7 +24,8 @@ export(RL, RP, as.potData, profLik,
        dGPD2, pGPD2, qGPD2, rGPD2,
        potData, threshData,
        poisGP,
-       poisGP2PP, PP2poisGP)
+       poisGP2PP, PP2poisGP,
+       dexp1, pexp1, qexp1, rexp1)
 
 ## ============================================================================
 ## Class "potData" : Similar to Rendata

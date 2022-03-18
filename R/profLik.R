@@ -1,4 +1,4 @@
-## *************************************************************************
+## *****************************************************************************
 ##' Profile-likelihood inference method. This method finds the bounds
 ##' of a confidence interval for the given function of the parameter
 ##' vector.
@@ -35,7 +35,7 @@ profLik <- function(object, fun, ...) {
     UseMethod("profLik")
 }
 
-## *************************************************************************
+## *****************************************************************************
 ##' Profile-likelihood inference for fitted model objects.
 ##'
 ##' @details Compute the lower and upper end-points of a
@@ -197,12 +197,12 @@ profLik.default <- function(object,
 
     .diagno <- diagno
 
-    ## ========================================================================
+    ## =========================================================================
     ## XXX TO IMPLEMENTED LATER. To allow the use of dots, we will
     ## need some 'do.call' and also the replacement method `formal<-`
     ## in order to add the formal arguments to both 'f' and 'g'. So
     ## some care will be required.
-    ## ========================================================================
+    ## =========================================================================
     
     if (FALSE) {
         dots <- match.call(expand.dots = FALSE)[["..."]]
@@ -231,16 +231,16 @@ profLik.default <- function(object,
     res <- array(NA, dim = c(Lim = 3L, Level = nLevel),
                  dimnames = list(Type = c("est", "L", "U"), Level = fLevel))
 
-    ## ===================================================================
+    ## =========================================================================
     ## We maximise/minimise 'fun' under the constraint that the logLik
-    ## remains >= max logLik - delta where delta := qchisq(1 - alpha)
+    ## remains >= max logLik - delta where delta := qchisq(1 - alpha) / 2
     ## where alpha is given by the confidence level.
     ##
     ## The constrained optim is performed using an augmented
     ## Lagrangian method which requires a local companion algorithm
     ## with its own settings. So a sublist is used to tune the local
     ## optimisation.
-    ## ===================================================================
+    ## =========================================================================
 
     opts1 <- list("algorithm" = "NLOPT_LD_AUGLAG",
                   "xtol_rel" = 1.0e-12,
@@ -304,11 +304,11 @@ profLik.default <- function(object,
     val <- f(thetaHat, object, level = 0.95, chgSign = FALSE)$objective
     res["est",  ] <- val
     
-    ## ========================================================================
+    ## =========================================================================
     ## keep some information about optimisation: diagnostics and value
     ## of the parameter vector which lead to the min or max of the
     ## profiled function.
-    ## ========================================================================
+    ## =========================================================================
     
     diagno <-
         array(NA,
@@ -343,12 +343,12 @@ profLik.default <- function(object,
                             labs[LU], fLevel[iLev]))
             }
             
-            ## =========================================================
+            ## =================================================================
             ## if we have successfully computed the result for a
             ## larger confidence level (and the same function of the
             ## parameter vector), use the corresponding value of the
             ## parameter as initial guess.
-            ## ==========================================================
+            ## =================================================================
             
             if ((iLev > 1L) && !is.null(thetaPrec)) {
                 theta0 <- thetaPrec
@@ -391,12 +391,12 @@ profLik.default <- function(object,
                 }
             }
             
-            ## ================================================================
+            ## =================================================================
             ## compute value of the constaint as well as the distance
             ## between the two directions gradient of objective 'f'
             ## and gradient of constraint 'g' to see if the constaint
             ## is active at solution
-            ## ================================================================
+            ## =================================================================
 
             if (!inherits(resOpt, "try-error") && (resOpt$status %in% 1:4)) {
                 

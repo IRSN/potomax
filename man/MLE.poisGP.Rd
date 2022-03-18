@@ -15,19 +15,20 @@
 \arguments{
 \item{object}{A \code{poisGP} object that needs to be estimated.}
 
-\item{parIni}{Initial values for the parameter vector. This
-is must be a named vector of length \eqn{2} with elements
-names \code{"scale"} and \code{"shape"}.}
+\item{parIni}{Initial values for the parameter vector. This is
+must be a named vector of length \eqn{2} with elements names
+\code{"scale"} and \code{"shape"}.}
 
 \item{estim}{Type or method chosen for the estimation.}
 
 \item{coefLower, coefUpper}{Lower and Upper bounds for the
 parameters. The should be numeric vectors with names in
-\code{c("lambda", "scale", "shape")}. Only the bounds on the GP
-parameters \code{"scale"} and \code{"shape"} can be used during
-the estimation and they will only be used when \code{estim} is
-\code{"nloptr"}. However the bounds are used in the inference
-\code{\link{confint.poisGP}} and \code{\link{RL.poisGP}}.}
+\code{c("lambda", "scale", "shape")}. Only the bounds on the
+GP parameters \code{"scale"} and \code{"shape"} can be used
+during the estimation and they will only be used when
+\code{estim} is \code{"nloptr"}. However the bounds are used
+in the inference \code{\link{confint.poisGP}} and
+\code{\link{RL.poisGP}}.}
 
 \item{parTrack}{Not used yet.}
 
@@ -39,9 +40,9 @@ IMPLEMENTED YET.}
 }
 \value{
 A list with the results of the likelihood
-maximisation. The content of the list depends on the method as
-given by \code{estim}, yet it should contain an element
-\code{logLik} giving the maximised log-likelihood.
+    maximisation. The content of the list depends on the method as
+    given by \code{estim}, yet it should always contain an element
+    \code{logLik} giving the maximised log-likelihood.
 }
 \description{
 Maximum-Likelihood Estimation of a Poisson-GP model using heterogeneous

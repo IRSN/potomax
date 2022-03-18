@@ -1,4 +1,4 @@
-## ***************************************************************************
+## *****************************************************************************
 ##' Compute return levels along with confidence bounds for a Poisson-GP
 ##' model with ML inference results.
 ##'
@@ -9,7 +9,6 @@
 ##' confidence limits can be obtained by profile-likelihood or by the
 ##' standard 'delta' method.
 ##'
-##' 
 ##' @method RL poisGP
 ##'
 ##' @usage
@@ -170,7 +169,9 @@ RL.poisGP <- function(object,
     eps <-  1e-4
       
     out <- match.arg(out)
-    parNames <- c("lambda", "scale", "shape")
+    parNames <- object$parNames
+    distName <- object$distName
+    p <- object$p
     thetaHat <- object$estimate
     
     if (is.null(period)) {
@@ -180,11 +181,11 @@ RL.poisGP <- function(object,
         period <- sort(period)
     }
 
-    ## ========================================================================
+    ## =========================================================================
     ## The period 'T' must be such that the product p := 1 / lambdaHat
     ## / T is < 1.0. A value < 1.0 but too close to 1.0 leads to
     ## problems.
-    ## ========================================================================
+    ## =========================================================================
     
     ind <- (period * thetaHat[1]) > 1
     period <- period[ind]
@@ -196,9 +197,9 @@ RL.poisGP <- function(object,
     
     method <- match.arg(confintMethod)
 
-    ## ========================================================================
+    ## =========================================================================
     ## Cope with the check argument
-    ## ========================================================================
+    ## =========================================================================
    
     if (method == "delta" && check) {
         warning("Since method is \"delta\", no check is needed and 'check' is ",
@@ -229,7 +230,8 @@ RL.poisGP <- function(object,
         
         for (iPer in seq_along(period)) {
             RL[iPer, 1] <- object$threshold +
-                qGPD2(p = prob[iPer], scale = thetaHat[2], shape = thetaHat[3])
+                Excd[[distName]]$qFun(p = prob[iPer],
+                                      theta = thetaHat[-1])
         }
         
         
@@ -259,14 +261,20 @@ RL.poisGP <- function(object,
         for (iPer in seq_along(period)) {
             
             Quant[iPer] <- quant <- object$threshold +
-                qGPD2(p = prob[iPer], scale = thetaHat[2], shape = thetaHat[3],
-                      deriv = TRUE)
+                Excd[[distName]]$qFun(p = prob[iPer],
+                                      theta = thetaHat[-1],
+                                      deriv = TRUE)
+            
             ## this is a 1 x p matrix
             gradTheta <- attr(quant, "gradient")
 
-            ## CAUTION: the density must be evaluated at a GPD2 quantile!
-            f <- dGPD2(x = Quant[iPer] - object$threshold,
-                       scale = thetaHat[2], shape = thetaHat[3], deriv = TRUE)
+            ## =================================================================
+            ## CAUTION: the density must be evaluated at a GPD quantile!
+            ## =================================================================
+            
+            f <- Excd[[distName]]$dFun(x = Quant[iPer] - object$threshold,
+                                       theta = thetaHat[-1],
+                                       deriv = TRUE)
             
             gradTheta <- c("lambda" = 1 / f / thetaHat[1]^2 / period[iPer],
                            drop(gradTheta))
@@ -302,12 +310,12 @@ RL.poisGP <- function(object,
                             Type = c("L", "U"), Level = fLevel,
                             Diag = c("status", "constraint", "gradDist")))
         
-        ## ===================================================================
+        ## =====================================================================
         ## For each parameter, we maximise / minimise it under the
         ## constraint that the logLik remains >= max logLik - delta
         ## where delta := qchisq(1 - alpha) where 'alpha' is given by
         ## the confidence level.
-        ## ===================================================================
+        ## =====================================================================
 
         opts <- list()
         
@@ -337,10 +345,10 @@ RL.poisGP <- function(object,
             opts[["check_derivatives_print"]] <- "all"
         }
          
-         ## ==============================================================
+         ## ====================================================================
          ## note that some arguments such as 'level' are unused but are
          ## required by the constraint
-         ## ===============================================================
+         ## ====================================================================
          
         f <- function(theta, level, period, chgSign = FALSE, object) {
 
@@ -350,9 +358,9 @@ RL.poisGP <- function(object,
                 RL <- NA
             } else {
                 RL <- object$threshold +
-                    qGPD2(prob,
-                          scale = theta[2], shape = theta[3],
-                          deriv = TRUE)
+                    Excd[[distName]]$qFun(prob,
+                                          theta = theta[-1],
+                                          deriv = TRUE)
             }
             
             ## 'nloptr' fails on NA and NaN!
@@ -371,12 +379,12 @@ RL.poisGP <- function(object,
             ## add the derivative w.r.t. to the rate 'lambda', which
             ## comes by chain rule.
             
-            f1 <- dGPD2(x = RL - object$threshold,
-                        scale = theta[2], shape = theta[3], deriv = TRUE)
-            
+            f1 <- Excd[[distName]]$dFun(x = RL - object$threshold,
+                                        theta = theta[-1],
+                                        deriv = TRUE)
             gradTheta <- c("lambda" = 1.0 / f1 / theta[1]^2 / period,
                            drop(gradTheta))
-
+            
             ## if (trace > 2) {
             ##     val <- RL
             ##     if (chgSign) val <- -val
@@ -394,10 +402,10 @@ RL.poisGP <- function(object,
              }
         }
          
-        ## ==============================================================
+        ## =====================================================================
         ## Up to (possibly unused) arguments, the constraint function
         ## is the same as that used in the 'confint' method.
-        ## ===============================================================
+        ## =====================================================================
          
         g <- function(theta, level, period, chgSign = FALSE, object) {
             
@@ -424,9 +432,9 @@ RL.poisGP <- function(object,
             
             if (!is.na(probi) && probi >= 0.0 && probi <= 1.0) {
                 quant <- object$threshold +
-                    qGPD2(p = probi,
-                      scale = thetaHat[2], shape = thetaHat[3],
-                          deriv = FALSE)
+                    Excd[[distName]]$qFun(p = probi,
+                                          theta = thetaHat[-1],
+                                          deriv = FALSE)
             } else {
                 quant <- NA
             }
@@ -437,9 +445,9 @@ RL.poisGP <- function(object,
             }
         }        
         
-        ## =========================================================
+        ## =====================================================================
         ## Lower and upper bounds
-        ## ==========================================================
+        ## =====================================================================
         
         labs <- c("L" = "Lower", "U" = "Upper")
         sign <- c("L" = 1.0, "U" = -1.0)
@@ -447,41 +455,41 @@ RL.poisGP <- function(object,
         
         if (trace) cat("\no Finding CI for Return Levels\n")        
 
-        ## ====================================================================
+        ## =====================================================================
         ## When check is TRUE, we evaluate the profil-likelihood on a
         ## grid of value of the Return Level rho(T) for each period T.
         ## We store the corresponding value in a vector and
         ## concatenate all vectors.
-        ## ====================================================================
+        ## =====================================================================
 
         if (check) {
             
             nSigma <-  rep(nSigma, length.out = 2)
 
-            ## ================================================================
+            ## =================================================================
             ## Initialise vectors for the results and define a
             ## function fo be minimised.
-            ## ================================================================
+            ## =================================================================
             
             rhoGrid <- numeric(0)
             periodGrid <- numeric(0)
             negLogLikCRho <- numeric(0)
 
-            ## ================================================================
+            ## ==================================================================
             ## Version with a gradient to be used with a "_LN_"
             ## algorithm such as 'COBYLA'
-            ## ================================================================
+            ## 
+            ## 'V' is the quantile of the distribution of a shape
+            ## taken equal to 1.0
+            ## ==================================================================
             
             negLogLikNoRho <- function(thetaNoScale, period, iRho) {
-                theta <- rep(NA, 3)
-                theta[-2] <- thetaNoScale
                 rho  <- rhoGridPer[iRho] - object$threshold
-                if (abs(theta[3]) < 1e-6) {
-                    den <- log(theta[1] * period) 
-                } else {
-                    den <- ((theta[1] * period)^theta[3] - 1.0) / theta[3]
-                } 
-                theta[2] <- rho / den
+                theta <- rep(1.0, p)
+                theta[-2] <- thetaNoScale
+                V <- Excd[[distName]]$qFun(1.0 / theta[1] / period,
+                                             theta[-1], lower.tail = FALSE)
+                theta[2] <- rho / V
                 if (all(is.finite(theta))) {
                     negLogLikFun(theta, object = object, deriv = FALSE)
                 } else {
@@ -489,34 +497,40 @@ RL.poisGP <- function(object,
                 }
             }
 
-            ## ================================================================
+            ## ==================================================================
             ## Version with a gradient to be used with a "_LD_"
             ## algorithm such as 'LBFGS'
-            ## ================================================================
+            ##
+            ## ==================================================================
             
             negLogLikNoRhoGrad <- function(thetaNoScale, period, iRho) {
-                theta <- rep(NA, 3)
-                theta[-2] <- thetaNoScale
                 rho  <- rhoGridPer[iRho] - object$threshold
-                A <- log(theta[1] * period)
-                 
-                ## compute V and the derivatives 'd.V / d.lambda' and 'd.V / d.xi'
-                if (abs(theta[3]) < 1e-6) {
-                    V <- A
-                    dVdLambda <- 1.0 / theta[1]
-                    dVdxi <- A * A / 2.0
-                } else {
-                    V <- ((theta[1] * period)^theta[3] - 1.0) / theta[3]
-                    dVdLambda <- (V * theta[3] + 1.0) / theta[1]
-                    dVdxi <- A * V - (V - A) / theta[3]
-                }
-                theta[2] <- rho / V
+                theta <- rep(1.0, p)
+                theta[-2] <- thetaNoScale
+
+                ## q := prob of exceedance
+                q <- 1.0 / theta[1] / period
+                V <- Excd[[distName]]$qFun(q, theta[-1],
+                                           lower.tail = FALSE, deriv = TRUE)
+                
+                dVdthetaNosCale <- attr(V, "gradient")[-1] 
+                fq <- Excd[[distName]]$dFun(q, theta[-1])
+                dVdLambda <- q / theta[1] / fq
+                
                 negEll <- negLogLikFun(theta, object = object, deriv = TRUE)
                 grad <- attr(negEll, "gradient")
                 gradNoRho <- grad[1L, -2L]
-                gradNoRho[1L] <- gradNoRho[1L] - grad[1L, 2L] * rho * dVdLambda / V^2
-                gradNoRho[2L] <- gradNoRho[2L] - grad[1L, 2L] * rho * dVdxi / V^2
-                    
+                gradNoRho[1L] <- gradNoRho[1L] -
+                    grad[1L, 2L] * rho * dVdLambda / V^2
+                
+                if (p > 2) {
+                    ind <- 2:(p - 1L)
+                    gradNoRho[ind] <- gradNoRho[ind] -
+                        grad[1L, ind] * rho * dVdThetaNosCale / V^2
+                }
+
+                attributes(negEll) <- NULL
+                
                 if (all(is.finite(theta))) {
                     list("objective" = negEll,
                          "gradient" = gradNoRho)
@@ -526,12 +540,12 @@ RL.poisGP <- function(object,
                 }
             }
 
-            ## ================================================================
+            ## =================================================================
             ## Tune the optimisation for the determination of the
             ## profile logLik. Note that we do not use gradients here.
             ## Recompile the package with check_derivatives = TRUE in
             ## case of doubt!!!
-            ## ================================================================
+            ## =================================================================
             
             optsNoRho <- list("algorithm" = "NLOPT_LN_COBYLA",
                             "xtol_rel" = 1.0e-8,
@@ -613,10 +627,10 @@ RL.poisGP <- function(object,
                     cat(sprintf("\nConfidence Level: %5.2f\n", lev))
                 }
                 
-                ## ========================================================
+                ## =============================================================
                 ## 2017-08-20 It was found that the convergence is much
                 ## easier when the periods 'T' are taken in reverse order
-                ## ========================================================
+                ## =============================================================
                 for (iPer in rev(seq_along(period))) {
                     
                     if (trace) {
@@ -771,12 +785,12 @@ RL.poisGP <- function(object,
                                    value.name = "Quant",
                                    varnames = c("Period"))[ , c("Period", "Quant")]
             } else {
-                ## ============================================================
+                ## ==============================================================
                 ## UGGLY CODE: there must be a simpler and more
                 ## efficient way of doing that. The problem is that we
                 ## want to drop the " Type" dimension but not the
                 ## "Level" dimension even when it has no extension
-                ## ============================================================
+                ## ==============================================================
                 
                 df <- list()
                 for (nm in c("Quant", "L", "U")) {

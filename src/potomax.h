@@ -19,5 +19,17 @@ SEXP Call_poisGP2PP(SEXP lambda, SEXP loc, SEXP scale, SEXP shape,
 		    SEXP derivFlag);
 
 SEXP Call_PP2poisGP(SEXP locStar, SEXP scaleStar, SEXP shapeStar,
-		    SEXP threshold, SEXP w,
+		    SEXP threshold, SEXP w,		    
 		    SEXP derivFlag);
+
+EXP Call_dexp1(SEXP x,
+		SEXP scale, 
+		SEXP logFlag, SEXP derivFlag, SEXP hessianFlag);
+
+SEXP Call_pexp1(SEXP q, 
+		SEXP scale,
+		SEXP lowerTailFlag, SEXP derivFlag, SEXP hessianFlag);
+ 
+SEXP Call_qexp1(SEXP p,
+		SEXP scale, 
+		SEXP lowerTailFlag, SEXP derivFlag, SEXP hessianFlag);

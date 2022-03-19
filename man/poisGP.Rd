@@ -7,6 +7,7 @@
 poisGP(data = NULL, threshold, effDuration,
        MAX.data = NULL, MAX.effDuration = NULL,
        OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL,
+       distName = "GPD2",
        parIni = NULL,
        estim = c("optim", "nloptr", "eval", "none"),
        coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.90),

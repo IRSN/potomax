@@ -591,7 +591,7 @@ SEXP Call_qGPD2(SEXP p,               /*  double                          */
   int n, np, nscale, nshape, i, ip, iscale, ishape,
     deriv = INTEGER(derivFlag)[0], hessian = INTEGER(hessianFlag)[0] ;
   
-  double eps = 1e-6, q, lq, q1, xi, sigma, V, W;
+  double eps = 1e-6, q, lq, q1, xi, sigma, V, W, rpi;
   
   SEXP val;
   
@@ -676,13 +676,15 @@ SEXP Call_qGPD2(SEXP p,               /*  double                          */
 
       } else {
 
+	rpi = rp[ip];
+	
 	if (!INTEGER(lowerTailFlag)[0]) {
-	  rp[ip] = 1.0 - rp[ip];
+	  rpi = 1.0 - rpi;
 	}
 
 	xi = rshape[ishape];
 	sigma = rscale[iscale];
-	q = 1.0 - rp[ip];
+	q = 1.0 - rpi;
 	lq = log(q);
 
 	if (fabs(xi) < eps) {
@@ -755,13 +757,15 @@ SEXP Call_qGPD2(SEXP p,               /*  double                          */
 	rval[i] = NA_REAL;
 		
       } else {
-		
+
+	rpi = rp[ip];
+	
 	if (!INTEGER(lowerTailFlag)[0]) {
-	  rp[ip] = 1.0 - rp[ip];
+	  rpi = 1.0 - rpi;
 	}
 
 	xi = rshape[ishape];
-	q = 1 - rp[ip];
+	q = 1 - rpi;
 	lq = log(q);
 	
 	if (fabs(xi) < eps) {

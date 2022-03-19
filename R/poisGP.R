@@ -46,7 +46,7 @@ coefIni.poisGP <- function(object, trace = 0, ...) {
     } else {
         r <-  0L
         theta <- rep(0.0, p)
-        names(theta) <- object@parNames
+        names(theta) <- object$parNames
     }
     
     if (fd$MAX$flag && (rMAX <- sum(fd$MAX$r) / 2)) {
@@ -373,6 +373,7 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##' poisGP(data = NULL, threshold, effDuration,
 ##'        MAX.data = NULL, MAX.effDuration = NULL,
 ##'        OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL,
+##'        distName = "GPD2",
 ##'        parIni = NULL,
 ##'        estim = c("optim", "nloptr", "eval", "none"),
 ##'        coefLower = c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.90),
@@ -560,7 +561,7 @@ poisGP <- function(data = NULL,
 
     if (!(distName %in% names(Excd))) {
         stop("Invalid value of 'distName'. Must be in ",
-             paste(sprintf("\"%s\"", names(potomax:::Excd)), sep = ", "))
+             paste(sprintf("\"%s\"", names(Excd)), sep = ", "))
     }
     
     
@@ -661,14 +662,16 @@ poisGP <- function(data = NULL,
     ## Create a temporary object with class "poisGP" that can be used
     ## in some methods, not all be cause the object is not complete.
     ## =========================================================================
+
+    p <- Excd[[distName]]$p + 1
     
     thisPoisGP <- list(call = match.call(),
                        threshold = threshold,
                        data = data,
                        fitData = fitData,
                        distName = distName,
-                       p = Excd[[distName]]$p + 1,
-                       df = Excd[[distName]]$p + 1,
+                       p = p,
+                       df = p,
                        nobs = nobs,
                        parNames = c("lambda", Excd[[distName]]$parNames),
                        scale = scale,
@@ -714,7 +717,7 @@ poisGP <- function(data = NULL,
         }
         
     } else {
-        thisPoisGP$estimate <- rep(NA, p)
+        thisPoisGP$estimate <- rep(NA, thisPoisGP$p)
         names(thisPoisGP$estimat) <- thisPoisGP$parNames
         thisPoisGP$negLogLik <- NA
         thisPoisGP$logLik <- NA

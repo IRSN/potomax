@@ -187,7 +187,7 @@ RL.poisGP <- function(object,
     ## problems.
     ## =========================================================================
     
-    ind <- (period * thetaHat[1]) > 1
+    ind <- (period * thetaHat[1]) > 3.5
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -487,8 +487,10 @@ RL.poisGP <- function(object,
                 rho  <- rhoGridPer[iRho] - object$threshold
                 theta <- rep(1.0, p)
                 theta[-2] <- thetaNoScale
-                V <- Excd[[distName]]$qFun(1.0 / theta[1] / period,
-                                             theta[-1], lower.tail = FALSE)
+                q  <- 1.0 / theta[1] / period
+                if (q > 1.0)  return(NaN)
+                V <- Excd[[distName]]$qFun(q,
+                                           theta[-1], lower.tail = FALSE)
                 theta[2] <- rho / V
                 if (all(is.finite(theta))) {
                     negLogLikFun(theta, object = object, deriv = FALSE)
@@ -504,18 +506,41 @@ RL.poisGP <- function(object,
             ## ==================================================================
             
             negLogLikNoRhoGrad <- function(thetaNoScale, period, iRho) {
+                
                 rho  <- rhoGridPer[iRho] - object$threshold
                 theta <- rep(1.0, p)
                 theta[-2] <- thetaNoScale
 
                 ## q := prob of exceedance
                 q <- 1.0 / theta[1] / period
+                ## print(c(theta[1], q))
+                if (q > 1.0)  {
+                    list("objective" = NaN,
+                         "gradient" = rep(NaN, p - 1L))
+                }
+
+                ## =============================================================
+                ## V is the quantile for a scale parameter equal to one, so
+                ## the return level is rho = scale * V
+                ## =============================================================
+                
                 V <- Excd[[distName]]$qFun(q, theta[-1],
                                            lower.tail = FALSE, deriv = TRUE)
+
+                ## the first derivative is w.r.t. the scale parameter
+                dVdthetaNoScale <- attr(V, "gradient")[-1]
                 
-                dVdthetaNosCale <- attr(V, "gradient")[-1] 
-                fq <- Excd[[distName]]$dFun(q, theta[-1])
-                dVdLambda <- q / theta[1] / fq
+                ## =============================================================
+                ## use chain rule derivatition and implicit function derivation
+                ##
+                ##   1) dV / dlambda = (dV / dq)  * (dq / dlambda)
+                ##   2) dV / dq = - 1 / f(q)
+                ## =============================================================
+                
+                fV <- Excd[[distName]]$dFun(V, theta[-1])
+                dVdLambda <- q / theta[1] / fV
+                
+                theta[2] <- rho / V
                 
                 negEll <- negLogLikFun(theta, object = object, deriv = TRUE)
                 grad <- attr(negEll, "gradient")
@@ -526,7 +551,7 @@ RL.poisGP <- function(object,
                 if (p > 2) {
                     ind <- 2:(p - 1L)
                     gradNoRho[ind] <- gradNoRho[ind] -
-                        grad[1L, ind] * rho * dVdThetaNosCale / V^2
+                        grad[1L, ind] * rho * dVdthetaNoScale / V^2
                 }
 
                 attributes(negEll) <- NULL
@@ -536,7 +561,7 @@ RL.poisGP <- function(object,
                          "gradient" = gradNoRho)
                 } else {
                     list("objective" = NaN,
-                         "gradient" = rep(NaN, 2L))
+                         "gradient" = rep(NaN, p -1L))
                 }
             }
 
@@ -548,9 +573,9 @@ RL.poisGP <- function(object,
             ## =================================================================
             
             optsNoRho <- list("algorithm" = "NLOPT_LN_COBYLA",
-                            "xtol_rel" = 1.0e-8,
-                            "xtol_abs" = 1.0e-8,
-                            "ftol_abs" = 1e-5,
+                            "xtol_rel" = 1.0e-4,
+                            "xtol_abs" = 1.0e-5,
+                            "ftol_abs" = 1e-3,
                             "maxeval" = 3000, "print_level" = 0,
                               "check_derivatives" = FALSE)
             
@@ -583,8 +608,20 @@ RL.poisGP <- function(object,
                     
                     if (!inherits(resii, "try-error") &&
                         (resii$status %in% 1:4)) {
+                        if (trace > 1) {
+                            cat("Optim #1 succesful!\n")
+                        }
+                        
                         negLogLikCRhoPer[iRho] <- resii$objective
                     } else {
+                        if (trace > 1) {
+                            ## print(resii)
+                            cat(sprintf(paste0("Retrying optim -> no derivatives ",
+                                               "T = %4.0f rho = %6.2f\n"),
+                                        period[iPer],
+                                        rhoGridPer[iRho]))
+                        }
+                        
                         resii <-  try(nloptr(x0 = thetaHat[-2],
                                              eval_f = negLogLikNoRho,
                                              lb = object$lb[-2],

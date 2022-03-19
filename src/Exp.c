@@ -34,7 +34,7 @@ SEXP Call_dexp1(SEXP x,             /*  double                          */
   int n, nx, nscale, i, ix, iscale,
     deriv = INTEGER(derivFlag)[0], hessian = INTEGER(hessianFlag)[0];
   
-  double eps = 1e-6, z;
+  double z;
   
   SEXP val;
   
@@ -203,7 +203,7 @@ SEXP Call_pexp1(SEXP q,               /*  double                          */
   int n, nq, nscale, i, iq, iscale,
     deriv = INTEGER(derivFlag)[0], hessian = INTEGER(hessianFlag)[0];
   
-  double eps = 1e-6, z, S, sigma;
+  double z, S, sigma;
   
   SEXP val;
   
@@ -353,7 +353,7 @@ SEXP Call_qexp1(SEXP p,               /*  double                          */
   int n, np, nscale, i, ip, iscale,
     deriv = INTEGER(derivFlag)[0], hessian = INTEGER(hessianFlag)[0] ;
   
-  double eps = 1e-6, q, lq, q1, sigma;
+  double q, lq, sigma, rpi;
   
   SEXP val;
   
@@ -406,12 +406,14 @@ SEXP Call_qexp1(SEXP p,               /*  double                          */
 	  rhess[i] = 0.0;
 	}
 
+	rpi = rp[ip];
+	
 	if (!INTEGER(lowerTailFlag)[0]) {
-	  rp[ip] = 1.0 - rp[ip];
+	  rpi = 1.0 - rpi;
 	}
 	
 	sigma = rscale[iscale];
-	q = 1.0 - rp[ip];
+	q = 1.0 - rpi;
 	lq = log(q);
 	rval[i] = - sigma * lq;
 	rgrad[i] =  -lq;
@@ -442,12 +444,14 @@ SEXP Call_qexp1(SEXP p,               /*  double                          */
 	rval[i] = NA_REAL;
 		
       } else {
-		
+
+	rpi = rp[ip];
+	
 	if (!INTEGER(lowerTailFlag)[0]) {
-	  rp[ip] = 1.0 - rp[ip];
+	  rpi = 1.0 - rpi;
 	}
 
-	q = 1 - rp[ip];
+	q = 1 - rpi;
 	rval[i] = -rscale[iscale] * log(q);	  
 	
       }   /* non-NA case     */

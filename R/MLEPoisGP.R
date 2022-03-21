@@ -589,8 +589,13 @@ MLE.poisGP <- function(object = NULL,
 
         if (is.null(parIni)) {
             eval <- FALSE
-        } else if ((length(parIni) == 2) && (all.equal(names(parIni),
-                             c("scale", "shape")))) {
+        } else {
+            if ((length(parIni) != p - 1) ||
+                !(all.equal(names(parIni), parNames[-1]))) {
+                stop("'parIni' must be a numeric vector with length ",
+                     p - 1, " and names ",
+                     paste(sprintf("\"%s\"", parNames[-1]), collapse = ", "))
+            }
             eval <- TRUE
             res$estimate <- parIni
         }

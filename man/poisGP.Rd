@@ -223,6 +223,65 @@ fit3p <- poisGP(MAX.data = MAX.data,
 coef(fit3p)
 autoplot(fit3p) + ggtitle("Venice r-largest with threshold 100 cm")
 
+##=====================================================================
+## Use Garonne data from Renext again case "shape = 0",
+##  (exponential / Gumbel) 
+##=====================================================================
+
+u <- 3001
+fit3p <- poisGP(data = Garonne$OTdata$Flow,
+                threshold = u,
+                effDuration = 65,
+                MAX.data = Garonne$MAXdata$Flow,
+                MAX.effDuration = 143,
+                distName = "exp1")
+
+fit3R <- Renouv(Garonne, threshold = u, distname.y = "exponential",
+                plot = FALSE)
+
+## change parametrisation from Renext (rate -> scale)
+## =================================================
+est <- unname(coef(fit3R))
+est[2] <- 1.0 / est[2]
+names(est) <- c("lambda", "scale")
+cbind(Renext = est, potomax = coef(fit3p))
+
+## compare log-likelihoods CAUTION see ?logLik.poisExp
+## ===================================================
+fit3pe <- poisGP(data = Garonne$OTdata$Flow,
+                 threshold = u,
+                 effDuration = 65,
+                 parIni = est[-1],
+                 MAX.data = Garonne$MAXdata$Flow,
+                 MAX.effDuration = 143,
+                 distName = "exp1",
+                 estim = "eval")
+
+cbind(Renext = logLik(fit3R), potomax = logLik(fit3pe))
+
+## use 'nloptr' optimisation
+## =========================
+fit3po <- poisGP(data = Garonne$OTdata$Flow,
+                 threshold = u,
+                 effDuration = 65,
+                 MAX.data = Garonne$MAXdata$Flow,
+                 MAX.effDuration = 143,
+                 distName = "exp1",
+                 estim = "nloptr")
+
+## Return levels and inference
+## ===========================
+myRL <- RL(fit1p, trace = 0, conf = "prof", check = TRUE)
+autoplot(myRL) +
+    ggtitle("prof. lik. inference on return levels")
+autoplot(RL(fit1p)) +
+    ggtitle("Return level plot (prof. lik. intervals)")
+
+## confidence intervals on parameters
+## ==================================
+ci <- confint(fit1p, check = TRUE, type = "PP")
+autoplot(ci)
+
 }
 \author{
 Yves Deville

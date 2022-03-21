@@ -16,7 +16,7 @@
 ##'     can be unnamed. The first parameter is always assumed to be a
 ##'     scale parameter.
 ##'
-##' 
+##' @noRd
 Excd <- list("GPD2" = list(p = 2,
                            parNames = c("scale", "shape")),
              "exp1" = list(p = 1,

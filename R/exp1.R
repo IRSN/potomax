@@ -57,8 +57,8 @@
 ##'     two lengths: that of the first argument and that of the
 ##'     parameter \code{scale}. When \code{deriv} is \code{TRUE}, the
 ##'     returned value has an attribute named \code{"gradient"} which
-##'     is a matrix with \eqn{n} lines and \eqn{1} columns containing
-##'     the derivatives. A row contains the partial derivatives of the
+##'     is a matrix with \eqn{n} lines and \eqn{1} column containing
+##'     the derivative. A row contains the partial derivative of the
 ##'     corresponding element w.r.t. the parameter \code{"scale"}.
 ##'
 ##' @details The probability functions \code{d}, \code{p} and \code{q}

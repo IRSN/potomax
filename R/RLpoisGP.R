@@ -187,7 +187,7 @@ RL.poisGP <- function(object,
     ## problems.
     ## =========================================================================
     
-    ind <- (period * thetaHat[1]) > 3.5
+    ind <- (period * thetaHat[1]) > 1.5
     period <- period[ind]
     
     thetaHat <- object$estimate
@@ -499,11 +499,11 @@ RL.poisGP <- function(object,
                 }
             }
 
-            ## ==================================================================
+            ## =================================================================
             ## Version with a gradient to be used with a "_LD_"
             ## algorithm such as 'LBFGS'
             ##
-            ## ==================================================================
+            ## =================================================================
             
             negLogLikNoRhoGrad <- function(thetaNoScale, period, iRho) {
                 
@@ -616,7 +616,7 @@ RL.poisGP <- function(object,
                     } else {
                         if (trace > 1) {
                             ## print(resii)
-                            cat(sprintf(paste0("Retrying optim -> no derivatives ",
+                            cat(sprintf(paste0("Retrying optim -> no deriv. ",
                                                "T = %4.0f rho = %6.2f\n"),
                                         period[iPer],
                                         rhoGridPer[iRho]))
@@ -735,7 +735,8 @@ RL.poisGP <- function(object,
                                         chgSign = chgSign[LU],
                                         object = object)
                             
-                            diagno[iPer, LU, iLev, "constraint"] <- checkg$constraints
+                            diagno[iPer, LU, iLev, "constraint"] <-
+                                checkg$constraints
                             
                             ## The gradient of the objective must be colinear to the
                             ## jacobian of the constraint. We have to check that!
@@ -795,7 +796,7 @@ RL.poisGP <- function(object,
                             ## try another initial value. We could use the value
                             ## of theta obtained for a smaller confidence level?
                             if ((iPer < length(period) &&
-                                     diagno[iPer + 1, LU, iLev, "status"] %in% 1:4)) {
+                                 diagno[iPer + 1, LU, iLev, "status"] %in% 1:4)) {
                                 theta0 <- thetaIniPrec
                                 thetaIniPrec <- NULL
                             } 
@@ -872,8 +873,10 @@ RL.poisGP <- function(object,
         RL2 <- cbind(RL2, NegLogLik = rep(-object$logLik, nPeriod))
                        
         RL <- rbind(RL1, RL2, deparse.level = 1)
+        ## XXXY attributes neede here
         
-        L <- list(RL = RL, negLogLikC = negLogLikC,
+        L <- list(RL = RL,
+                  negLogLikC = negLogLikC,
                   ylim = -object$logLik + 3* (max(nll) + object$logLik))
         
         class(L) <- "RLCheck.poisGP"

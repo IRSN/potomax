@@ -146,6 +146,8 @@ confint.poisGP <- function(object,
     out <- match.arg(out)
     method <- match.arg(method)
     type <- match.arg(type)
+    p <- object$p
+    parNames <- object$parNames
 
     if (method == "delta" && check) {
         warning("Since method is \"delta\", no check is needed and 'check' is ",
@@ -197,13 +199,13 @@ confint.poisGP <- function(object,
         
         q <- qnorm(cbind(probL, probU), mean = 0.0, sd = 1.0)
         
-        ci <- array(thetaHat[[type]], dim = c(3L, 2L, nLevel),
+        ci <- array(thetaHat[[type]], dim = c(p, 2L, nLevel),
                     dimnames = list(pNames[[type]], c("L", "U"), fLevel))
         
-        cw <-  array(sigHat[[type]], dim = c(3L, 2L, nLevel),
+        cw <-  array(sigHat[[type]], dim = c(p, 2L, nLevel),
                      dimnames = list(pNames[[type]], c("L", "U"), fLevel)) 
         
-        cw <- sweep(cw, MARGIN = c(3, 2), STATS = q, FUN = "*")
+        cw <- sweep(cw, MARGIN = c(p, 2), STATS = q, FUN = "*")
         ci <- ci + cw
         
     } else if (method == "proflik") {
@@ -211,11 +213,11 @@ confint.poisGP <- function(object,
         nSigma <- rep(nSigma, length.out = 2L)
         prob <- 1 - level
         
-        cipoisGP <- array(NA, dim = c(3L, 2L, nLevel),
+        cipoisGP <- array(NA, dim = c(p, 2L, nLevel),
                           dimnames = list(pNames[["poisGP"]], c("L", "U"),
                               fLevel)) 
         
-        ci <- array(NA, dim = c(3L, 2L, nLevel),
+        ci <- array(NA, dim = c(p, 2L, nLevel),
                     dimnames = list(pNames[[type]], c("L", "U"), fLevel)) 
         
         ## ====================================================================
@@ -230,7 +232,7 @@ confint.poisGP <- function(object,
             cat("\no Perform profile-likelihood for the \"poisGP\" ",
                 "parameterisation.\n\n") }
         
-        for (k in 1:3) {
+        for (k in 1:p) {
 
             if (trace > 0) {
                 cat("\no Parameter ", pNames[[type]][k],
@@ -239,7 +241,7 @@ confint.poisGP <- function(object,
 
             myfun <- function(theta, object) {
                 res <- theta[k]
-                grad <- rep(0.0, 3)
+                grad <- rep(0.0, p)
                 grad[k] <- 1.0
                 attr(res, "gradient") <- grad
                 res
@@ -271,11 +273,11 @@ confint.poisGP <- function(object,
                         "\n*******************\n")
                 }
                 
-                ## ============================================================
+                ## =============================================================
                 ## Define the function to be profiled. Note that this
                 ## is a function of the "poisGP" parameter as is
                 ## always true with our 'profLik' method.
-                ## ==============================================================
+                ## =============================================================
                 
                 myfun <- function(theta, object) {
                     
@@ -283,18 +285,28 @@ confint.poisGP <- function(object,
                         cat("PB\n")
                         print(theta) 
                     }
-                    
+
+                    shape <- ifelse(p == 3, theta[3], 0.0)
+                                  
+                    ## XXXY
                     thetaStar <- poisGP2PP(lambda = theta[1],
                                            scale = theta[2],
-                                           shape = theta[3],
+                                           shape = shape,
                                            loc = object$threshold, deriv = TRUE)
                     res <- thetaStar[k]
-                    grad <- attr(thetaStar, "gradient")[1, k, c(1, 3, 4)]
+                    
+                    ## In 3-rd dim we always have to remove the the GPD location,
+                    ## an possibly the GPD shape
+                    if (p == 3) {
+                        grad <- attr(thetaStar, "gradient")[1, k, c(1, 3, 4)]
+                    } else  {
+                        grad <- attr(thetaStar, "gradient")[1, k, c(1, 3)] 
+                    }
                     attr(res, "gradient") <- grad
                     res
                 }
 
-                ## ===========================================================
+                ## =============================================================
                 ## Perform profile-likelihood for the "PP" fun with
                 ## the box bounds on the "poisGP" parameters set to
                 ## their confidence limits found previously. This
@@ -303,7 +315,7 @@ confint.poisGP <- function(object,
                 ## location 'muStar' in the 95% confidence region, the
                 ## "poisGP" parameters will remain in their respective
                 ## 95% 'marginal' confidence interval.
-                ## ============================================================
+                ## =============================================================
 
                 for (ilev in seq_along(level)) {
                     
@@ -319,12 +331,14 @@ confint.poisGP <- function(object,
                 
             }
 
-            ## ================================================================
+            ## =================================================================
             ## For the shape parameter, no profiling is needed because
             ## the parameter is identical to the 'poisGP' shape!!!
-            ## ================================================================
-            
-            ci[3L, , ] <- cipoisGP[3L, , ]
+            ## =================================================================
+
+            if (p == 3) {
+                ci[3L, , ] <- cipoisGP[3L, , ]
+            }
             
         } else {
             ci <- cipoisGP
@@ -348,16 +362,32 @@ confint.poisGP <- function(object,
                 
                 negLogLikNok <- function(thetaNok, k, thetak, deriv = TRUE) {
                     
-                    theta <- rep(NA, 3)
+                    theta <- rep(NA, p)
                     theta[-k] <- thetaNok
                     theta[k] <- thetak
-                    
-                    theta <- try(PP2poisGP(locStar = theta[1L],
-                                           scaleStar = theta[2L],
-                                           shapeStar = theta[3L],
-                                           threshold = object$threshold,
-                                           deriv = deriv), silent = TRUE)
-                    
+                    if (p == 3) {
+                        theta <- try(PP2poisGP(locStar = theta[1L],
+                                               scaleStar = theta[2L],
+                                               shapeStar = theta[3L],
+                                               threshold = object$threshold,
+                                               deriv = deriv), silent = TRUE)
+                    } else {
+                        theta <- try(PP2poisGP(locStar = theta[1L],
+                                               scaleStar = theta[2L],
+                                               shapeStar = 0.0,
+                                               threshold = object$threshold,
+                                               deriv = deriv), silent = TRUE)
+                        
+                        ## Caution here. The attributes are lost when indexing []
+                        if (deriv) {
+                            g <- attr(theta, "gradient")[ , -3, -3, drop = FALSE]
+                            theta <- theta[-3]
+                            attr(theta, "gradient") <- g
+                        } else {
+                            theta <- theta[-3]
+                        }
+                    }
+   
                     ## ========================================================
                     ## Remind that an error occurs when the support of
                     ## the GEV distribution does not contain the
@@ -372,6 +402,7 @@ confint.poisGP <- function(object,
                     }
                     
                     if (all(is.finite(theta))) {
+                        
                         nLL <-  object$negLogLikFun(theta, object = object,
                                                     deriv = deriv)
                         if (deriv) {
@@ -388,7 +419,7 @@ confint.poisGP <- function(object,
                     } else {
                         if (deriv) {
                             res <- list("objective" = NaN,
-                                        "gradient" = rep(NaN, 2))
+                                        "gradient" = rep(NaN, p - 1L))
                         } else res <- NaN
                     }
                     res
@@ -406,7 +437,7 @@ confint.poisGP <- function(object,
                 
                 negLogLikNok <- function(thetaNok, k, thetak, deriv = TRUE) {
                     
-                    theta <- rep(NA, 3)
+                    theta <- rep(NA, p)
                     theta[-k] <- thetaNok
                     theta[k] <- thetak
                     
@@ -426,7 +457,7 @@ confint.poisGP <- function(object,
                     } else {
                         if (deriv) {
                             res <- list("objective" = NaN,
-                                        "gradient" = rep(NaN, 2))
+                                        "gradient" = rep(NaN, p - 1L))
                         } else res <- NaN
                     }
                     res
@@ -449,8 +480,8 @@ confint.poisGP <- function(object,
             optsNok <- list("algorithm" = "NLOPT_LN_COBYLA",
                             "xtol_rel" = 1.0e-8,
                             ## "xtol_abs" = 1.0e-8,
-                            "ftol_abs" = 1e-12,
-                            "ftol_rel" = 1e-12,
+                            "ftol_abs" = 1e-8,
+                            "ftol_rel" = 1e-8,
                             "maxeval" = 3000, "print_level" = 0,
                             "check_derivatives" = FALSE)
             
@@ -462,7 +493,7 @@ confint.poisGP <- function(object,
                                  "maxeval" = 8000, "print_level" = 0,
                                  "check_derivatives" = FALSE)
             
-            for (k in 1:3) {
+            for (k in 1:p) {
                 
                 thetaNok <- thetaHat[[type]][-k]
                 
@@ -489,10 +520,14 @@ confint.poisGP <- function(object,
                     lbk <- object$lb[-k]
                     ubk <- object$ub[-k]
                 } else {
-                    lbk <- 
-                        c("loc" = -Inf, "scale" = 0.0, "shape" = object$lb[3])[-k]
-                    ubk <-
-                        c("loc" = Inf, "scale" = Inf, "shape" = object$ub[3])[-k]
+                    lbk <- c("loc" = -Inf, "scale" = 0.0)
+                    ubk <- c("loc" = Inf, "scale" = Inf)
+                    if (p == 3) {
+                        lbk <- c(lbk, "shape" = unname(object$lb)[3])
+                        ubk <- c(ubk, "shape" = unname(object$ub)[3])
+                    } 
+                    lbk <- lbk[-k]
+                    ubk <- ubk[-k]
                 }
                 
                 ## ============================================================
@@ -590,10 +625,10 @@ confint.poisGP <- function(object,
     if (check) {
         
         ciPlus <- data.frame(Name = pNames[[type]],
-                             LU = rep("est", 3),
-                             Level = rep("est", 3),
+                             LU = rep("est", p),
+                             Level = rep("est", p),
                              Value = thetaHat[[type]],
-                             NegLogLik = rep(-object$logLik, 3))
+                             NegLogLik = rep(-object$logLik, p))
         
         ci <- rbind(ci, ciPlus, deparse.level = 1)
             

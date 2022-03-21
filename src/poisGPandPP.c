@@ -60,8 +60,8 @@ SEXP Call_poisGP2PP(SEXP lambda,        /*  double                          */
 		    SEXP w,             /*  double                          */  
 		    SEXP derivFlag) {   /*  integer                         */ 
 
-  int n, n3, nlambda, nloc, nscale, nshape, nw,
-    i, i12, ilambda, iloc, iscale, ishape, iw,
+  int n, n3, nlambda, nloc, nscale, nshape, 
+    i, i12, ilambda, iloc, iscale, ishape, 
     deriv = INTEGER(derivFlag)[0];
   
   double eps = 1e-6, w0, xi, sigma, A, L, E, BC;

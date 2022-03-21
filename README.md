@@ -75,7 +75,9 @@ The package provides classical S3 methods for fitted models such as
 ## Using the *devtools* package
 
 Note that if you are using Windows, you need to have the
-[Rtools](https://cran.r-project.org/bin/windows/Rtools) installed
+[Rtools](https://cran.r-project.org/bin/windows/Rtools) installed.
+Provided that the **devtools** package is installed you can then in an R
+session use
 
 ``` r
 library(devtools)
@@ -115,7 +117,7 @@ R CMD build potomax
 ```
 
 This will produce a source tarball `potomax_x.y.z` where `x`, `y` and
-`z` stand fro the major, minor and patch version numbers. Then you can
+`z` stand for the major, minor and patch version numbers. Then you can
 install from a command line
 
 ``` bash

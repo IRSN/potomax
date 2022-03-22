@@ -27,33 +27,38 @@ containing the observations for the \code{OTS} blocks.}
 \item{OTS.threshold}{A numeric vector containing the thresholds
 for the OTS blocks.}
 
-\item{OTS.effDuration}{A numeric vector containing the durations for
-the OTS blocks.}
+\item{OTS.effDuration}{A numeric vector containing the durations
+for the OTS blocks.}
 }
 \value{
 An object with class \code{"potDATA"}, essentially a list
-with the elements given on input checked and suitably named.
+    with the elements given on input checked and suitably named.
 }
 \description{
-Structured data that can be used to define a Poisson-GP model with
-ML estimation.
+Structured data that can be used to define a
+    Poisson-GP model with ML estimation.
 }
 \details{
-As opposed to what is done in \strong{Renext}, no 'main' threshold
-is used here. The data is understood as \emph{before} being
-censured using any 'main' threshold. So the MAX or OTS blocks can
-later be used with any 'main' threshold, even if they contain
-observations and thresholds that are smaller than the main
-threshold.
+As opposed to what is done in \strong{Renext}, no 'main'
+    threshold is used here. The data is understood as
+    \emph{before} being censored using any 'main' threshold. So
+    the MAX or OTS blocks can later be used in
+    \code{\link{poisGP}} with any 'main' threshold, even if they
+    contain observations and thresholds that are smaller than the
+    main threshold.
 }
 \examples{
-potData(data = Garonne$OTdata$Flow,
-        effDuration = 65,
-        MAX.data = Garonne$MAXdata$Flow,
-        MAX.effDuration = 143)
+G <- potData(data = Garonne$OTdata$Flow,
+             effDuration = 65,
+             MAX.data = Garonne$MAXdata$Flow,
+             MAX.effDuration = 143)
+G
+autoplot(G) + ggtitle("Garonne: return level plot")
 
 }
 \seealso{
-\code{\link{autolayer.potData}} and
-\code{\link{autolayer.potData}}.
+\code{\link{autoplot.potData}} and
+    \code{\link{autolayer.potData}} for graphics,
+    \code{\link{RP.potData}} for empirical return periods and
+    plotting positions.
 }

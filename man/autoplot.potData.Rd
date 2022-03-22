@@ -5,18 +5,20 @@
 \title{Build ggplot Graphics for a \code{potData} Object}
 \usage{
 \method{autoplot}{potData}(object,
-          type = c("RLplot", "timeplot"),
-          aes = FALSE,
-          xVar = c("T", "p"),
-          group,
-          points = c("p", "H"), a = 0.5,
-          blockDuration, 
-          ...)
+         type = c("RLplot", "timeplot"),
+         aes = FALSE,
+         xVar = c("T", "p"),
+         group,
+         points = c("p", "H"), a = 0.5,
+         blockDuration, 
+         ...)
 }
 \arguments{
 \item{object}{A \code{potData} object.}
 
-\item{type}{Type of plot wanted.}
+\item{type}{Type of plot wanted, either a return-level plot or a
+time plot with the events shown as vertical
+segments. \bold{Not implemented yet}.}
 
 \item{aes}{Logical. If \code{TRUE} the colour, fill and shape of
 the points are used within the aesthetic function \code{aes} wo

@@ -1,13 +1,15 @@
 ## ****************************************************************************
-##' Structured data that can be used to define a Poisson-GP model with
-##' ML estimation.
 ##'
-##' As opposed to what is done in \strong{Renext}, no 'main' threshold
-##' is used here. The data is understood as \emph{before} being
-##' censured using any 'main' threshold. So the MAX or OTS blocks can
-##' later be used with any 'main' threshold, even if they contain
-##' observations and thresholds that are smaller than the main
-##' threshold.
+##' @description Structured data that can be used to define a
+##'     Poisson-GP model with ML estimation.
+##'
+##' @details As opposed to what is done in \strong{Renext}, no 'main'
+##'     threshold is used here. The data is understood as
+##'     \emph{before} being censored using any 'main' threshold. So
+##'     the MAX or OTS blocks can later be used in
+##'     \code{\link{poisGP}} with any 'main' threshold, even if they
+##'     contain observations and thresholds that are smaller than the
+##'     main threshold.
 ##'
 ##' @title Structured Data Used to Define a Poisson-GP Model
 ##'
@@ -18,10 +20,10 @@
 ##'         OTS.data = NULL, OTS.threshold = NULL, OTS.effDuration = NULL)
 ##' 
 ##' @param data A numeric vector containing the observations for the
-##' main sample. If \code{NULL}, the main sample is assumed to be
-##' absent.
+##'     main sample. If \code{NULL}, the main sample is assumed to be
+##'     absent.
 ##'
-##' @param effDuration Duration of the main sample. 
+##' @param effDuration Duration of the main sample.
 ##'
 ##' @param MAX.data A numeric vector or list of numeric vectors
 ##' containing the observations for the \code{MAX} blocks.
@@ -29,26 +31,30 @@
 ##' @param MAX.effDuration A numeric vector containing the durations
 ##' for the MAX blocks.
 ##'
-##' @param OTS.data  A numeric vector or list of numeric vectors
-##' containing the observations for the \code{OTS} blocks.
+##' @param OTS.data A numeric vector or list of numeric vectors
+##'     containing the observations for the \code{OTS} blocks.
 ##'
 ##' @param OTS.threshold A numeric vector containing the thresholds
-##' for the OTS blocks.
+##'     for the OTS blocks.
 ##'
-##' @param OTS.effDuration A numeric vector containing the durations for
-##' the OTS blocks.
+##' @param OTS.effDuration A numeric vector containing the durations
+##'     for the OTS blocks.
 ##' 
 ##' @return An object with class \code{"potDATA"}, essentially a list
-##' with the elements given on input checked and suitably named.
+##'     with the elements given on input checked and suitably named.
 ##'
-##' @seealso \code{\link{autolayer.potData}} and
-##' \code{\link{autolayer.potData}}.
+##' @seealso \code{\link{autoplot.potData}} and
+##'     \code{\link{autolayer.potData}} for graphics,
+##'     \code{\link{RP.potData}} for empirical return periods and
+##'     plotting positions.
 ##'
 ##' @examples
-##' potData(data = Garonne$OTdata$Flow,
-##'         effDuration = 65,
-##'         MAX.data = Garonne$MAXdata$Flow,
-##'         MAX.effDuration = 143)
+##' G <- potData(data = Garonne$OTdata$Flow,
+##'              effDuration = 65,
+##'              MAX.data = Garonne$MAXdata$Flow,
+##'              MAX.effDuration = 143)
+##' G
+##' autoplot(G) + ggtitle("Garonne: return level plot")
 ##' 
 potData <- function(data = NULL, effDuration = NULL,
                     MAX.data = NULL,
@@ -222,7 +228,7 @@ print.summary.potData <- function(x, indent = 0,  ...) {
         cat(sprintf("\n%s%s MAX data: <NONE>\n", indStr0, bullet))
     }
     if (x$OTS$flag) {
-        cat(sprintf("\n%s%s OTS data (censored by number)\n", indStr0, bullet))
+        cat(sprintf("\n%s%s OTS data (censored by threshold)\n", indStr0, bullet))
         cat(sprintf("%s%sTotal duration (yrs): %5.1f\n",
                     indStr0, indStr, sum(x$OTS$effDuration)))
         cat(sprintf("%s%sNumber of blocks:     %5d\n",
@@ -252,7 +258,9 @@ print.potData <- function(x, ...) {
 ##'
 ##' @method RP potData
 ##' 
-##' @param object A \code{potData} object.
+##' @param object A \code{potData} object, usually created by using
+##'     \code{\link{potData}} or by coercing an object of class
+##'     \code{"Rendata"}.
 ##' 
 ##' @param points Type of plotting positions to use: \code{ppoints} or
 ##' code Nelson's positions.
@@ -263,11 +271,20 @@ print.potData <- function(x, ...) {
 ##' @param ... Not used yet.
 ##'
 ##' @return A list with several elements. The element \code{data} is a
-##' data frame which contains the results needed to draw points at the
-##' computed plotting positions.
+##'     data frame which contains so-called \emph{plotting positions}
+##'     as required to display the observations as points on en
+##'     empirical return level plot. The columns of \code{data}
+##'     include \code{T} giving the return period in years, \code{S}
+##'     giving the survival or probability of exceedance and \code{x}
+##'     return level. The columns \code{OT} and \code{source} keep
+##'     trace of the blocks from which the observation was extracted.
 ##'
 ##' @seealso \code{\link{potData}}, the \code{\link[Renext]{SandT}}
 ##' function of \strong{Renext}.
+##'
+##' @references
+##'
+##' Chap. 4 in Yves Deville(2020) \emph{Renext Computing Details}. Tech. Report.
 ##' 
 ##' @examples
 ##' pdat <- potData(data = Garonne$OTdata$Flow,
@@ -448,8 +465,7 @@ RP.potData <- function(object,
                          S = S,
                          T = T,
                          x = vals)
-
-        
+     
     }
     
     list(data = df,

@@ -9,11 +9,11 @@
 ##'
 ##' @usage
 ##' \method{autolayer}{potData}(object,
-##'           type = c("RLplot", "timeplot"),
-##'           aes = FALSE,
-##'           xVar = c("T", "p"),
-##'           group,
-##'           points = c("p", "H"), a = 0.5,
+##'          type = c("RLplot", "timeplot"),
+##'          aes = FALSE,
+##'          xVar = c("T", "p"),
+##'          group,
+##'          points = c("p", "H"), a = 0.5,
 ##'           ...)
 ##' 
 ##' @param object A \code{potData} object.
@@ -118,17 +118,19 @@ autolayer.potData <- function(object,
 ##'
 ##' @usage
 ##' \method{autoplot}{potData}(object,
-##'           type = c("RLplot", "timeplot"),
-##'           aes = FALSE,
-##'           xVar = c("T", "p"),
-##'           group,
-##'           points = c("p", "H"), a = 0.5,
-##'           blockDuration, 
-##'           ...)
+##'          type = c("RLplot", "timeplot"),
+##'          aes = FALSE,
+##'          xVar = c("T", "p"),
+##'          group,
+##'          points = c("p", "H"), a = 0.5,
+##'          blockDuration, 
+##'          ...)
 ##' 
 ##' @param object A \code{potData} object.
 ##'
-##' @param type Type of plot wanted.
+##' @param type Type of plot wanted, either a return-level plot or a
+##'     time plot with the events shown as vertical
+##'     segments. \bold{Not implemented yet}.
 ##'
 ##' @param aes Logical. If \code{TRUE} the colour, fill and shape of
 ##' the points are used within the aesthetic function \code{aes} wo
@@ -434,10 +436,12 @@ autoplot.RL.poisGPList <- function(object, ...) {
     autoplot(df) + facet_wrap(.name ~ .)
 
 }
-## ****************************************************************************
-##' Autoplot method for objects devoted to the check of the
-##' profile-likelihood confidence intervals on the parameters for
-##' Poisson-GP models.
+
+## *****************************************************************************
+##
+##' @description Autoplot method for objects devoted to the check of
+##'     the profile-likelihood confidence intervals on the parameters
+##'     for Poisson-GP models.
 ##'
 ##' @details
 ##' The object is a list containing two data frames named \code{ci}
@@ -474,8 +478,8 @@ autoplot.RL.poisGPList <- function(object, ...) {
 ##'
 ##' @return A ggplot graphics object.
 ##'
-##' @seealso \code{confint.poisGP} and the example with \code{check = TRUE}
-##' in the \bold{Examples} section therein.
+##' @seealso \code{\link{confint.poisGP}} and the example with
+##'     \code{check = TRUE} in the \bold{Examples} section therein.
 ##' 
 autoplot.confintCheck.poisGP <- function(object, ...) {
     
@@ -502,24 +506,25 @@ autoplot.confintCheck.poisGP <- function(object, ...) {
 
 }
 
-
-## ****************************************************************************
-##' Autoplot method for objects devoted to the check of the
-##' profile-likelihood confidence intervals on the return levels for
-##' Poisson-GP models.
+## *****************************************************************************
+##
+##' @description Autoplot method for objects devoted to the check of
+##'     the profile-likelihood confidence intervals on the return
+##'     levels for Poisson-GP models.
 ##'
 ##' @details The object is a list containing two data frames named
-##' \code{RL} and \code{negLogLikC}. The \code{RL} data frame contains
-##' the confidence intervals in a long format suitable for plotting;
-##' it will be used to draw horizontal and vertical lines showing the
-##' confidence limits. The \code{negLogLikC} data frame contains
-##' evaluations of the profile log-likelihood for a grid of value of
-##' each return period; it will be used to display a curve for each
-##' parameter.
+##'     \code{RL} and \code{negLogLikC}. The \code{RL} data frame
+##'     contains the confidence intervals in a long format suitable
+##'     for plotting; it will be used to draw horizontal and vertical
+##'     lines showing the confidence limits. The \code{negLogLikC}
+##'     data frame contains evaluations of the profile log-likelihood
+##'     for a grid of value of each return period; it will be used to
+##'     display a curve for each parameter.
 ##'
-##' The check is similar to that used for the confidence intervals as
-##' implemented in \code{\link{autoplot.confintCheck.poisGP}}. Each
-##' return level is here used as a parameter.
+##'     The check is similar to that used for the confidence intervals
+##'     as implemented in
+##'     \code{\link{autoplot.confintCheck.poisGP}}. Each return level
+##'     is here used as a parameter.
 ##' 
 ##' @title Autoplot Method for \code{RLCheck.poisGP} Objects
 ##'

@@ -7,7 +7,9 @@
 \method{RP}{potData}(object, points = c("p", "H"), a = 0.5, ...)
 }
 \arguments{
-\item{object}{A \code{potData} object.}
+\item{object}{A \code{potData} object, usually created by using
+\code{\link{potData}} or by coercing an object of class
+\code{"Rendata"}.}
 
 \item{points}{Type of plotting positions to use: \code{ppoints} or
 code Nelson's positions.}
@@ -19,8 +21,13 @@ code Nelson's positions.}
 }
 \value{
 A list with several elements. The element \code{data} is a
-data frame which contains the results needed to draw points at the
-computed plotting positions.
+    data frame which contains so-called \emph{plotting positions}
+    as required to display the observations as points on en
+    empirical return level plot. The columns of \code{data}
+    include \code{T} giving the return period in years, \code{S}
+    giving the survival or probability of exceedance and \code{x}
+    return level. The columns \code{OT} and \code{source} keep
+    trace of the blocks from which the observation was extracted.
 }
 \description{
 Return Periods for a \code{potData} object.
@@ -36,6 +43,9 @@ pdat <- potData(data = Garonne$OTdata$Flow,
                 MAX.effDuration = 143)
 L <- RP(pdat)
 
+}
+\references{
+Chap. 4 in Yves Deville(2020) \emph{Renext Computing Details}. Tech. Report.
 }
 \seealso{
 \code{\link{potData}}, the \code{\link[Renext]{SandT}}

@@ -5,11 +5,11 @@
 \title{Draw a ggplot Layer for a \code{potData} Object}
 \usage{
 \method{autolayer}{potData}(object,
-          type = c("RLplot", "timeplot"),
-          aes = FALSE,
-          xVar = c("T", "p"),
-          group,
-          points = c("p", "H"), a = 0.5,
+         type = c("RLplot", "timeplot"),
+         aes = FALSE,
+         xVar = c("T", "p"),
+         group,
+         points = c("p", "H"), a = 0.5,
           ...)
 }
 \arguments{

@@ -1,0 +1,486 @@
+---
+title: "R Package potomax: Overview"
+author: "Yves Deville"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{R Package potomax: Overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: potomax.bib
+---
+
+
+```{r global_options, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(
+    cache = FALSE,
+    fig.width = 6, fig.height = 4, fig.path = "Rgraphics/")
+KABLE <- TRUE
+library(potomax)
+```
+
+This vignette has been compiled with `r R.version.string` using **potomax** `r packageVersion("potomax")`.
+
+
+## The **potomax** package
+
+### Scope
+
+The **potomax** package has been financed by IRSN/Behrig and was
+designed in response to some of the Behrig's practical needs in
+Extreme-Value modelling.
+
+The **potomax** package is devoted to the estimation and inference of
+the *Poisson-GP* model in Extreme-Value Analysis. The model is a marked
+Poisson process indexed by time with the marks distributed according
+to the Generalised Pareto (GP) distribution. This is a classical
+framework for Peaks Over Threshold (POT) modelling, although the
+Binomial-GP can also be used. 
+
+By aggregating the marks in time and retaining the maxima or the
+largest observations over given time intervals or time *blocks*, we
+get the classical block maxima and $r$-largest observations. As one of
+the original features of the package, one can censor block maxima or
+$r$-largest observations to discard non-extreme block maxima.
+
+### Similarities and differences with **Renext**
+
+As is the case with the formerly released package **Renext**, the
+package **potomax** allows the use of observations that are aggregated
+in time. These involve standard block maxima, but also *historical
+information*.
+
+**potomax** has several major differences with **Renext**, which motivated the
+creation of a new package
+
+- *Profile-likelihood inference* can be used for the parameters
+and for the return levels.
+
+- *Only the GP distribution can be used* for the marks or
+excesses. Since the GP distribution is the only distribution which can
+be called *POT-stable*, the limitation to the GP is harmless as far as
+the interest is on Extreme-Value analysis.
+
+- Most graphics are based on **ggplot2**. 
+
+There are also differences plotting positions which will be briefly
+discussed below.
+
+
+### Model and parameters
+
+The Poisson-GP model describes observations of random marks $Y_i$ 
+at random times $T_i$ 
+
+- The events $T_i$ form a Poisson Process with rate $\lambda >0$.
+
+- The marks $Y_i$ are i.i.d. with $Y_i \sim \text{GPD}(u,\, \sigma, \, \xi)$.
+
+- The marks $Y_i$ are independent of the Poisson process of events.
+
+The number $u$ is regarded as given and corresponds to the POT
+threshold. This model can be said to be POT-stable because if we
+select the exceedances $Y_i> v$ over a higher threshold $v > u$, the
+same assumptions hold for a different rate and GP scale.
+
+These assumptions allow the derivation of the marginal distribution of
+so-called block maxima. Consider a time interval with duration $w$ and
+the maximum $M := \max\{Y_i\}$ of the marks $Y_i$ corresponding to the
+times $T_i$ in the interval. Then, up to an atom corresponding to the
+case where no event occur in the interval, the r.v. $M$ follows a
+Gumbel distribution. Moreover if we consider a partition of the time
+axis into time intervals or time blocks $b =1$, $2$, $\dots$ with the
+same duration $w$, we get i.i.d. random variables $M_b$.
+
+The model involves a vector $\boldsymbol{\theta}$ of three parameters.
+
+- The *Poisson-GP* parameterisation uses: the *rate* $\lambda$ for the
+time-indexed Poisson process of events and the two parameters *scale*
+$\sigma$ and *shape* $\xi$ of the GP distribution of the excesses $Y_i
+-u$ over the threshold $u$. Note that both $\lambda$ and $\sigma$
+depends on the threshold $u$ and consequently could be denoted by
+$\lambda_u$ and $\sigma_u$.
+
+- The *Point Process* or *Non-Homogeneous Point Process* (NHPP)
+parameterisation refers to a reference block duration $w$ and the uses
+the three parameters of the marginal GEV distribution for the maximum
+$M$ of the marks $Y_i$ on an interval with duration $w$. These
+parameters are the *location* $\mu^\star$, the *scale* $\sigma^\star$
+and the *shape* $\xi^\star$. Since the location and the scale depend
+on the reference duration $w$, they could be denoted by
+$\mu^\star_{w}$ and $\sigma^\star_{w}$.
+
+The shape parameter $\xi$ or $\xi^\star$ is the same in the two
+parameterisations, and relates to the common tail-index of the two
+distributions GP and GEV. This parameter characterises the common
+domain of attraction of the distributions of the excesses and of the
+block maxima.
+
+The two POT parameterisations are used in several CRAN packages:
+**evd** [@PACKevd], **ismev** [@PACKismev], **POT** [@PACKPOT].  See
+also Northrop et al [@NorthropEtAl_NSExtremes] for a presentation of
+the two frameworks.
+
+
+```{r TwoParam, echo=FALSE, out.width="80%", fig.align="center", fig.caption="Two parameterisations."}
+library(png)
+img1_path <- "images/TwoParameterisations.png"
+## img1 <- readPNG(img1_path, native = TRUE, info = TRUE)
+include_graphics(img1_path)
+```
+
+The Poisson-GP parameterisation will often be preferred because it can
+allow to concentrate the rate parameter out of the log-likelihood,
+leading to a two-parameter optimisation instead of a three-parameter
+one.
+
+
+## Creating and using `poisGP` objects
+
+The main class is `"PoisGP"`. The creator `data` which can be a simple
+numeric vector or more complex data structures such as `"Rendata"`
+from **Renext** or `"potData"` from **potomax**. We begin by using the
+`Garonne` object from **Renext**. This object contains observations
+for the discharge rate of the river Garonne (France) in cumecs. It
+embeds both "systematic" observations and "historical" observations.
+
+
+```{r poisGP-Garonne, message=FALSE, warning=FALSE, fig.width=6, fig.height=3, fig.align="center", out.width="500px"}
+Garonne
+fitGaronne <- poisGP(data = Garonne, threshold = 2900)
+class(fitGaronne)
+methods(class = "poisGP")
+autoplot(fitGaronne)
+```
+
+Note that the `r nrow(Garonne$MAXdata)` "historical" observations are
+plotted using a different colour.
+
+The classical `coef` method can be used to extract the (estimated)
+parameters. It has an argument `type` allowing to choose the
+parameterisation. The parameters are estimated in the Poisson-GP
+parameterisation, and then translated into the NHPP parameterisation.
+
+
+```{r poisGP-Garonne1, message=FALSE, warning=FALSE}
+coef(fitGaronne)
+coef(fitGaronne, type = "PP")
+```
+
+The shape parameter is the same in both parameterisations. However the `scale` parameters differ.
+
+
+## Profile-likelihood
+
+### Using constrained optimisations
+
+Profile-likelihood can be used to infer on the parameters, be they in
+the Poisson-GP or in the NHPP parameterisation. As for the `coef`
+method, the `confint` method as a `type` argument allowing to switch
+from the default parameterisation to the `"NHPP"`
+one. Profile-likelihood can also be used to infer on the return levels
+as returned by the `RL` method.
+
+```{r poisGP-Garonne2, message=FALSE, warning=FALSE}
+confint(fitGaronne)
+confint(fitGaronne, method = "delta")
+confint(fitGaronne, type = "PP")
+```
+
+As in the **NSGEV** package, the profile-likelihood confidence
+intervals on parameters are in **potomax** computed by using
+constrained optimisations. Roughly speaking, we maximise and minimise
+the parameter under the constraint that the log-likelihood is high
+enough. More precisely, if $\eta = \eta(\boldsymbol{\theta})$ is a
+scalar parameter of interest, we can find the upper bound
+$\eta_{\text{U}}$ of a confidence interval on it by maximising the
+parameter $\eta$ under the constraint $\ell(\boldsymbol{\theta})
+\geqslant \ell_{\text{max}} - \delta$, where
+$\ell(\boldsymbol{\theta})$ is the log-likelihood function and
+$\ell_{\text{max}}$ is its maximal value. The (positive) quantity
+$\delta$ relates to the chi-square distribution with one degree of
+freedom according to $\delta = q_{\chi^2(1)}(1 - \alpha) / 2$, where
+$1 - \alpha$ is the chosen confidence level.  Similarly, the lower
+bound of the interval by minimising $\eta$ under
+the same constraint.
+
+Remind that the classical method consists in computing the profile
+log-likelihood function $\ell_{\text{prof}}(\eta)$ and in solving
+numerically the equation $\ell_{\text{prof}}(\eta) =
+\ell_{\text{max}} - \delta$.  Provided that the log-likelihood
+function is well-shaped, two solutions exist: one on each side of the
+ML estimate $\widehat{\eta}$. These are the lower and upper bounds of
+the confidence interval $(\eta_{\text{L}}, \, \eta_{\text{U}})$.  Each
+evaluation of the profile log-likelihood requires an optimisation on
+$2$ parameters, and moreover we have to solve the two equations by
+using either a zero-finding method or a search on a grid of candidate
+values for $\eta$.
+
+### Checking the results
+
+The constrained optimisation method is appealing for its generality.
+However, the optimisation can fail which can be quite difficult to
+diagnose. The classical approach solving equations for the profile
+log-likelihood may also fail, yet the results can be checked by
+plotting the the negative profile-likelihood
+$-\ell_{\text{prof}}(\eta)$ against the parameter $\eta$, which should
+lead to a smooth curve with a minimum at the ML estimate
+$\widehat{\eta}$. By adding the horizontal line corresponding to the
+negative log-likelihood ordinate $-(\ell_{\max} - \delta)$, the confidence
+bounds $\eta_{\text{L}}$ and $\eta_{\text{U}}$ should be the abscissas
+of the two intersection points between the curve and the horizontal
+line.
+
+Both the `RL` and the `confint` methods have an argument `check`
+taking a logical value. Using `check = TRUE` will produce a plot
+visual check as shown below. On the curves in black, each bullet
+required an evaluation of the profile log-likelihood, hence a
+two-parameter optimisation. It may happen that the optimisation fails,
+leading to a `NA`. This happens quite often for the small (negative)
+values of the shape parameter $\xi$ or for the small values of the
+return levels corresponding to a small return period, say $T < 10$ 
+years.
+
+If the results are good, then we can rerun with the (default) `check =
+FALSE` to get the results involving confidence intervals.
+
+```{r checkCI0, echo=FALSE}
+figCap <- paste("Checking the results of `confint`. The red vertical lines show", 
+                "the bounds.") 
+```
+
+```{r checkCI, message=FALSE, warning=FALSE, fig.width=6, fig.height=3, fig.align="center", out.width="500px", fig.cap=figCap}
+autoplot(confint(fitGaronne, check = TRUE))
+```
+
+```{r checkRL0, echo=FALSE}
+figCap <- paste("Checking the confidence intervals of `RL`. The red vertical lines show", 
+                "the bounds.") 
+```
+
+```{r checkRL, message=FALSE, warning=FALSE, fig.width=12, fig.height=12, fig.align="center", out.width="800px",  fig.cap=figCap}
+autoplot(RL(fitGaronne, check = TRUE))
+```
+
+
+
+
+## Data
+
+### Different kinds of observations
+In the simplest use, the formal argument `data` can be a numeric
+vector giving the marks $Y_i$. Then one must also use the formal
+argument `effDuration` to give the so-called *effective* duration.
+The process may have been observed on several intervals, and the
+duration must take into account possible gaps in the data.
+
+`MAX.data` and `OTS.data` censoring by number or by value. In both
+cases one must give a list, which must be completed by a numeric
+vector of durations, `MAX.effDuration` or `OTS.effDuration`. Each
+element of the "data" list corresponds to an interval of time and
+contains either the largest observations (for `MAX.data`) or all the
+observations that exceeded a specific threshold (for `OTS.data`).  The
+list must have the same length as the numeric vector of durations,
+each element relating to a period of time. In the "OTS" case one must
+also give a numeric vector of thresholds.
+
+`MAX.data` can be used for the classical block maxima and the
+$r$-largest observations. 
+
+Both for MAX and OTS data it is a good practice to use *named* lists,
+in order to keep a trace of the period. For instance the names can be
+the years for block maxima or $r$-largest observations. The same
+element names should then be used for the data lists, the vector of
+durations and the vector thresholds in the "OTS" case.
+
+
+### $r$-largest example: Venice data
+
+We now use the Venice data from the **ismev** package, see section
+**3.5** in Coles' book [@Coles_ISMEV]. The data contain the
+$r$-largest annual observations of the sea level in Venice.  The data
+come as a matrix with one row by year and $10$ water levels (in cm),
+possibly `NA`.  Some transformations are needed to use the `poisGP`
+function. Note that the first column of `venice` must be removed from
+the data since its contains the year.
+
+```{r Venice0, out.width="600px", fig.align="center", fig.caption="Venice data."}
+data(venice, package = "ismev")
+yNms <- as.character(venice[ , 1])
+MAX.data <- as.list(as.data.frame(t(venice[ , -1])))
+MAX.data <- lapply(MAX.data, function(x) x[!is.na(x)])
+MAX.effDuration <- rep(1, length(MAX.data))
+names(MAX.data) <- names(MAX.effDuration) <- yNms
+## fir r-largest models
+fit2i <- ismev::rlarg.fit(venice[ , -1], show = FALSE)
+fit2R <- Renext::fGEV.MAX(MAX.data = MAX.data, MAX.effDuration = MAX.effDuration)
+fit2p <- poisGP(MAX.data = MAX.data, MAX.effDuration = MAX.effDuration)
+```
+
+Both **Renext** and **potomax** throw warnings because they have to
+set the missing threshold just below the smallest observations in
+order to stick to the Poisson-GP parameterisation.
+
+In order to compare the coefficients across packages, we must use the
+`"PP"` coefficients of the `poisGP` object rather than the standard
+`"poisGP"` coefficients.
+
+
+```{r Venice1, echo=TRUE, out.width="600px", fig.align="center", fig.caption="Venice data."}
+cbind("ismev" = fit2i$mle,
+      "Renext" = fit2R$estimate,
+      "potomax" = coef(fit2p, type = "PP"))
+```
+
+**Caution** When comparing log-likelihoods across packages, some
+difference may be due to the use of different constants, see
+`?logLik.poisGP`.  We choose here the `"PP"` type log-likelihood which
+usually makes the results comparable to those based on block maxima or
+on $r$-largest.
+
+```{r Venice2, out.width="600px", fig.align="center", fig.caption="Venice data."}
+cbind("ismev" = -fit2i$nllh,
+      "Renext" = fit2R$loglik,
+      "potomax" = logLik(fit2p, type = "PP"))
+```
+Now profile-likelihood confidence intervals on parameters
+
+```{r Venice3, out.width="600px", fig.align="center", fig.caption="Venice data."}
+confint(fit2p)
+autoplot(fit2p) + ggtitle("Venice r-largest, no threshold")
+```
+
+As written by Coles, *the plots again indicate a fundamental lack of fit for the
+model”. Note that the smallest observations indicate a neat concave curvature, while
+the largest ones seem to better conform to an exponential tail. We can 
+describe this by censoring the  the MAX data, on the basis of the Poisson-GP model.
+We chose a threshold of $110$ cm corresponding to [”very intense” aqua alta](https://en.wikipedia.org/wiki/Acqua_alta).
+
+
+```{r Venice4, out.width="600px", fig.align="center", fig.caption="Venice data."}
+fit3p <- poisGP(MAX.data = MAX.data, MAX.effDuration = MAX.effDuration, threshold = 110)
+coef(fit3p)
+autoplot(fit3p) + ggtitle("Venice r-largest with threshold 110 cm")
+```
+
+The fit is now quite good. We have years with no observations and
+years with $5$ observations or more, which is a departure from the
+Poisson hypothesis often met in POT.
+
+When using a threshold with `MAX.data`, it may happen that for a given
+block (here one year) some observations are under the threshold, hence
+have to be discarded. In this case, the block is considered as
+`OTS.data`. This works even when the block no longer contains any
+observation and is the correct way to encode the information in the
+censoring. This quite subtle point explains why a different colour and
+shape (green diamond) is now used for the corresponding blocks. Note
+that provided that a MAX block has at least an observation, its
+log-likelihood is the same as that of an OTS block with its threshold
+set to the smallest observations in the block.
+
+
+### Plotting positions
+**potomax** favours the log-scale axis for the durations in RL plots,
+as opposed to the Gumbel scale. This allows to straightforwardly show
+the marks $Y_i$, but also block maxima by using suitable plotting
+positions. These positions are designed to get points around a
+straight line in the exponential-Gumbel case $\xi = 0$, both for the
+marks and the maxima.
+
+The plotting positions are derived from Nelson's plotting positions,
+taking into account censoring when needed, then using the method of
+Hirsh and Stedinger. For the marks, the resulting positions are very
+close to those computed with the `pppoints` function with its default
+arguments, as used in most R packages. They differ from the Weibull
+positions used in **Renext**. As a consequence, the largest
+observations seem to be related to larger return periods when compared
+to **Renext**. Mind however that attaching a return period to the
+largest observations is prone to misinterpretation. See the help of
+the `RP` method and references/links therein for details on the
+plotting positions.
+
+## Special GP distribution for the excesses
+
+### Exponential-Gumbel case
+
+From version 0.2.0, it is possible to use the exponential distribution
+as the distribution of the excesses $Y_i -u$, implying Gumbel maxima $M$
+over time intervals. This is simply achieved by using the formal
+argument `distName` with the value `"exp1"`, the default GPD
+corresponding to `"GPD2"`. In this case the vector of parameters is
+$[\lambda, \, \sigma]$ (`rate` and `scale`) for the Poisson-GP
+parameterisation, and $[\mu^\star,\, \sigma^\star]$ (`loc` and
+`scale`) for the NHPP parameterisation. The inference on the parameters
+is similar to that of the standard case of GPD exceedances.
+
+```{r garonneExp, message=FALSE, warning=FALSE, fig.width=6, fig.height=3, fig.align="center", out.width="500px"}
+fitGaronneExp <- poisGP(data = Garonne, threshold = 3200, distName = "exp1")
+autoplot(fitGaronneExp) + ggtitle("Garonne with exponential excesses")
+```
+
+### Constraints on parameters
+
+The `poisGP` creator function has two arguments `coefLower` and
+`coefUpper` that can be used to set bounds on the parameters. These
+are used only when `estim` is set to `"nloptr"`. The bounds can be
+infinite `Inf` or `-Inf`. Moreover if the lower and the upper
+bounds for one parameter are identical, then the parameter will be
+fixed. As a rule, the inference will be misleading when inequality
+bounds are given. For instance, setting the bound $\xi \geqslant 0$
+corresponds to using the Lomax distribution for the excesses but with
+a possible ML estimate $\widehat{\xi} = 0$ on the boundary. The
+confidence intervals will generally be misleading when constraints are
+used.
+
+## Notes and issues
+
+### Return levels
+
+The return level for a period $T$ can equivalently be considered as a
+function $\rho(T;\,\boldsymbol{\theta})$ of the Poisson parameter
+$\boldsymbol{\theta}$ or as a function $\rho^\star(T;\,
+\boldsymbol{\theta}^\star)$ of the PP parameter
+$\boldsymbol{\theta}^\star$. The two functions take the same value
+when $\boldsymbol{\theta}$ and $\boldsymbol{\theta}^\star$ describe
+the same model. For $\xi \neq 0$ these are
+$$
+\underset{\rho(T;\,\boldsymbol{\theta})}{\underbrace{%
+u + \sigma_u \, \frac{[\lambda_u T]^\xi - 1}{\xi}}} = 
+\underset{\rho^\star(T;\,\boldsymbol{\theta}^\star)}{\underbrace{%
+\mu^\star_w + \sigma^\star_w \frac{[T /w]^{\xi^\star} - 1}{\xi^\star}}},
+$$
+
+and for $\xi = 0$ we can use the log limit of the Box-Cox
+ transformation.  Note that $\rho^\star(T)$ given above is the
+ *continuous duration* return level, which for $T$ small differs from
+ the *block duration* return level} that is associated to the number
+ $T/w$ of blocks with duration $w$.  To get the classical return level
+ for block maxima, replace $q := w /T$ by $1 - \log(1 - q)$, nearly
+ the same thing for small $q$, say $q < 1/50$.
+    
+### Log-likelihood, AIC and BIC 
+
+The log-likelihood is defined up to an additive constant. Most R
+packages use two different constants: one for block maxima, one for
+POT without caring about consistency. For example using `evd::fpot`
+with the same data and the two choices `model = "pp"` and `model =
+"gpd"` we get two estimates which are consistent up to the
+re-parameterisation, but yet have different log-likelihoods. So it may
+be difficult to compare the log-likelihoods across packages or even
+within a package.
+
+In the general framework considered in **potomax**, the concept number
+of observations is unclear, hence so are AIC and BIC. The concept of
+number of observation makes sense when the observations have the same
+marginal distribution and are independent or correspond to a form of
+stationarity. But in the framework of **potomax**, one observation for
+a long time interval may be more informative than several observations
+corresponding to events or smaller time intervals.
+
+			
+## References
+
+

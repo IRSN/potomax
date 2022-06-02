@@ -17,20 +17,38 @@ needed for one-year blocks. It also allows to cope with heterogeneous
 data as met when using historical information.
 
 For the standard case where the excesses follow the two-parameter GP
-distribution, the model include the three parameters *λ* (rate of the
-Poisson process for the exceedances over the threshold *u*), and the two
-GP parameters *σ* (scale) and *ξ* (shape). The vector of parameters
-**θ** = \[*λ*, *σ*, *ξ*\]<sup>⊤</sup> can be transformed into the vector
-**θ**<sup>⋆</sup> = \[*μ*<sup>⋆</sup>, *σ*<sup>⋆</sup>, *ξ*<sup>⋆</sup>\]<sup>⊤</sup>
+distribution, the model include the three parameters
+![\\lambda](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Clambda "\lambda")
+(rate of the Poisson process for the exceedances over the threshold
+![u](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;u "u")),
+and the two GP parameters
+![\\sigma](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Csigma "\sigma")
+(scale) and
+![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+(shape). The vector of parameters
+![\\boldsymbol{\\theta} = \[\\lambda, \\, \\sigma,\\, \\xi\]^\\top](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cboldsymbol%7B%5Ctheta%7D%20%3D%20%5B%5Clambda%2C%20%5C%2C%20%5Csigma%2C%5C%2C%20%5Cxi%5D%5E%5Ctop "\boldsymbol{\theta} = [\lambda, \, \sigma,\, \xi]^\top")
+can be transformed into the vector
+![\\boldsymbol{\\theta}^\\star = \[\\mu^\\star, \\, \\sigma^\\star, \\,\\xi^\\star\]^\\top](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cboldsymbol%7B%5Ctheta%7D%5E%5Cstar%20%3D%20%5B%5Cmu%5E%5Cstar%2C%20%5C%2C%20%5Csigma%5E%5Cstar%2C%20%5C%2C%5Cxi%5E%5Cstar%5D%5E%5Ctop "\boldsymbol{\theta}^\star = [\mu^\star, \, \sigma^\star, \,\xi^\star]^\top")
 of so-called “Poisson-Process” (PP) parameters that describe the GEV
 distribution of the maximum on a block with a fixed reference duration
-*w*<sup>⋆</sup>, usually taken as one year. The PP parameters do not
-depend on the threshold *u* but they depend on *w*<sup>⋆</sup>. The
-Poisson-GP parameters do not depend on *w*<sup>⋆</sup> but depend on the
-threshold *u*. The shape parameters *ξ* and *ξ*<sup>⋆</sup> are
-identical in the two parameterisations. It is often simpler to use the
-Poisson-GP parameterisation because the rate *λ* can be concentrated out
-of the likelihood.
+![w^\\star](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;w%5E%5Cstar "w^\star"),
+usually taken as one year. The PP parameters do not depend on the
+threshold
+![u](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;u "u")
+but they depend on
+![w^\\star](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;w%5E%5Cstar "w^\star").
+The Poisson-GP parameters do not depend on
+![w^\\star](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;w%5E%5Cstar "w^\star")
+but depend on the threshold
+![u](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;u "u").
+The shape parameters
+![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+and
+![\\xi^\\star](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi%5E%5Cstar "\xi^\star")
+are identical in the two parameterisations. It is often simpler to use
+the Poisson-GP parameterisation because the rate
+![\\lambda](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Clambda "\lambda")
+can be concentrated out of the likelihood.
 
 While the Poisson-GP formulation was already implemented in the
 **Renext** package, **potomax** puts emphasis on the use of
@@ -51,6 +69,11 @@ The package provides classical S3 methods for fitted models such as
 
 # News
 
+## Version 0.2.1
+
+-   New vignette: *R Package potomax: Overview*, including the Venice
+    example.
+
 ## Version 0.2.0
 
 -   The one-parameter exponential distribution can now be used as a
@@ -60,15 +83,26 @@ The package provides classical S3 methods for fitted models such as
 -   Bug fix. The quantile function `qGPD2` did not work as expected with
     `lower.tail = FALSE`.
 
--   The approximation of the GPD2 distribution functions for *ξ* ≈ 0 has
-    been improved. For each of the three functions `dGPD2`, `pGPD2` and
-    `qGPD2`, a quadratic function of *ξ* is used for small *ξ* providing
-    a Taylor series approximation. The derivatives w.r.t. the parameters
-    are consistently taken as functions of *ξ* that are linear
-    (gradient) and constant (hessian). The distribution functions are
-    now smooth functions of *ξ* even for very small *ξ*, say
-    *ξ* ≈ 10<sup>−6</sup> or less. Some tests devoted to this “small
-    *ξ*” approximation have been added to the package.
+-   The approximation of the GPD2 distribution functions for
+    ![\\xi \\approx 0](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi%20%5Capprox%200 "\xi \approx 0")
+    has been improved. For each of the three functions `dGPD2`, `pGPD2`
+    and `qGPD2`, a quadratic function of
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+    is used for small
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+    providing a Taylor series approximation. The derivatives w.r.t. the
+    parameters are consistently taken as functions of
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+    that are linear (gradient) and constant (hessian). The distribution
+    functions are now smooth functions of
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")
+    even for very small
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi"),
+    say
+    ![\\xi \\approx 10^{-6}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi%20%5Capprox%2010%5E%7B-6%7D "\xi \approx 10^{-6}")
+    or less. Some tests devoted to this “small
+    ![\\xi](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%5Cxi "\xi")”
+    approximation have been added to the package.
 
 # Install release version from GitHub
 

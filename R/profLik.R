@@ -134,7 +134,7 @@ profLik <- function(object, fun, ...) {
 ##' Optimisation". Unpublished Tech. Report.
 ##' 
 ##' Johnson S.G. \emph{The NLopt Nonlinear-Optimization Package}.
-##' \url{http://github.com/stevengj/nlopt}.
+##' \url{https://github.com/stevengj/nlopt}.
 ##'
 ##' Section \bold{Return values} in the manual
 ##' \href{https://nlopt.readthedocs.io/en/latest/NLopt_Reference}{NLOPT

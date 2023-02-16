@@ -1,6 +1,6 @@
 ---
 author: "Yves Deville"
-title: "nieve README"
+title: "potomax README"
 linkcolor: blue
 output: github_document
 ---

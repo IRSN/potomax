@@ -289,10 +289,11 @@ confint.poisGP <- function(object,
                     shape <- ifelse(p == 3, theta[3], 0.0)
                                   
                     ## XXXY
-                    thetaStar <- poisGP2PP(lambda = theta[1],
-                                           scale = theta[2],
-                                           shape = shape,
-                                           loc = object$threshold, deriv = TRUE)
+                    thetaStar <-
+                        nieve::poisGP2PP(lambda = theta[1],
+                                         scale = theta[2],
+                                         shape = shape,
+                                         loc = object$threshold, deriv = TRUE)
                     res <- thetaStar[k]
                     
                     ## In 3-rd dim we always have to remove the the GPD location,
@@ -366,17 +367,19 @@ confint.poisGP <- function(object,
                     theta[-k] <- thetaNok
                     theta[k] <- thetak
                     if (p == 3) {
-                        theta <- try(PP2poisGP(locStar = theta[1L],
-                                               scaleStar = theta[2L],
-                                               shapeStar = theta[3L],
-                                               threshold = object$threshold,
-                                               deriv = deriv), silent = TRUE)
+                        theta <-
+                            try(nieve::PP2poisGP(locStar = theta[1L],
+                                                 scaleStar = theta[2L],
+                                                 shapeStar = theta[3L],
+                                                 threshold = object$threshold,
+                                                 deriv = deriv), silent = TRUE)
                     } else {
-                        theta <- try(PP2poisGP(locStar = theta[1L],
-                                               scaleStar = theta[2L],
-                                               shapeStar = 0.0,
-                                               threshold = object$threshold,
-                                               deriv = deriv), silent = TRUE)
+                        theta <-
+                            try(nieve::PP2poisGP(locStar = theta[1L],
+                                                 scaleStar = theta[2L],
+                                                 shapeStar = 0.0,
+                                                 threshold = object$threshold,
+                                                 deriv = deriv), silent = TRUE)
                         
                         ## Caution here. The attributes are lost when indexing []
                         if (deriv) {

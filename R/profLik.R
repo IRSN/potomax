@@ -175,8 +175,10 @@ profLik <- function(object, fun, ...) {
 ##'
 ##' numPP <- 2
 ##' myfun <- function(theta, object) {
-##'     thetaStar <- poisGP2PP(lambda = theta[1], scale = theta[2], shape = theta[3],
-##'                            loc = object$threshold, deriv = TRUE)
+##'     thetaStar <- nieve::poisGP2PP(lambda = theta[1],
+##'                                   scale = theta[2],
+##'                                   shape = theta[3],
+##'                                   loc = object$threshold, deriv = TRUE)
 ##'     res <- thetaStar[numPP]
 ##'     grad <- attr(thetaStar, "gradient")[1, numPP, c(1, 3, 4)]
 ##'     attr(res, "gradient") <- grad

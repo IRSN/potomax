@@ -1,9 +1,14 @@
 Package: potomax
 Type: Package
 Title: Peaks Over Threshold and/or Block Maxima
-Version: 0.2.2
-Date: 2020-06-19
-Author: Yves Deville <deville.yves@alpestat.com>
+Version: 0.2.3
+Date: 2023-02-17
+Authors@R:
+    c(person(given = "Yves",
+             family = "Deville",
+             role = c("cre", "aut"),
+             email = "deville.yves@alpestat.com",
+	     comment = c(ORCID = "0000-0002-1233-488X")))
 Maintainer: Yves Deville <deville.yves@alpestat.com>
 Description: Estimation and inference for standard Peak Over Threshold
     (POT) models using heterogeneous data. The results can be
@@ -13,10 +18,12 @@ Description: Estimation and inference for standard Peak Over Threshold
     in both cases be censored by discarding the observations below a
     chosen threshold.
 License: GPL-3
-Depends: Renext (>= 3.1-2), nloptr, ggplot2
+Depends: nieve (>= 0.1.3), Renext (>= 3.1-2), nloptr, ggplot2
 Imports: ismev, methods, scales, tidyr, dplyr, reshape2
 Suggests: numDeriv, testthat, roxygen2, knitr, png, rmarkdown
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
+URL: https://github.com/IRSN/potomax/
+BugReports: https://github.com/IRSN/potomax/issues/

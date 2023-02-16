@@ -1,6 +1,11 @@
 ---
+author: "Yves Deville"
+title: "nieve README"
+linkcolor: blue
 output: github_document
 ---
+
+<img src="inst/images/potomax.png" height = "200" align="center"/>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -58,42 +63,16 @@ and `autoplot` method to produce "RL plots".
 
 # News
 
-## Version 0.2.1
+See the file [NEWS.md](https://github.com/IRSN/potomax/blob/main/NEWS.md). 
 
-- New vignette: *R Package potomax: Overview*, including the Venice
-example.
-
-## Version 0.2.0
-
-- The one-parameter exponential distribution can now be used as a
-  distribution for the excesses. This leads to Gumbel-distributed
-  block maxima.
-  
-- Bug fix. The quantile function `qGPD2` did not work as expected with
- `lower.tail = FALSE`.
-
-- The approximation of the GPD2 distribution functions for $\xi
-  \approx 0$ has been improved. For each of the three functions
-  `dGPD2`, `pGPD2` and `qGPD2`, a quadratic function of $\xi$ is used
-  for small $\xi$ providing a Taylor series approximation. The
-  derivatives w.r.t. the parameters are consistently taken as
-  functions of $\xi$ that are linear (gradient) and constant
-  (hessian). The distribution functions are now smooth functions of
-  $\xi$ even for very small $\xi$, say $\xi \approx 10^{-6}$ or
-  less. Some tests devoted to this "small $\xi$" approximation have
-  been added to the package.
-  
 # Install release version from GitHub
 
-## Using the *devtools* package
+## Using the *remotes* package
 
-Note that if you are using Windows, you need to have the
-[Rtools](https://cran.r-project.org/bin/windows/Rtools)
-installed. Provided that the **devtools** package is installed you can
-then in an R session use
+For potomax versions >= 0.2.3, in an R session simply use
 
 ```{r, eval=FALSE}
-library(devtools)
+library(remotes)
 install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken)
 ```
 
@@ -102,7 +81,8 @@ package and make it ready to use.
 
 You can also select a specific branch or a specific commit by using
 the suitable syntax for `install_github`, see the **devtools** package
-documentation.
+documentation. Mind that earlier versions contain compiled code hence
+will require for Windows users that the Rtools have been installed.
 
 ## Clone, build and install
 
@@ -141,41 +121,4 @@ Note that you must also have all the packages required by **potomax**
 installed.
 
 If you are using the **RStudio** IDE, you can alternatively use menus.
-
-### Install and precompile for Windows
-
-In order to install the package from its source, you must have a
-suitable Windows platform with
-[Rtools](https://cran.r-project.org/bin/windows/Rtools)
-installed. Then you can proceed as Unix or MacOS users, with a `build`
-step from command line.
-
-If you can not (or do not want to) install the **Rtools** you may get
-a trusted binary from a friend or colleague next to you.
-
-### Creating a binary precompiled file for Windows
-
-If you have the **Rtools** installed, you can create a binary. Using a
-terminal, move if necessary by using `cd` to the directory containing
-the source tarball and R command, and then type
-
-``` {bash, eval = FALSE}
-R CMD INSTALL --build potomax_x.y.z
-```
-
-This will create a `.zip` file that can be used on a Windows platform
-which may not be equipped with *Rtools*. For instance, with
-**RStudio** you can use the menu `Tools/Install Packages` and select
-`Install from:`. 
-
-### Precompiled binaries
-
-You can make the resulting binary file available to Windows users who
-do not have the **Rtools** installed and are allowed to use the
-package. Make sure to conform to the non-disclosure agreement by IRSN
-and contact Lise Bardet (`lise.bardet` at `irsn.fr`) in case of doubt.
-
-Also make sure that the **major** version number `x` and the
-minor version number `y` are the same as those of the R environment
-where the package is to be used. 
 

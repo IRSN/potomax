@@ -28,28 +28,28 @@ Excd <- list("GPD2" = list(p = 2,
 
 Excd[["GPD2"]]$dFun <- function(x, theta, log = FALSE,
                                 deriv = FALSE, hessian = FALSE) {
-    dGPD2(x = x, scale = theta[1], shape = theta[2],
-          log = log,
-          deriv = deriv, hessian = hessian)
+    nieve::dGPD2(x = x, scale = theta[1], shape = theta[2],
+                 log = log,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["GPD2"]]$pFun <- function(q, theta, lower.tail = TRUE, ## log.p = FALSE,
                                 deriv = FALSE, hessian = FALSE) {
-    pGPD2(q = q , scale = theta[1], shape = theta[2],
-          lower.tail = lower.tail,
-          ## log = log,
-          deriv = deriv, hessian = hessian)
+    nieve::pGPD2(q = q , scale = theta[1], shape = theta[2],
+                 lower.tail = lower.tail,
+                 ## log = log,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["GPD2"]]$qFun <- function(p, theta, lower.tail = TRUE, ## log.p = FALSE,
                             log = FALSE, deriv = FALSE, hessian = FALSE) {
-    qGPD2(p = p , scale = theta[1], shape = theta[2],
-          lower.tail = lower.tail,
-          deriv = deriv, hessian = hessian)
+    nieve::qGPD2(p = p , scale = theta[1], shape = theta[2],
+                 lower.tail = lower.tail,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["GPD2"]]$rFun <- function(n, dist, theta) {
-    rGPD2(n = n , scale = theta[1], shape = theta[2])
+    nieve::rGPD2(n = n , scale = theta[1], shape = theta[2])
 }
 
 ## ==============================================================================
@@ -58,26 +58,26 @@ Excd[["GPD2"]]$rFun <- function(n, dist, theta) {
 
 Excd[["exp1"]]$dFun <- function(x, theta, log = FALSE,
                                 deriv = FALSE, hessian = FALSE) {
-    dexp1(x = x, scale = theta[1],
-          log = log,
-          deriv = deriv, hessian = hessian)
+    nieve::dexp1(x = x, scale = theta[1],
+                 log = log,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["exp1"]]$pFun <- function(q, theta, lower.tail = TRUE, ## log.p = FALSE,
                                 deriv = FALSE, hessian = FALSE) {
-    pexp1(q = q , scale = theta[1],
-          lower.tail = lower.tail,
-          # log = log,
-          deriv = deriv, hessian = hessian)
+    nieve::pexp1(q = q , scale = theta[1],
+                 lower.tail = lower.tail,
+                                        # log = log,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["exp1"]]$qFun <- function(p, theta, lower.tail = TRUE, ## log.p = FALSE,
-                            log = FALSE, deriv = FALSE, hessian = FALSE) {
-    qexp1(p = p , scale = theta[1],
-          lower.tail = lower.tail,
-          deriv = deriv, hessian = hessian)
+                                log = FALSE, deriv = FALSE, hessian = FALSE) {
+    nieve::qexp1(p = p , scale = theta[1],
+                 lower.tail = lower.tail,
+                 deriv = deriv, hessian = hessian)
 }
 
 Excd[["exp1"]]$rFun <- function(n, theta) {
-    rexp1(n = n , scale = theta[1])   
+    nieve::rexp1(n = n , scale = theta[1])   
 }

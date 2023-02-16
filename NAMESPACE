@@ -1,4 +1,3 @@
-useDynLib(potomax, .registration = TRUE)
 
 import(Renext)
 importFrom("ismev", "rlarg.fit")
@@ -12,6 +11,9 @@ importFrom("reshape2", "melt")
 ## optimisation
 import("nloptr")
 
+## GEV and GPD distributions
+import("nieve")
+
 ## graphics
 import(graphics)
 import(ggplot2)
@@ -21,11 +23,8 @@ importFrom("scales", "trans_new")
 import("stats", except = c("filter"))
 
 export(RL, RP, as.potData, profLik,
-       dGPD2, pGPD2, qGPD2, rGPD2,
        potData, threshData,
-       poisGP,
-       poisGP2PP, PP2poisGP,
-       dexp1, pexp1, qexp1, rexp1)
+       poisGP)
 
 ## ============================================================================
 ## Class "potData" : Similar to Rendata

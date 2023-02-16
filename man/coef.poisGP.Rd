@@ -42,7 +42,7 @@ it.
 }
 \note{
 The \code{"poisGP"} parameters can be transformed into
-\code{"PP"} parameters by using the \code{\link{poisGP2PP}}
-function. This requires giving both the threshold and the block
-duration \code{w}.
+    \code{"PP"} parameters by using the
+    \code{\link[nieve]{poisGP2PP}} function. This requires giving
+    both the threshold and the block duration \code{w}.
 }

@@ -74,6 +74,18 @@ install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken)
 where `myToken` stands for *your* token. This should install the package
 and make it ready to use.
 
+Note that the package comes with a *vignette* which by default will not
+be built/installed. So it may be prefreable to use
+
+``` r
+library(remotes)
+install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken,
+               build_vignettes = TRUE)
+```
+
+and a the package help will then give a link to the (html) vignette *R
+Package potomax: Overview*.
+
 You can also select a specific branch or a specific commit by using the
 suitable syntax for `install_github`, see the **devtools** package
 documentation. Mind that earlier versions contain compiled code hence

@@ -29,10 +29,11 @@ For the standard case where the excesses follow the two-parameter GP
 distribution, the model include the three parameters $\lambda$ (rate
 of the Poisson process for the exceedances over the threshold $u$),
 and the two GP parameters $\sigma$ (scale) and $\xi$ (shape). The
-vector of parameters $\boldsymbol{\theta} = [\lambda, \, \sigma,\,
-\xi]^\top$ can be transformed into the vector
-$\boldsymbol{\theta}^\star = [\mu^\star, \, \sigma^\star,
-\,\xi^\star]^\top$ of so-called "Poisson-Process" (PP) parameters that
+vector of parameters 
+$\boldsymbol{\theta} = [\lambda, \, \sigma,\, \xi]^\top$ can be 
+transformed into the vector
+$\boldsymbol{\theta}^\star = [\mu^\star, \, \sigma^\star, \,\xi^\star]^\top$ 
+of so-called "Poisson-Process" (PP) parameters that
 describe the GEV distribution of the maximum on a block with a fixed
 reference duration $w^\star$, usually taken as one year. The PP
 parameters do not depend on the threshold $u$ but they depend on
@@ -78,6 +79,18 @@ install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken)
 
 where `myToken` stands for *your* token. This should install the
 package and make it ready to use.
+
+Note that the package comes with a *vignette* which by default will not be 
+built/installed. So it may be prefreable to use
+
+```{r, eval=FALSE}
+library(remotes)
+install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken,
+               build_vignettes = TRUE)
+```
+
+and a the package help will then give a link to the (html) vignette *R
+Package potomax: Overview*.
 
 You can also select a specific branch or a specific commit by using
 the suitable syntax for `install_github`, see the **devtools** package

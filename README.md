@@ -57,8 +57,7 @@ The package provides classical S3 methods for fitted models such as
 
 # News
 
-See the file
-[NEWS.md](https://github.com/IRSN/potomax/blob/main/NEWS.md).
+See the file [NEWS.md](NEWS.md).
 
 # Install release version from GitHub
 

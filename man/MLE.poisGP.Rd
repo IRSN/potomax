@@ -4,13 +4,17 @@
 \alias{MLE.poisGP}
 \title{Maximum-Likelihood Estimation of a Poisson-GP Model}
 \usage{
-\method{MLE}{poisGP}(object = NULL,
-    parIni = NULL,
-    estim = c("optim", "nloptr", "eval", "none"),
-    coefLower, coefUpper,
-    parTrack =  FALSE,
-    scale = FALSE,
-    trace = 0)
+\method{MLE}{poisGP}(
+  object = NULL,
+  parIni = NULL,
+  estim = c("optim", "nloptr", "eval", "none"),
+  coefLower,
+  coefUpper,
+  parTrack = FALSE,
+  scale = FALSE,
+  trace = 0,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{poisGP} object that needs to be estimated.}
@@ -37,6 +41,8 @@ optimisation are scaled , see \code{\link{threshData}}. NOT
 IMPLEMENTED YET.}
 
 \item{trace}{Integer Level of verbosity.}
+
+\item{...}{Not used.}
 }
 \value{
 A list with the results of the likelihood

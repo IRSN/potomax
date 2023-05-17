@@ -30,6 +30,8 @@
 ##' confidence bounds.
 ##'
 ##' @author Yves Deville
+##'
+##' @export
 ##' 
 profLik <- function(object, fun, ...) {
     UseMethod("profLik")
@@ -160,6 +162,9 @@ profLik <- function(object, fun, ...) {
 ##'
 ##' @seealso \code{\link[nloptr]{nloptr}} for details on the
 ##' optimisation.
+##'
+##' @method profLik default
+##' @export
 ##' 
 ##' @examples
 ##' object <- poisGP(Garonne)
@@ -291,7 +296,8 @@ profLik.default <- function(object,
         g <- function(theta, object, level, chgSign) {
 
             ellL <- object$negLogLik + qchisq(level, df = 1) / 2.0
-            res <- object$negLogLikFun(theta = theta, object = object, deriv = TRUE)
+            res <- object$negLogLikFun(theta = theta, object = object,
+                                       deriv = TRUE)
             
             res2 <- list("constraints" = res - ellL,
                          "jacobian" = attr(res, "gradient"))
@@ -380,7 +386,8 @@ profLik.default <- function(object,
                 diagno[LU, iLev, "status"] <- resOpt$status
                 if (trace == 1L) {
                     cat(sprintf("    Optimisation status: %d\n", resOpt$status))
-                    cat(sprintf("    Iterations:          %d\n", resOpt$iterations))
+                    cat(sprintf("    Iterations:          %d\n",
+                                resOpt$iterations))
                 }
                 
                 if (trace > 1L) {
@@ -416,7 +423,8 @@ profLik.default <- function(object,
                 
                 if (trace == 1L) {
                     cat(sprintf("    Objective value:  %10.7f\n", checkf[[1]]))
-                    cat(sprintf("    Constraint check: %10.7f\n", checkg$constraints))
+                    cat(sprintf("    Constraint check: %10.7f\n",
+                                checkg$constraints))
                 }
                 
                 gradDist <- distLines(x1 = checkg$jacobian,

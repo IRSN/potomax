@@ -64,7 +64,7 @@ and `autoplot` method to produce "RL plots".
 
 # News
 
-See the file [NEWS.md](https://github.com/IRSN/potomax/blob/main/NEWS.md). 
+See the file [NEWS.md](NEWS.md). 
 
 # Install release version from GitHub
 

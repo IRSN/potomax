@@ -9,8 +9,6 @@
 ##' confidence limits can be obtained by profile-likelihood or by the
 ##' standard 'delta' method.
 ##'
-##' @method RL poisGP
-##'
 ##' @usage
 ##' \method{RL}{poisGP}(object, period = NULL, level = 0.70,
 ##'    confintMethod = c("proflik", "delta", "none"),
@@ -111,6 +109,11 @@
 ##' has a similar check possibility, see
 ##' \code{\link{confint.poisGP}}.
 ##'
+##' @importFrom reshape2 melt
+##' 
+##' @method RL poisGP
+##' @export
+##' 
 ##' @examples
 ##' ## ================================================================
 ##' ## Use the 'Garonne' data from Renext, which embeds both OT data
@@ -475,13 +478,13 @@ RL.poisGP <- function(object,
             periodGrid <- numeric(0)
             negLogLikCRho <- numeric(0)
 
-            ## ==================================================================
+            ## =================================================================
             ## Version with a gradient to be used with a "_LN_"
             ## algorithm such as 'COBYLA'
             ## 
             ## 'V' is the quantile of the distribution of a shape
             ## taken equal to 1.0
-            ## ==================================================================
+            ## =================================================================
             
             negLogLikNoRho <- function(thetaNoScale, period, iRho) {
                 rho  <- rhoGridPer[iRho] - object$threshold
@@ -728,7 +731,8 @@ RL.poisGP <- function(object,
                                 print(resOpt)
                             }
                             
-                            ## The constraint must be active. We have to check that!
+                            ## The constraint must be active. We have to check
+                            ## that!
                             checkg <- g(theta = resOpt$solution,
                                         level = lev,
                                         period = period[iPer],
@@ -823,12 +827,12 @@ RL.poisGP <- function(object,
                                    value.name = "Quant",
                                    varnames = c("Period"))[ , c("Period", "Quant")]
             } else {
-                ## ==============================================================
+                ## =============================================================
                 ## UGGLY CODE: there must be a simpler and more
                 ## efficient way of doing that. The problem is that we
                 ## want to drop the " Type" dimension but not the
                 ## "Level" dimension even when it has no extension
-                ## ==============================================================
+                ## =============================================================
                 
                 df <- list()
                 for (nm in c("Quant", "L", "U")) {

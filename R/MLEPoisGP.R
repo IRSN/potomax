@@ -28,6 +28,7 @@
 ##' @note For versions \code{>= 0.2.0}, the distribution of the
 ##'     exceedances can be exponential as described here
 ##'     \code{\link{Exp1}}.
+##'
 ##' 
 lambdaHat <- function(thetaGP, object, log = TRUE, deriv = TRUE) {
     
@@ -371,19 +372,7 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##' inference results.
 ##' 
 ##' @title Maximum-Likelihood Estimation of a Poisson-GP Model
-##'
-##' @method MLE poisGP
 ##' 
-##' @usage
-##'
-##' \method{MLE}{poisGP}(object = NULL,
-##'     parIni = NULL,
-##'     estim = c("optim", "nloptr", "eval", "none"),
-##'     coefLower, coefUpper,
-##'     parTrack =  FALSE,
-##'     scale = FALSE,
-##'     trace = 0)  
-##'
 ##' @param object A \code{poisGP} object that needs to be estimated.
 ##'
 ##' @param parIni Initial values for the parameter vector. This is
@@ -391,15 +380,6 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##'     \code{"scale"} and \code{"shape"}.
 ##'
 ##' @param estim Type or method chosen for the estimation.
-##'
-##' @param coefLower,coefUpper Lower and Upper bounds for the
-##'     parameters. The should be numeric vectors with names in
-##'     \code{c("lambda", "scale", "shape")}. Only the bounds on the
-##'     GP parameters \code{"scale"} and \code{"shape"} can be used
-##'     during the estimation and they will only be used when
-##'     \code{estim} is \code{"nloptr"}. However the bounds are used
-##'     in the inference \code{\link{confint.poisGP}} and
-##'     \code{\link{RL.poisGP}}.
 ##'
 ##' @param parTrack Not used yet.
 ##'
@@ -409,12 +389,27 @@ negLogLikFun <- function(theta, object, deriv = TRUE, hessian = FALSE) {
 ##'
 ##' @param trace Integer Level of verbosity.
 ##'
+##' @param ... Not used.
+##' 
+##' @param coefLower,coefUpper Lower and Upper bounds for the
+##'     parameters. The should be numeric vectors with names in
+##'     \code{c("lambda", "scale", "shape")}. Only the bounds on the
+##'     GP parameters \code{"scale"} and \code{"shape"} can be used
+##'     during the estimation and they will only be used when
+##'     \code{estim} is \code{"nloptr"}. However the bounds are used
+##'     in the inference \code{\link{confint.poisGP}} and
+##'     \code{\link{RL.poisGP}}.
+##'
 ##' @return A list with the results of the likelihood
 ##'     maximisation. The content of the list depends on the method as
 ##'     given by \code{estim}, yet it should always contain an element
 ##'     \code{logLik} giving the maximised log-likelihood.
 ##' 
 ##' @author Yves Deville
+##'
+##' @importFrom stats optim
+##' @method MLE poisGP
+##' @export
 ##' 
 MLE.poisGP <- function(object = NULL, 
                        parIni = NULL,
@@ -423,7 +418,8 @@ MLE.poisGP <- function(object = NULL,
                        coefUpper,
                        parTrack =  FALSE,
                        scale = FALSE,
-                       trace = 0) {
+                       trace = 0,
+                       ...) {
 
     estim <-  match.arg(estim)
        
@@ -433,9 +429,9 @@ MLE.poisGP <- function(object = NULL,
     parNames <- object$parNames
     p <- object$p
     
-    ## ==========================================================================
+    ## =========================================================================
     ## Manage the bounds
-    ## ==========================================================================
+    ## =========================================================================
     
     lb <- rep(c("lambda" = 0.0, "scale" = 0.0, "shape" = -0.99))
     
@@ -487,10 +483,10 @@ MLE.poisGP <- function(object = NULL,
     
     if (estim == "optim") {
         
-        ## ======================================================================
+        ## =====================================================================
         ## When `estim` is "optim" we use the standard BFGS algorithm,
         ## with no gradient, so `deriv` is FALSE.
-        ## ======================================================================
+        ## =====================================================================
 
         res$df <- p
         
@@ -521,11 +517,11 @@ MLE.poisGP <- function(object = NULL,
         
     } else if (estim == "nloptr") {
         
-        ## ======================================================================
+        ## =====================================================================
         ## When `estim` is "nloptr" we use the BFGS algorithm with
         ## gradient. The result returned by the function must be a
         ## list. We can use box contraints on the parameters.
-        ## ======================================================================
+        ## =====================================================================
 
         if (trace) {
             cat("\nUsing the \"NLOPT_LD_BFGS\" algorithm with derivatives.\n")

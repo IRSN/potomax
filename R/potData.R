@@ -48,6 +48,8 @@
 ##'     \code{\link{RP.potData}} for empirical return periods and
 ##'     plotting positions.
 ##'
+##' @export
+##' 
 ##' @examples
 ##' G <- potData(data = Garonne$OTdata$Flow,
 ##'              effDuration = 65,
@@ -183,6 +185,9 @@ potData <- function(data = NULL, effDuration = NULL,
     res
 }
 
+##' @method summary potData
+##' @export
+##' @noRd
 summary.potData <- function(object, ...) {
 
     res <-  object
@@ -190,6 +195,9 @@ summary.potData <- function(object, ...) {
     res
 }
 
+##' @method print summary.potData
+##' @export
+##' @noRd
 print.summary.potData <- function(x, indent = 0,  ...) {
 
     indStr <- "    "
@@ -255,8 +263,6 @@ print.potData <- function(x, ...) {
 ##' of the \strong{Renext} package.
 ##' 
 ##' @title Return Periods for a \code{potData} Object
-##'
-##' @method RP potData
 ##' 
 ##' @param object A \code{potData} object, usually created by using
 ##'     \code{\link{potData}} or by coercing an object of class
@@ -285,6 +291,11 @@ print.potData <- function(x, ...) {
 ##' @references
 ##'
 ##' Chap. 4 in Yves Deville(2020) \emph{Renext Computing Details}. Tech. Report.
+##'
+##'
+##' @importFrom Renext Hpoints
+##' @method RP potData
+##' @export
 ##' 
 ##' @examples
 ##' pdat <- potData(data = Garonne$OTdata$Flow,
@@ -324,7 +335,7 @@ RP.potData <- function(object,
     }
     
     ## manage in the same way 'OTS' periods
-    if (!is.null(object$OTS) && object$OTS$flag){
+    if (!is.null(object$OTS) && object$OTS$flag) {
         r <- object$OTS$r
         nms <- names(object$OTS$data)
         if (is.null(nms)) {
@@ -346,7 +357,7 @@ RP.potData <- function(object,
     }
     
     ## manage 'MAX' periods
-    if (!is.null(object$MAX) && object$MAX$flag){
+    if (!is.null(object$MAX) && object$MAX$flag) {
         r <- object$MAX$r
         nms <- names(object$MAX$data)
         if (is.null(nms)) {
@@ -483,6 +494,8 @@ RP.potData <- function(object,
     
 }
 
+##' @method as.potData potData
+##' @noRd
 as.potData.potData <- function(object, ...) {
     object
 }
@@ -506,6 +519,10 @@ as.potData.potData <- function(object, ...) {
 ##'
 ##' @note When \code{object} contains empty OTS blocks a warning is
 ##' cast when attempting to find the min of an empty block.
+##'
+##' 
+##' @method as.potData Rendata
+##' @export
 ##' 
 ##' @examples
 ##' pdat <- as.potData(Garonne)
@@ -587,6 +604,9 @@ as.potData.Rendata <- function(object, ...) {
 ##' @note The scaling of a \code{potData} object can affect the
 ##' behaviour of a \code{poisGP} object fitted form it. Fit results
 ##' and profile-likelihood results can differ from those expected.
+##'
+##' @method scale potData
+##' @export
 ##' 
 ##' @examples
 ##' L <- as.potData(Garonne)

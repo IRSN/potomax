@@ -15,8 +15,6 @@
 ##' inspected.
 ##' 
 ##' @title Confidence Intervals for a \code{poisGP} Object
-##'
-##' @method confint poisGP
 ##' 
 ##' @usage 
 ##' \method{confint}{poisGP}(object,
@@ -113,6 +111,11 @@
 ##' use the \code{autoplot} method on the returned object. Problems
 ##' seem to be more frequently met with \code{type = "PP"}, i.e. when
 ##' the Point-Process parameterisation is used.
+##'
+##' @importFrom stats qnorm qchisq
+##' @import nloptr 
+##' @method confint poisGP
+##' @export
 ##' 
 ##' @examples
 ##' ## fit from the object Garonne from Renext (class "Rendata")

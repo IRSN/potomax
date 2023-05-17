@@ -11,6 +11,7 @@
 ##'
 ##' @return An object with clas \code{"potData"}.
 ##' 
+##' @export
 ##' 
 as.potData <- function(object, ...) {
 
@@ -31,6 +32,8 @@ as.potData <- function(object, ...) {
 ##'
 ##' @return An object inheriting from the \code{"data.frame"} class
 ##' containing the return levels.
+##'
+##' @export
 ##' 
 RL <- function(object, ...) {   
     UseMethod("RL", object)
@@ -53,6 +56,8 @@ RL <- function(object, ...) {
 ##'
 ##' @return An object inheriting from the \code{"data.frame"} class
 ##' containing the return periods.
+##'
+##' @export
 ##' 
 RP <- function(object, ...) {   
     UseMethod("RP", object)
@@ -74,6 +79,8 @@ RP <- function(object, ...) {
 ##' should be extracted by the \code{coef} and \code{vcov} methods.
 ##'
 ##' @seealso \code{\link[stats]{coef}} and \code{\link[stats]{vcov}}.
+##'
+##' @export
 MLE <- function(object, ...) {   
     UseMethod("MLE", object)
 }

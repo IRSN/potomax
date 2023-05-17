@@ -9,6 +9,8 @@ Criterion for a Poisson-GP Object}
 \method{AIC}{poisGP}(object, ..., k)
 
 \method{BIC}{poisGP}(object, ...)
+
+\method{BIC}{poisGP}(object, ...)
 }
 \arguments{
 \item{object}{An object with class \code{"poisGP"}.}

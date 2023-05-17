@@ -80,12 +80,18 @@ coefIni.poisGP <- function(object, trace = 0, ...) {
     
 }
 
+##' @method summary poisGP
+##' @export
+##' @noRd
 summary.poisGP <- function(object, ...) {
     out <- object
     class(out) <- "summary.poisGP"
     out
 }
 
+##' @method print summary.poisGP
+##' @export
+##' @noRd
 print.summary.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 
     data <-  match.arg(data)
@@ -122,8 +128,6 @@ print.summary.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 ##' data. This is because as soon as the main threshold exceeds one
 ##' observation in a MAX block this block must be turned into an OTS
 ##' block with its threshold set to the main threshold.
-##'
-##' @method print poisGP
 ##' 
 ##' @usage
 ##' 
@@ -143,6 +147,9 @@ print.summary.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 ##'
 ##' @return Nothing.
 ##' 
+##' @method print poisGP
+##' @export
+##' 
 print.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
     print(summary(object = x, ...),  data = data)
 }
@@ -161,8 +168,6 @@ print.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 ##' hopefully attained by choosing \code{type} to be \code{"poisGP"}
 ##' and in the second case by choosing \code{type} to be \code{"PP"}.
 ##'
-##' @method logLik poisGP
-##'
 ##' @usage
 ##' \method{logLik}{poisGP}(object, type = c("poisGP", "PP"), ...) 
 ##' 
@@ -180,7 +185,9 @@ print.poisGP <- function(x, data = c("none", "raw", "fit"), ...) {
 ##' @section Caution: Comparing log-likelihoods or related indicators
 ##' such AIC, BIC across R packages can be irrelevant due to the use
 ##' of different constants.
-##' 
+##'
+##' @method logLik poisGP
+##' @export
 logLik.poisGP <- function(object,
                           type = c("poisGP", "PP"),
                           ...) {
@@ -201,9 +208,6 @@ logLik.poisGP <- function(object,
 ## ****************************************************************************
 ##' Akaike's Information Criterion and Schwarz's Bayesian Information
 ##' Criterion for a Poisson-GP model object.
-##' 
-##' @method AIC poisGP
-##' @aliases BIC.poisGP
 ##'  
 ##' @usage
 ##' \method{AIC}{poisGP}(object, ..., k)
@@ -237,11 +241,19 @@ logLik.poisGP <- function(object,
 ##' observation.
 ##'
 ##' @seealso \code{\link{logLik.poisGP}}
+##'
+##' @importFrom stats AIC
+##' @method AIC poisGP
+##' @export
 ##' 
 AIC.poisGP <- function(object, ..., k = 2) {
     return(NextMethod())
 }
 
+##' @importFrom stats BIC
+##' @method BIC poisGP
+##' @export
+##' @rdname AIC.poisGP
 BIC.poisGP <- function(object, ...) {
     return(NextMethod())
 }
@@ -284,6 +296,9 @@ BIC.poisGP <- function(object, ...) {
 ##'     \code{\link[nieve]{poisGP2PP}} function. This requires giving
 ##'     both the threshold and the block duration \code{w}.
 ##'
+##' @importFrom stats coef
+##' @method coef poisGP
+##' @export
 ##' 
 coef.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
     type <- match.arg(type)
@@ -309,6 +324,11 @@ coef.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##'
 ##' @note The correlation matrix can be obtained by using
 ##' \code{\link{cov2cor}} on the result.
+##'
+##' @importFrom stats vcov cov2cor
+##' 
+##' @method vcov poisGP
+##' @export
 ##' 
 vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
     type <- match.arg(type)
@@ -471,6 +491,10 @@ vcov.poisGP <- function(object, type = c("poisGP", "PP"), ...) {
 ##'     observations are found in the data vectors.
 ##'
 ##' }
+##'
+##' @importFrom ismev rlarg.fit
+##' @importFrom methods is
+##' @export
 ##' 
 ##' @author Yves Deville
 ##'

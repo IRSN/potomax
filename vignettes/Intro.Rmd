@@ -49,10 +49,10 @@ $r$-largest observations to discard non-extreme block maxima.
 
 ### Similarities and differences with **Renext**
 
-As is the case with the formerly released package **Renext**, the
-package **potomax** allows the use of observations that are aggregated
-in time. These involve standard block maxima, but also *historical
-information*.
+As is the case with the formerly released package **Renext**
+[@Pack_Renext], the package **potomax** allows the use of observations
+that are aggregated in time. These involve standard block maxima, but
+also *historical information*.
 
 **potomax** has several major differences with **Renext**, which motivated the
 creation of a new package

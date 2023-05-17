@@ -51,6 +51,8 @@
 ##' exceeds all the observations of the original MAX block.
 ##' 
 ##' @seealso \code{\link{potData}}.
+##'
+##' @export
 ##' 
 ##' @examples
 ##' set.seed(123)

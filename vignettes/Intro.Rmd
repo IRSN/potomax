@@ -22,7 +22,8 @@ KABLE <- TRUE
 library(potomax)
 ```
 
-This vignette has been compiled with `r R.version.string` using **potomax** `r packageVersion("potomax")`.
+This vignette has been compiled with `r R.version.string` using
+**potomax** `r packageVersion("potomax")`.
 
 
 ## The **potomax** package
@@ -34,11 +35,11 @@ in response to some of Behrig's practical needs in Extreme-Value
 modelling.
 
 The **potomax** package is devoted to the estimation and inference of
-the *Poisson-GP* model in Extreme-Value Analysis. The model is a marked
-Poisson process indexed by time with the marks distributed according
-to the Generalised Pareto (GP) distribution. This is a classical
-framework for Peaks Over Threshold (POT) modelling, although the
-Binomial-GP can also be used. 
+the *Poisson-GP* model in Extreme-Value Analysis. The model is a
+marked Poisson process indexed by time with the marks distributed
+according to the Generalised Pareto (GP) distribution. This is a
+classical framework for Peaks Over Threshold (POT) modelling
+[@DavisonSmith_POT], although the Binomial-GP can also be used.
 
 By aggregating the marks in time and retaining the maxima or the
 largest observations over given time intervals or time *blocks*, we
@@ -56,19 +57,19 @@ information*.
 **potomax** has several major differences with **Renext**, which motivated the
 creation of a new package
 
-- *Profile-likelihood inference* can be used for the parameters
-and for the return levels.
+- *Profile likelihood inference* [@Davison_StatModels] can be used for
+  the parameters and for the return levels.
 
 - *Only the GP distribution can be used* for the marks or
-excesses. Since the GP distribution is the only distribution which can
-be called *POT-stable*, the limitation to the GP is harmless as far as
-the interest is on Extreme-Value analysis.
+  excesses. Since the GP distribution is the only distribution which
+  can be called *POT-stable*, the limitation to the GP is harmless as
+  far as the interest is on Extreme-Value analysis.
 
-- Most graphics are based on **ggplot2**. 
+- Most graphics are based on the **ggplot2** package [@Pack_ggplot2],
+  and the `autoplot` method will be used instead of the `plot` method.
 
 There are also differences plotting positions which will be briefly
 discussed below.
-
 
 ### Model and parameters
 
@@ -198,15 +199,15 @@ coef(fitGaronne, type = "PP")
 The shape parameter is the same in both parameterisations. However the `scale` parameters differ.
 
 
-## Profile-likelihood
+## Profile likelihood
 
 ### Using constrained optimisations
 
-Profile-likelihood can be used to infer on the parameters, be they in
+Profile likelihood can be used to infer on the parameters, be they in
 the Poisson-GP or in the NHPP parameterisation. As for the `coef`
 method, the `confint` method as a `type` argument allowing to switch
 from the default parameterisation to the `"NHPP"` one. The cheap
-*delta method* can also be used in place of profile-likelihood if
+*delta method* can also be used in place of profile likelihood if
 needed.
 
 ```{r poisGP-Garonne2, message=FALSE, warning=FALSE}
@@ -214,10 +215,10 @@ confint(fitGaronne)
 confint(fitGaronne, method = "delta")
 confint(fitGaronne, type = "PP")
 ```
-Profile-likelihood is also be used to infer on the return levels
+Profile likelihood is also be used to infer on the return levels
 as returned by the `RL` method.
 
-As in the **NSGEV** package, the profile-likelihood confidence
+As in the **NSGEV** package, the profile likelihood confidence
 intervals for the parameters are in **potomax** computed by using
 constrained optimisations. Roughly speaking, we maximise and minimise
 the parameter under the constraint that the log-likelihood is high
@@ -233,7 +234,7 @@ freedom according to $\delta = q_{\chi^2(1)}(1 - \alpha) / 2$, where
 $1 - \alpha$ is the chosen confidence level.  Similarly, the lower
 bound of the interval by minimising $\eta$ under the same constraint.
 
-Remind that the classical method used for profile-likelihood consists
+Remind that the classical method used for profile likelihood consists
 in computing the profile log-likelihood function
 $\ell_{\text{prof}}(\eta)$ and in solving numerically the equation
 $\ell_{\text{prof}}(\eta) = \ell_{\text{max}} - \delta$.  Provided
@@ -252,7 +253,7 @@ However, the optimisation can fail and mileadingly indicate a
 convergence, which can be quite difficult to diagnose. The classical
 approach solving equations for the profile log-likelihood may also
 fail, yet the results can be checked by plotting the the negative
-profile-likelihood $-\ell_{\text{prof}}(\eta)$ against the parameter
+profile likelihood $-\ell_{\text{prof}}(\eta)$ against the parameter
 $\eta$, which should lead to a smooth curve with a minimum at the ML
 estimate $\widehat{\eta}$. By adding the horizontal line corresponding
 to the negative log-likelihood ordinate $-(\ell_{\max} - \delta)$, the
@@ -413,7 +414,7 @@ cbind("ismev" = -fit2i$nllh,
       "Renext" = fit2R$loglik,
       "potomax" = logLik(fit2p, type = "PP"))
 ```
-Now profile-likelihood confidence intervals on parameters
+Now profile likelihood confidence intervals on parameters
 
 ```{r Venice3, out.width="600px", fig.align="center", fig.caption="Venice data."}
 confint(fit2p)
@@ -456,9 +457,9 @@ observations in the block.
 **potomax** favours the log-scale axis for the durations in RL plots,
 as opposed to the Gumbel scale. This allows to straightforwardly show
 the marks $Y_i$. But block maxima can be shown on the same plot by
-using suitable plotting positions. These positions are designed to get
-points around a common straight line in the exponential-Gumbel case
-$\xi = 0$, both for the marks and the maxima.
+using suitable plotting positions [@Deville_Renext]. These positions
+are designed to get points around a common straight line in the
+exponential-Gumbel case $\xi = 0$, both for the marks and the maxima.
 
 The plotting positions are derived from Nelson's plotting positions,
 taking into account censoring when needed, then using the method of
@@ -553,7 +554,6 @@ identically distributed, or correspond to a form of stationarity. But
 in the framework of **potomax**, one observation for a widespread time
 interval may be more informative than several observations
 corresponding to events or smaller time intervals.
-
 			
 ## References
 

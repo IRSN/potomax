@@ -67,19 +67,17 @@ For potomax versions \>= 0.2.3, in an R session simply use
 
 ``` r
 library(remotes)
-install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken)
+install_github("yvesdeville/potomax", dependencies = TRUE)
 ```
 
-where `myToken` stands for *your* token. This should install the package
-and make it ready to use.
+This should install the package and make it ready to use.
 
 Note that the package comes with a *vignette* which by default will not
 be built/installed. So it may be prefreable to use
 
 ``` r
 library(remotes)
-install_github("yvesdeville/potomax", dependencies = TRUE, auth_token = myToken,
-               build_vignettes = TRUE)
+install_github("yvesdeville/potomax", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
 and a the package help will then give a link to the (html) vignette *R
@@ -102,8 +100,7 @@ git clone https://github.com/yvesdeville/potomax
 ```
 
 This will create a `potomax` sub-directory of the current directory,
-i.e. the directory from which the git command was issued. Of course this
-can work only if you have the authorisation to clone.
+i.e. the directory from which the git command was issued.
 
 ### Installation on Unix and MacOs systems
 

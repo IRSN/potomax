@@ -495,6 +495,7 @@ RP.potData <- function(object,
 }
 
 ##' @method as.potData potData
+##' @export
 ##' @noRd
 as.potData.potData <- function(object, ...) {
     object

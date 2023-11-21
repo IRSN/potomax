@@ -3,3 +3,4 @@
 ^TODO.*
 ^README.*
 ^inst/images/potomax.pdf
+^\.github$

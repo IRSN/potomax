@@ -25,5 +25,5 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.1
 VignetteBuilder: knitr
-URL: https://github.com/IRSN/potomax/
+URL: https://github.com/IRSN/potomax/, https://irsn.github.io/potomax/
 BugReports: https://github.com/IRSN/potomax/issues/

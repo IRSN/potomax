@@ -4,3 +4,6 @@
 ^README.*
 ^inst/images/potomax.pdf
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

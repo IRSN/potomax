@@ -67,7 +67,7 @@ For potomax versions \>= 0.2.3, in an R session simply use
 
 ``` r
 library(remotes)
-install_github("yvesdeville/potomax", dependencies = TRUE)
+install_github("IRSN/potomax", dependencies = TRUE)
 ```
 
 This should install the package and make it ready to use.
@@ -77,7 +77,7 @@ be built/installed. So it may be prefreable to use
 
 ``` r
 library(remotes)
-install_github("yvesdeville/potomax", dependencies = TRUE, build_vignettes = TRUE)
+install_github("IRSN/potomax", dependencies = TRUE, build_vignettes = TRUE)
 ```
 
 and a the package help will then give a link to the (html) vignette *R
@@ -96,7 +96,7 @@ If you do not have yet a local `potomax` repository, use `git clone` to
 clone the `potomax` repository
 
 ``` bash
-git clone https://github.com/yvesdeville/potomax
+git clone https://github.com/IRSN/potomax
 ```
 
 This will create a `potomax` sub-directory of the current directory,

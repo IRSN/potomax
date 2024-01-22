@@ -1,19 +1,18 @@
 ---
-author: "Yves Deville"
-title: "potomax README"
+title: "R package potomax"
 linkcolor: blue
 output: github_document
 ---
 
-<img src="inst/images/potomax.png" height = "200" align="center"/>
+<a href="https://irsn.github.io/potomax/"><img src="man/figures/logo.png" align="right" height="138" alt="potomax website"/></a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# R package potomax
+# Scope
 
-**potomax** is a R package financed by IRSN Behrig.
+**potomax** is a R package funded by IRSN Behrig. 
 
-**potomax** is devoted to Extreme Value analysis and merges the two
+It is devoted to Extreme Value analysis and merges the two
 classical approaches *POT* (Peaks Over Threshold) and *block
 MAXima*. In both cases we may consider that the observations are
 related in some way to a *Poisson-GP marked process* i.e., a marked
@@ -62,73 +61,22 @@ methods `RL` to compute Return Levels and their confidence intervals,
 and `autoplot` method to produce "RL plots".
 
 
-# News
+# Install 
 
-See the file [NEWS.md](NEWS.md). 
-
-# Install release version from GitHub
-
-## Using the *remotes* package
-
-For potomax versions >= 0.2.3, in an R session simply use
+For **potomax** versions >= 0.2.3, you can rely on the **remotes**
+package. In an R session simply use
 
 ```{r, eval=FALSE}
 library(remotes)
-install_github("IRSN/potomax", dependencies = TRUE)
+install_github("IRSN/potomax", dependencies = TRUE, build_vignettes = TRUE))
 ```
 
-This should install the package and make it ready to use.
-
-Note that the package comes with a *vignette* which by default will not be 
-built/installed. So it may be prefreable to use
-
-```{r, eval=FALSE}
-library(remotes)
-install_github("IRSN/potomax", dependencies = TRUE, build_vignettes = TRUE)
-```
-
-and a the package help will then give a link to the (html) vignette *R
-Package potomax: Overview*.
+This should install the package and make it ready to use. Note that
+the package comes with a *vignette* *R Package potomax: Overview* a
+link on which should show in the package help. If the argument
+`build_vignettes` is omitted, the vignette will not be built.
 
 You can also select a specific branch or a specific commit by using
 the suitable syntax for `install_github`, see the **devtools** package
 documentation. Mind that earlier versions contain compiled code hence
-will require for Windows users that the Rtools have been installed.
-
-## Clone, build and install
-
-### Cloning the repository
-
-If you do not have yet a local `potomax` repository, use `git clone` to
-clone the `potomax` repository
-
-``` bash
-git clone https://github.com/IRSN/potomax
-```
-
-This will create a `potomax` sub-directory of the current directory,
-i.e. the directory from which the git command was issued.
-
-### Installation on Unix and MacOs systems
-
-With these systems you can install a package from its source. Move to
-the parent directory of your cloned repository and use the following
-command from a terminal to create a tarball source file
-
-``` bash
-R CMD build potomax
-```
-
-This will produce a source tarball `potomax_x.y.z` where `x`, `y` and
-`z` stand for the major, minor and patch version numbers. Then you can
-install from a command line
-
-``` bash
-R CMD INSTALL potomax_x.y.z
-```
-
-Note that you must also have all the packages required by **potomax**
-installed.
-
-If you are using the **RStudio** IDE, you can alternatively use menus.
-
+will require for Windows users that the **Rtools** have been installed.

@@ -2,7 +2,7 @@ Package: potomax
 Type: Package
 Title: Peaks Over Threshold and/or Block Maxima
 Version: 0.2.4
-Date: 2023-05-17
+Date: 2024-01-22
 Authors@R:
     c(person(given = "Yves",
              family = "Deville",

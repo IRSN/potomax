@@ -31,7 +31,7 @@ This vignette has been compiled with `r R.version.string` using
 ### Scope
 
 The **potomax** package has been financed by IRSN/Behrig and designed
-in response to some of Behrig's practical needs in Extreme-Value
+in response to some of Behrig's practical needs for Extreme-Value
 modelling.
 
 The **potomax** package is devoted to the estimation and inference of
@@ -93,7 +93,7 @@ so-called block maxima. Consider a time interval with duration $w$ and
 the maximum $M := \max\{Y_i\}$ of the marks $Y_i$ corresponding to the
 times $T_i$ in the interval. Then, up to an atom corresponding to the
 case where no event occur in the interval, the random variable $M$
-follows a Genralised Extreme Value (GEV) distribution. Moreover if we
+follows a Generalised Extreme Value (GEV) distribution. Moreover if we
 consider a partition of the time axis into time intervals or time
 blocks $b =1$, $2$, $\dots$ with the same duration $w$, we get
 i.i.d. GEV random variables $M_b$.
@@ -124,7 +124,7 @@ block maxima.
 
 The two POT parameterisations are used in several CRAN packages,
 including: **evd** [@PACKevd], **ismev** [@PACKismev], **extRemes**
-[@PACKextRemes], **POT** [@PACKPOT].  See also Northrop et al
+[@PACKextRemes], **POT** [@PACKPOT].  See also Northrop et al.
 [@NorthropEtAl_NSExtremes] for a presentation of the two frameworks
 and their differences in the non-stationary extension using
 covariates.
@@ -147,9 +147,9 @@ Note that in the Poisson-GP formulation we can use observations that
 are exceedances over a threshold $u'$ and parameters related to
 another "reference" threshold $u$. This is similar to the NHPP
 parameterisation where the classical one-year reference block duration
-could be used with observations for two-years blocks. So, the specific
+could be used with observations for two-year blocks. So, the specific
 parameterisation does not impose the specific censoring needed to
-elicite the observations that are extreme enough. Many series of
+elicit the observations that are extreme enough. Many series of
 annual maxima embed observations that would not be judged as extreme
 enough in the POT approach. Rather than aggregating then the annual
 maxima into bi-annual maxima, we can simply use censoring, see the
@@ -157,14 +157,14 @@ Venice example below.
 
 ## Creating and using `poisGP` objects
 
-The main class in the package is `"PoisGP"`. The eponym creator uses a
-`data` formal argument which can be given a simple numeric vector
-containing the marks $Y_i$, or more complex data structures such as
-`"Rendata"` from **Renext** or `"potData"` from **potomax**, see
-below. We begin by using the `Garonne` object from **Renext**. This
-object contains observations for the discharge rate of the river
-Garonne (France) in cumecs. It embeds both "systematic" observations
-and "historical" observations.
+The main class in the package is `"PoisGP"`. The eponymous creator
+uses a `data` formal argument which can be given a simple numeric
+vector containing the marks $Y_i$, or more complex data structures
+such as `"Rendata"` from **Renext** or `"potData"` from **potomax**,
+see below. We begin by using the `Garonne` object from
+**Renext**. This object contains observations for the discharge rate
+of the river Garonne (France) in cumecs. It embeds both "systematic"
+observations and "historical" observations.
 
 
 ```{r poisGP-Garonne0, message=FALSE, warning=FALSE, fig.width=6, fig.height=3, fig.align="center", out.width="500px"}
@@ -205,7 +205,7 @@ The shape parameter is the same in both parameterisations. However the `scale` p
 
 Profile likelihood can be used to infer on the parameters, be they in
 the Poisson-GP or in the NHPP parameterisation. As for the `coef`
-method, the `confint` method as a `type` argument allowing to switch
+method, the `confint` method has a `type` argument allowing to switch
 from the default parameterisation to the `"NHPP"` one. The cheap
 *delta method* can also be used in place of profile likelihood if
 needed.
@@ -215,7 +215,7 @@ confint(fitGaronne)
 confint(fitGaronne, method = "delta")
 confint(fitGaronne, type = "PP")
 ```
-Profile likelihood is also be used to infer on the return levels
+Profile likelihood can also be used to infer on the return levels
 as returned by the `RL` method.
 
 As in the **NSGEV** package, the profile likelihood confidence
@@ -249,7 +249,7 @@ search on a grid of candidate values for $\eta$.
 ### Checking the results
 
 The constrained optimisation method is appealing for its generality.
-However, the optimisation can fail and mileadingly indicate a
+However, the optimisation can fail and misleadingly indicate a
 convergence, which can be quite difficult to diagnose. The classical
 approach solving equations for the profile log-likelihood may also
 fail, yet the results can be checked by plotting the the negative
@@ -273,7 +273,7 @@ values of the shape parameter $\xi$ or for the small values of the
 return levels corresponding to a small return period, say $T < 10$ 
 years.
 
-If the results are good, then we can rerun with the (default) `check =
+If the results are good, then we can re-run with the (default) `check =
 FALSE` to get the results involving confidence intervals.
 
 ```{r checkCI0, echo=FALSE}
@@ -309,7 +309,7 @@ $Y_i$ with $Y_i > u$, divided by the effective duration.
 The two optional arguments `MAX.data` and `OTS.data` can be used to
 describe observations that have been censored: *by value* (Type I) or
 *by number* (Type II).  In both cases, the observations are given as a
-*list*, and it must be completed by a numeric vector of durations,
+*list* which must be completed by a numeric vector of durations,
 `MAX.effDuration` or `OTS.effDuration`. Each element of the "data"
 list corresponds to an interval of time and contains a vector with
 either the largest observations (for `MAX.data`) or all the
@@ -327,22 +327,22 @@ the years for block maxima or for $r$-largest observations. The same
 vector of element names should then be used for the data lists, the
 vector of durations and the vector thresholds in the "OTS" case.
 
-Finally, rather than using these we can use a single structure
-describing the heterogeneous data. For this aim the function `potData`
-can be used to create an object of class `"potData"`. Such an object 
-can be passed to the `data` argument of `poisGP` an be re-used
-if different fits are a.g., with different thresholds.
+Finally, rather than using several arguments we can use a single
+structure describing the heterogeneous data. For this aim the function
+`potData` can be used to create an object of class `"potData"`. Such
+an object can be passed to the `data` argument of `poisGP` an be
+re-used if different fits are a.g., with different thresholds.
 
 ```{r potData, out.width="600px", fig.align="center", fig.caption="Using `potData`."}
 G <- potData(data = Garonne$OTdata$Flow,
              effDuration = 65,
              MAX.data = Garonne$MAXdata$Flow,
              MAX.effDuration = 143)
-G
+str(G)
 autoplot(G) + ggtitle("Garonne: raw observations")
 ```
 
-The `potData` structure encaspulates several possible arguments of
+The `potData` structure encapsulates several possible arguments of
 `PoisGP` in a single object. This is similar to what is done for the
 classical `plot` method: its argument `x` can be either a vector or a
 list with elements `x` and `y`.
@@ -357,7 +357,7 @@ no threshold, a default threshold is used. It is chosen just below the
 smallest observation in the data, including those in `data`,
 `MAX.data` and `OTS.data`, if any. When this rule is applied with only
 `MAX.data` and when all the elements in `MAX.effDuration` are
-identical, the fitted object is complient with the usual block maxima
+identical, the fitted object is compliant with the usual block maxima
 estimation: the estimated parameters in the `PP` parameterisation are
 those returned by classical functions for the estimation of GEV
 parameters such as `ismev::dev.fit` or `evd:fgev`. Remind however that
@@ -369,10 +369,10 @@ durations must be given.
 We now use the Venice data from the **ismev** package, see section
 **3.5** in Coles' book [@Coles_ISMEV]. The data contain the
 $r$-largest annual observations of the sea level in Venice.  The data
-come as a matrix with one row by year and $10$ water levels (in cm),
-possibly `NA`.  Some transformations are needed to use the `poisGP`
-function. Note that the first column of `venice` must be removed from
-the data since its contains the year.
+come as a matrix with one row by year containing the $10$ largest
+water levels (in cm), possibly `NA`.  Some transformations are needed
+to use the `poisGP` function. Note that the first column of `venice`
+must be removed from the data since its contains the year.
 
 ```{r Venice0, out.width="600px", fig.align="center", fig.caption="Venice data."}
 data(venice, package = "ismev")
@@ -464,7 +464,7 @@ exponential-Gumbel case $\xi = 0$, both for the marks and the maxima.
 The plotting positions are derived from Nelson's plotting positions,
 taking into account censoring when needed, then using the method of
 Hirsh and Stedinger. For the marks, the resulting positions are very
-close to those computed with the `pppoints` function with its default
+close to those computed with the `ppoints` function with its default
 arguments, as used in most R packages. They differ from the so-called
 *Weibull positions* used in **Renext**. As a consequence, the largest
 observations seem to be related to larger return periods when compared
